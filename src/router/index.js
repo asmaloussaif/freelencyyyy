@@ -59,6 +59,26 @@ const routes = [
         name: 'Inbox',
         component: () => import('@/views/pages/Inbox.vue'),
       },
+      {
+        path: 'invoice-management',
+        name: 'InvoiceManagement',
+        component: () => import('@/views/pages/InvoiceManagement.vue'),
+      },
+      {
+        path: 'project-management',
+        name: 'ProjectManagement',
+        component: () => import('@/views/pages/ProjectManagement.vue'),
+      },
+      {
+        path: 'claim-management',
+        name: 'ClaimManagement',
+        component: () => import('@/views/pages/ClaimManagement.vue'),
+      },
+      {
+        path: 'customer-freelancer-management',
+        name: 'CustomerFreelancerManagement',
+        component: () => import('@/views/pages/CustomerFreelancerManagement.vue'),
+      },
     ],
   },
 ]
