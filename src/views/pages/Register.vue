@@ -16,6 +16,7 @@
           <form @submit.prevent="handleRegister">
             <div class="form">
               <input required type="text" class="w100" v-model="firstName" placeholder="First Name" />
+              <input required type="text" class="w100" v-model="lastName" placeholder="Last Name" />
               <input required type="email" class="w100" v-model="email" placeholder="Email" />
               <input required type="password" class="w100" v-model="password" placeholder="Password" />
               <input required type="password" class="w100" v-model="confirmPassword" placeholder="Confirm Password" />
@@ -55,13 +56,13 @@ const password = ref('')
 const confirmPassword = ref('')
 
 const registerValid = computed(() =>
-  firstName.value &&
-  lastName.value &&
-  role.value &&
-  email.value &&
+  firstName.value.trim() &&
+  lastName.value.trim() &&
+  email.value.trim() &&
   password.value &&
   confirmPassword.value &&
-  password.value === confirmPassword.value
+  password.value === confirmPassword.value &&
+  role.value
 )
 
 const handleRegister = async () => {
@@ -94,13 +95,7 @@ const handleRegister = async () => {
 
     authStore.setAuth(token, userRole)
 
-    if (userRole === 'client') {
-      router.push('/dashboard')
-    } else if (userRole === 'freelance') {
-      router.push('/dashboard')
-    } else {
-      router.push('/dashboard') 
-    }
+    router.push('/dashboard') // redirect to dashboard after registration
   } catch (error) {
     console.error('Erreur d’inscription :', error.message)
     alert('Registration failed: ' + error.message)
@@ -165,6 +160,7 @@ const handleRegister = async () => {
   border-radius: 6px;
   width: 100%;
   font-weight: bold;
+  transition: opacity 0.3s ease;
 }
 .action-disabled {
   opacity: 0.5;

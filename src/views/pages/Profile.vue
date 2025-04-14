@@ -20,7 +20,7 @@
           <CCol lg="7">
             <div class="profile-info-section">
               <h4 class="profile-section-title">
-                <CIcon name="cil-user" class="me-2" /> Personal Information
+                <CIcon name="cil-user" class="me-2" /> Professional Information
               </h4>
               
               <div class="profile-info-grid">
@@ -37,8 +37,17 @@
                   </a>
                 </div>
                 
-                <div class="info-label">About Me:</div>
-                <div class="info-value about-me">{{ user.about }}</div>
+                <div class="info-label">Skills:</div>
+                <div class="info-value">{{ user.skills }}</div>
+                
+                <div class="info-label">Hourly Rate:</div>
+                <div class="info-value">${{ user.rate }}/hr</div>
+                
+                <div class="info-label">Experience:</div>
+                <div class="info-value">{{ user.experience }} years</div>
+                
+                <div class="info-label">Portfolio:</div>
+                <div class="info-value">{{ user.portfolio }}</div>
               </div>
               
               <CButton color="primary" class="mt-4 edit-btn" @click="editProfile">
@@ -79,8 +88,20 @@
                   <CFormInput v-model="editUser.email" type="email" />
                 </div>
                 <div class="mb-3">
-                  <CFormLabel>About Me</CFormLabel>
-                  <CFormTextarea v-model="editUser.about" rows="5" />
+                  <CFormLabel>Skills</CFormLabel>
+                  <CFormInput v-model="editUser.skills" placeholder="e.g. Vue.js, UI/UX Design" />
+                </div>
+                <div class="mb-3">
+                  <CFormLabel>Hourly Rate ($)</CFormLabel>
+                  <CFormInput v-model="editUser.rate" type="number" />
+                </div>
+                <div class="mb-3">
+                  <CFormLabel>Experience (years)</CFormLabel>
+                  <CFormInput v-model="editUser.experience" type="number" />
+                </div>
+                <div class="mb-3">
+                  <CFormLabel>Portfolio</CFormLabel>
+                  <CFormInput v-model="editUser.portfolio" placeholder="Your portfolio name" />
                 </div>
               </CForm>
             </CCol>
@@ -143,7 +164,10 @@ export default {
       firstName: 'Ming',
       lastName: 'Tang',
       email: 'mtng@gmail.com',
-      about: 'Senior Frontend Developer specializing in Vue.js and responsive design. Passionate about creating intuitive user experiences with clean, efficient code. Currently leading the UI development team at TechCorp, where we build innovative solutions for global clients.',
+      skills: 'Vue.js, UI/UX Design, JavaScript, CSS',
+      rate: 75,
+      experience: 5,
+      portfolio: 'mingtang-portfolio',
       photo: profilePhoto
     })
 
@@ -235,6 +259,7 @@ export default {
 </script>
 
 <style scoped>
+/* Your existing styles remain unchanged */
 .profile-container {
   padding: 2rem;
   background-size: cover;
@@ -343,11 +368,6 @@ export default {
   border: 1px solid #e9ecef;
   color: #495057;
   font-size: 1.1rem;
-}
-
-.about-me {
-  line-height: 1.7;
-  min-height: 120px;
 }
 
 .edit-btn {

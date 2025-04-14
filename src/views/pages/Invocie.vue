@@ -1,209 +1,161 @@
 <template>
-    <div class="container">
-      <!-- Offer List Card -->
-      <CCard class="mb-4">
-        <CCardBody>
-          <!-- Search Bar with Search Icon -->
-          <CInputGroup class="mb-3">
-            <CInputGroupText>
-              <CIcon :icon="cilSearch" size="sm" />
-            </CInputGroupText>
-            <CFormInput placeholder="Search for projects..." aria-label="Search" />
-          </CInputGroup>
-  
-          <!-- Offer Card for Each Project -->
-          <div v-for="(offer, index) in offers" :key="index" class="mb-4">
-            <CCard class="p-3">
-              <div class="d-flex justify-content-between">
-                <!-- Title and Description -->
-                <div>
-                  <h4 class="mb-1">Title: {{ offer.title }}</h4>
-                  <p>{{ offer.description }}</p>
-                </div>
-                <!-- Project State -->
-                <div class="text-end">
-                  <span :class="offer.state === 'Open' ? 'badge bg-success' : 'badge bg-danger'">
-                    {{ offer.state }}
-                  </span>
-                </div>
-              </div>
-  
-              <!-- Apply Button -->
-              <CButton color="primary" @click="openModal(offer)">
-                Apply
-              </CButton>
-            </CCard>
+  <CContainer fluid class="mt-4 mb-5">
+    <CCard class="shadow">
+      <CCardHeader class="d-flex justify-content-between align-items-center bg-light py-3">
+        <div>
+          <CIcon name="cil-list-rich" class="me-2" />
+          <strong class="h4">Mes Factures</strong>
+        </div>
+        <div>
+          <CButton color="primary" size="sm">
+            <CIcon name="cil-plus" class="me-1" />
+            Nouvelle Facture
+          </CButton>
+        </div>
+      </CCardHeader>
+      <CCardBody class="p-0">
+        <CTable hover responsive striped bordered>
+          <CTableHead class="table-light">
+            <CTableRow>
+              <CTableHeaderCell scope="col" class="w-10">#</CTableHeaderCell>
+              <CTableHeaderCell scope="col" class="w-20">Date</CTableHeaderCell>
+              <CTableHeaderCell scope="col" class="w-20 text-end">Montant</CTableHeaderCell>
+              <CTableHeaderCell scope="col" class="w-20">Statut</CTableHeaderCell>
+              <CTableHeaderCell scope="col" class="w-30 text-center">Actions</CTableHeaderCell>
+            </CTableRow>
+          </CTableHead>
+          <CTableBody>
+            <CTableRow v-for="(invoice, index) in invoices" :key="index">
+              <CTableDataCell class="fw-semibold">{{ invoice.id }}</CTableDataCell>
+              <CTableDataCell>{{ formatDate(invoice.date) }}</CTableDataCell>
+              <CTableDataCell class="text-end">{{ invoice.amount.toFixed(2) }} €</CTableDataCell>
+              <CTableDataCell>
+                <CBadge 
+                  :color="getStatusColor(invoice.status)" 
+                  class="py-1 px-2"
+                  shape="rounded-pill"
+                >
+                  <CIcon :name="getStatusIcon(invoice.status)" class="me-1" />
+                  {{ invoice.status }}
+                </CBadge>
+              </CTableDataCell>
+              <CTableDataCell class="text-center">
+                <CButtonGroup>
+                  <CButton 
+                    color="primary" 
+                    size="sm" 
+                    @click="downloadInvoice(invoice)"
+                    class="me-2"
+                  >
+                    <CIcon name="cil-cloud-download" class="me-1" />
+                    Télécharger
+                  </CButton>
+                  <CButton 
+                    color="secondary" 
+                    size="sm" 
+                    variant="outline"
+                    @click="viewDetails(invoice)"
+                  >
+                    <CIcon name="cil-description" class="me-1" />
+                    Détails
+                  </CButton>
+                </CButtonGroup>
+              </CTableDataCell>
+            </CTableRow>
+          </CTableBody>
+        </CTable>
+      </CCardBody>
+      <CCardFooter class="bg-light py-3">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="text-muted small">
+            Affichage de {{ invoices.length }} factures
           </div>
-        </CCardBody>
-      </CCard>
-  
-      <!-- Modal for Motivation Input -->
-      <CModal :backdrop="false" :keyboard="false" :visible="modalVisible">
-        <CModalHeader>
-          <CModalTitle>Apply for Project: {{ selectedOffer?.title }}</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <CFormTextarea
-            v-model="motivationText"
-            placeholder="Write your motivation here..."
-            rows="5"
-          />
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" @click="closeModal">Cancel</CButton>
-          <CButton color="primary" @click="submitApplication">Submit</CButton>
-        </CModalFooter>
-      </CModal>
-    </div>
-  </template>
-  
-  <script setup>
-  import { ref } from 'vue'
-  import {
-    CCard,
-    CCardBody,
-    CFormInput,
-    CInputGroup,
-    CInputGroupText,
-    CButton,
-    CModal,
-    CModalHeader,
-    CModalTitle,
-    CModalBody,
-    CModalFooter,
-    CFormTextarea,
-  } from '@coreui/vue'
-  
-  import { CIcon } from '@coreui/icons-vue' 
-  import { cilSearch } from '@coreui/icons' 
-  
-  
-  const offers = ref([
-    {
-      title: 'Web Development Project',
-      description: 'A challenging web development project using Vue.js.',
-      state: 'Open',
-    },
-    {
-      title: 'Mobile App Development',
-      description: 'Create a mobile app for a healthcare startup.',
-      state: 'Closed',
-    },
-  ])
-  
-  
-  const modalVisible = ref(false)
-  const motivationText = ref('')
-  const selectedOffer = ref(null)
-  
-  const openModal = (offer) => {
-    selectedOffer.value = offer
-    modalVisible.value = true
+          <CPagination size="sm">
+            <CPaginationItem>Précédent</CPaginationItem>
+            <CPaginationItem active>1</CPaginationItem>
+            <CPaginationItem>2</CPaginationItem>
+            <CPaginationItem>3</CPaginationItem>
+            <CPaginationItem>Suivant</CPaginationItem>
+          </CPagination>
+        </div>
+      </CCardFooter>
+    </CCard>
+  </CContainer>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import {
+  CContainer, CCard, CCardHeader, CCardBody, CCardFooter,
+  CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell,
+  CButton, CButtonGroup, CBadge, CIcon, CPagination, CPaginationItem
+} from '@coreui/vue'
+
+const invoices = ref([
+  { id: 'INV001', date: '2025-04-01', amount: 150.00, status: 'Payée' },
+  { id: 'INV002', date: '2025-03-20', amount: 300.00, status: 'En attente' },
+  { id: 'INV003', date: '2025-02-15', amount: 200.00, status: 'Payée' },
+  { id: 'INV004', date: '2025-01-10', amount: 450.00, status: 'Annulée' },
+  { id: 'INV005', date: '2024-12-05', amount: 175.50, status: 'Payée' },
+])
+
+const formatDate = (dateString) => {
+  const options = { year: 'numeric', month: 'short', day: 'numeric' }
+  return new Date(dateString).toLocaleDateString('fr-FR', options)
+}
+
+const getStatusColor = (status) => {
+  const statusColors = {
+    'Payée': 'success',
+    'En attente': 'warning',
+    'Annulée': 'danger'
   }
-  
-  const closeModal = () => {
-    modalVisible.value = false
+  return statusColors[status] || 'secondary'
+}
+
+const getStatusIcon = (status) => {
+  const statusIcons = {
+    'Payée': 'cil-check-circle',
+    'En attente': 'cil-clock',
+    'Annulée': 'cil-ban'
   }
-  
-  const clearModal = () => {
-    motivationText.value = ''
-    selectedOffer.value = null
-  }
-  
-  
-  const submitApplication = () => {
-   
-    console.log('Motivation:', motivationText.value)
-    closeModal()
-  }
-  </script>
-  
-  <style scoped>
-  
-  .container {
-    font-family: 'Poppins', sans-serif;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
-    color: #333;
-  }
-  
-  /* Headings */
-  .container h4 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #222;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
-  }
-  
-  /* Paragraphs */
-  .container p {
-    font-size: 15px;
-    line-height: 1.6;
-    color: #555;
-    margin-bottom: 10px;
-  }
-  
-  /* Badges */
-  .badge {
-    font-size: 13px;
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-weight: 500;
-    text-transform: capitalize;
-  }
-  
-  .badge.bg-success {
-    background-color: #28a745;
-    color: white;
-  }
-  
-  .badge.bg-danger {
-    background-color: #dc3545;
-    color: white;
-  }
-  
-  /* Inputs */
-  input[type='text'] {
-    font-family: 'Poppins', sans-serif;
-    border-radius: 6px;
-    padding: 10px 12px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    width: 100%;
-  }
-  
-  input[type='text']:focus {
-    outline: none;
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-  }
-  
-  /* Buttons */
-  button {
-    font-family: 'Poppins', sans-serif;
-    border-radius: 6px;
-    padding: 10px 16px;
-    background-color: #0d6efd;
-    color: white;
-    font-weight: 500;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-  
-  button:hover {
-    background-color: #0b5ed7;
-  }
-  
-  /* Modal content */
-  .modal-body {
-    font-family: 'Poppins', sans-serif;
-    font-size: 16px;
-    line-height: 1.6;
-    color: #444;
-  }
-  </style>
-  
+  return statusIcons[status] || 'cil-info'
+}
+
+const downloadInvoice = (invoice) => {
+  // Implémentation réelle du téléchargement
+  console.log(`Téléchargement de la facture: ${invoice.id}`)
+}
+
+const viewDetails = (invoice) => {
+  // Navigation vers la page de détails
+  console.log(`Voir détails de: ${invoice.id}`)
+}
+</script>
+
+<style scoped>
+.table-responsive {
+  border-radius: 0.375rem;
+  overflow: hidden;
+}
+
+.table thead th {
+  border-bottom-width: 2px;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.badge {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+</style>

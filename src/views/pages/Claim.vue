@@ -1,209 +1,117 @@
 <template>
-    <div class="container">
-      <!-- Offer List Card -->
-      <CCard class="mb-4">
-        <CCardBody>
-          <!-- Search Bar with Search Icon -->
-          <CInputGroup class="mb-3">
-            <CInputGroupText>
-              <CIcon :icon="cilSearch" size="sm" />
-            </CInputGroupText>
-            <CFormInput placeholder="Search for projects..." aria-label="Search" />
-          </CInputGroup>
-  
-          <!-- Offer Card for Each Project -->
-          <div v-for="(offer, index) in offers" :key="index" class="mb-4">
-            <CCard class="p-3">
-              <div class="d-flex justify-content-between">
-                <!-- Title and Description -->
-                <div>
-                  <h4 class="mb-1">Title: {{ offer.title }}</h4>
-                  <p>{{ offer.description }}</p>
-                </div>
-                <!-- Project State -->
-                <div class="text-end">
-                  <span :class="offer.state === 'Open' ? 'badge bg-success' : 'badge bg-danger'">
-                    {{ offer.state }}
-                  </span>
-                </div>
+  <div class="container">
+    <CCard class="mb-4">
+      <CCardHeader>
+        <strong>Réclamations</strong>
+      </CCardHeader>
+      <CCardBody>
+        <!-- Formulaire de réclamation -->
+        <CForm @submit.prevent="submitClaim">
+          <CRow class="mb-3">
+            <CCol :md="6">
+              <CFormLabel>Sujet</CFormLabel>
+              <CFormInput v-model="form.sujet" placeholder="Sujet de la réclamation" required />
+            </CCol>
+            <CCol :md="6">
+              <CFormLabel>Description</CFormLabel>
+              <CFormTextarea v-model="form.description" rows="3" required />
+            </CCol>
+          </CRow>
+          <CButton color="primary" type="submit">Envoyer</CButton>
+        </CForm>
+
+        <hr class="my-4" />
+
+        <!-- Liste des réclamations -->
+        <div v-if="reclamations.length">
+          <h5>Historique des réclamations</h5>
+          <CCard v-for="reclamation in reclamations" :key="reclamation.id" class="mb-3 p-3">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <h6 class="mb-1">{{ reclamation.sujet }}</h6>
+                <p class="mb-0">{{ reclamation.description }}</p>
+                <small class="text-muted">Par : {{ reclamation.user?.name || 'Utilisateur inconnu' }}</small>
               </div>
-  
-              <!-- Apply Button -->
-              <CButton color="primary" @click="openModal(offer)">
-                Apply
-              </CButton>
-            </CCard>
-          </div>
-        </CCardBody>
-      </CCard>
-  
-      <!-- Modal for Motivation Input -->
-      <CModal :backdrop="false" :keyboard="false" :visible="modalVisible">
-        <CModalHeader>
-          <CModalTitle>Apply for Project: {{ selectedOffer?.title }}</CModalTitle>
-        </CModalHeader>
-        <CModalBody>
-          <CFormTextarea
-            v-model="motivationText"
-            placeholder="Write your motivation here..."
-            rows="5"
-          />
-        </CModalBody>
-        <CModalFooter>
-          <CButton color="secondary" @click="closeModal">Cancel</CButton>
-          <CButton color="primary" @click="submitApplication">Submit</CButton>
-        </CModalFooter>
-      </CModal>
-    </div>
-  </template>
-  
-  <script setup>
-  import { ref } from 'vue'
-  import {
-    CCard,
-    CCardBody,
-    CFormInput,
-    CInputGroup,
-    CInputGroupText,
-    CButton,
-    CModal,
-    CModalHeader,
-    CModalTitle,
-    CModalBody,
-    CModalFooter,
-    CFormTextarea,
-  } from '@coreui/vue'
-  
-  import { CIcon } from '@coreui/icons-vue' 
-  import { cilSearch } from '@coreui/icons' 
-  
-  
-  const offers = ref([
-    {
-      title: 'Web Development Project',
-      description: 'A challenging web development project using Vue.js.',
-      state: 'Open',
-    },
-    {
-      title: 'Mobile App Development',
-      description: 'Create a mobile app for a healthcare startup.',
-      state: 'Closed',
-    },
-  ])
-  
-  
-  const modalVisible = ref(false)
-  const motivationText = ref('')
-  const selectedOffer = ref(null)
-  
-  const openModal = (offer) => {
-    selectedOffer.value = offer
-    modalVisible.value = true
+              <CButton color="danger" size="sm" @click="deleteReclamation(reclamation.id)">Supprimer</CButton>
+            </div>
+          </CCard>
+        </div>
+        <div v-else class="text-muted mt-3">Aucune réclamation trouvée.</div>
+      </CCardBody>
+    </CCard>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import {
+  CCard,
+  CCardBody,
+  CCardHeader,
+  CForm,
+  CFormInput,
+  CFormTextarea,
+  CFormLabel,
+  CButton,
+  CRow,
+  CCol,
+} from '@coreui/vue'
+
+const form = ref({
+  sujet: '',
+  description: '',
+  user_id: 1, // 📝 Remplace avec l'ID de l'utilisateur connecté
+})
+
+const reclamations = ref([])
+
+const fetchReclamations = async () => {
+  try {
+    const res = await fetch('http://127.0.0.1:8000/api/reclamations')
+    reclamations.value = await res.json()
+  } catch (error) {
+    console.error('Erreur lors du chargement des réclamations', error)
   }
-  
-  const closeModal = () => {
-    modalVisible.value = false
+}
+
+const submitClaim = async () => {
+  try {
+    const res = await fetch('http://127.0.0.1:8000/api/reclamations', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(form.value),
+    })
+    if (!res.ok) throw new Error('Erreur lors de l’envoi de la réclamation.')
+    form.value.sujet = ''
+    form.value.description = ''
+    await fetchReclamations()
+  } catch (error) {
+    console.error('Erreur lors de l’envoi', error)
   }
-  
-  const clearModal = () => {
-    motivationText.value = ''
-    selectedOffer.value = null
+}
+
+const deleteReclamation = async (id) => {
+  try {
+    await fetch(`http://127.0.0.1:8000/api/reclamations/${id}`, {
+      method: 'DELETE',
+    })
+    await fetchReclamations()
+  } catch (error) {
+    console.error('Erreur lors de la suppression', error)
   }
-  
-  
-  const submitApplication = () => {
-   
-    console.log('Motivation:', motivationText.value)
-    closeModal()
-  }
-  </script>
-  
-  <style scoped>
-  
-  .container {
-    font-family: 'Poppins', sans-serif;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
-    color: #333;
-  }
-  
-  /* Headings */
-  .container h4 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #222;
-    margin-bottom: 12px;
-    letter-spacing: 0.5px;
-  }
-  
-  /* Paragraphs */
-  .container p {
-    font-size: 15px;
-    line-height: 1.6;
-    color: #555;
-    margin-bottom: 10px;
-  }
-  
-  /* Badges */
-  .badge {
-    font-size: 13px;
-    padding: 6px 12px;
-    border-radius: 12px;
-    font-weight: 500;
-    text-transform: capitalize;
-  }
-  
-  .badge.bg-success {
-    background-color: #28a745;
-    color: white;
-  }
-  
-  .badge.bg-danger {
-    background-color: #dc3545;
-    color: white;
-  }
-  
-  /* Inputs */
-  input[type='text'] {
-    font-family: 'Poppins', sans-serif;
-    border-radius: 6px;
-    padding: 10px 12px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    width: 100%;
-  }
-  
-  input[type='text']:focus {
-    outline: none;
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-  }
-  
-  /* Buttons */
-  button {
-    font-family: 'Poppins', sans-serif;
-    border-radius: 6px;
-    padding: 10px 16px;
-    background-color: #0d6efd;
-    color: white;
-    font-weight: 500;
-    font-size: 14px;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-  }
-  
-  button:hover {
-    background-color: #0b5ed7;
-  }
-  
-  /* Modal content */
-  .modal-body {
-    font-family: 'Poppins', sans-serif;
-    font-size: 16px;
-    line-height: 1.6;
-    color: #444;
-  }
-  </style>
-  
+}
+
+onMounted(() => {
+  fetchReclamations()
+})
+</script>
+
+<style scoped>
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+</style>
