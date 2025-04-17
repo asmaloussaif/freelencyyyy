@@ -24,7 +24,7 @@
               <select v-model="role" class="w100" required>
                 <option disabled value="">Select your role</option>
                 <option value="client">Client</option>
-                <option value="freelance">Freelance</option>
+                <option value="freelancer">Freelance</option>
               </select>
             </div>
 
@@ -95,7 +95,7 @@ const handleRegister = async () => {
 
     authStore.setAuth(token, userRole)
 
-    router.push('/dashboard') // redirect to dashboard after registration
+    router.push('/dashboard') 
   } catch (error) {
     console.error('Erreur d’inscription :', error.message)
     alert('Registration failed: ' + error.message)

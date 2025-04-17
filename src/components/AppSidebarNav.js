@@ -17,6 +17,10 @@ const AppSidebarNav = defineComponent({
     const authStore = useAuthStore()
     const route = useRoute()
     
+      console.log('Current role:', authStore.role)
+   
+    const role = computed(() => authStore.role)
+    console.log(role)
     // Base items for all roles
     const baseNavItems = [
       {
@@ -126,17 +130,16 @@ const AppSidebarNav = defineComponent({
 
     // Computed navItems that updates based on user role
     const navItems = computed(() => {
-      const userRole = authStore.role // Make sure this is reactive
-      let items = [...baseNavItems]  // Start with base items
-
-      if (userRole === 'freelancer') {
+      let items = [...baseNavItems]
+    
+      if (role.value === 'freelancer') {
         items = [...items, ...freelancerNavItems]
-      } else if (userRole === 'client') {
+      } else if (role.value === 'client') {
         items = [...items, ...clientNavItems]
-      } else if (userRole === 'admin') {
+      } else if (role.value === 'admin') {
         items = [...items, ...adminNavItems]
       }
-
+    
       return items
     })
 

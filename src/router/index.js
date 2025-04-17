@@ -62,22 +62,22 @@ const routes = [
       {
         path: 'invoice-management',
         name: 'InvoiceManagement',
-        component: () => import('@/views/pages/InvoiceManagement.vue'),
+        component: () => import('@/views/pages/invoice-management.vue'),
       },
       {
         path: 'project-management',
         name: 'ProjectManagement',
-        component: () => import('@/views/pages/ProjectManagement.vue'),
+        component: () => import('@/views/pages/project-management.vue'),
       },
       {
         path: 'claim-management',
         name: 'ClaimManagement',
-        component: () => import('@/views/pages/ClaimManagement.vue'),
+        component: () => import('@/views/pages/claim-management.vue'),
       },
       {
         path: 'customer-freelancer-management',
         name: 'CustomerFreelancerManagement',
-        component: () => import('@/views/pages/CustomerFreelancerManagement.vue'),
+        component: () => import('@/views/pages/customer-freelancer-management.vue'),
       },
     ],
   },
