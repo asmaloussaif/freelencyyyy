@@ -77,9 +77,9 @@ const AppSidebarNav = defineComponent({
     const clientNavItems = [
       {
         component: 'CNavItem',
-        name: 'Invoice Management',
-        to: '/pages/invoice-management',
-        icon: 'cil-briefcase',
+        name: 'Invoices',
+        to: '/dashboard/invoices',
+        icon: 'cil-money',
       },
       {
         component: 'CNavItem',

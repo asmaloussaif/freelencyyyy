@@ -4,12 +4,12 @@
       <CCardHeader class="d-flex justify-content-between align-items-center bg-light py-3">
         <div>
           <CIcon name="cil-list-rich" class="me-2" />
-          <strong class="h4">Mes Factures</strong>
+          <strong class="h4">My Invoices</strong>
         </div>
         <div>
           <CButton color="primary" size="sm">
             <CIcon name="cil-plus" class="me-1" />
-            Nouvelle Facture
+            New Invoice
           </CButton>
         </div>
       </CCardHeader>
@@ -19,8 +19,8 @@
             <CTableRow>
               <CTableHeaderCell scope="col" class="w-10">#</CTableHeaderCell>
               <CTableHeaderCell scope="col" class="w-20">Date</CTableHeaderCell>
-              <CTableHeaderCell scope="col" class="w-20 text-end">Montant</CTableHeaderCell>
-              <CTableHeaderCell scope="col" class="w-20">Statut</CTableHeaderCell>
+              <CTableHeaderCell scope="col" class="w-20 text-end">Amount</CTableHeaderCell>
+              <CTableHeaderCell scope="col" class="w-20">Status</CTableHeaderCell>
               <CTableHeaderCell scope="col" class="w-30 text-center">Actions</CTableHeaderCell>
             </CTableRow>
           </CTableHead>
@@ -48,7 +48,7 @@
                     class="me-2"
                   >
                     <CIcon name="cil-cloud-download" class="me-1" />
-                    Télécharger
+                    Download
                   </CButton>
                   <CButton 
                     color="secondary" 
@@ -57,7 +57,7 @@
                     @click="viewDetails(invoice)"
                   >
                     <CIcon name="cil-description" class="me-1" />
-                    Détails
+                    Details
                   </CButton>
                 </CButtonGroup>
               </CTableDataCell>
@@ -68,14 +68,14 @@
       <CCardFooter class="bg-light py-3">
         <div class="d-flex justify-content-between align-items-center">
           <div class="text-muted small">
-            Affichage de {{ invoices.length }} factures
+            Showing {{ invoices.length }} invoices
           </div>
           <CPagination size="sm">
-            <CPaginationItem>Précédent</CPaginationItem>
+            <CPaginationItem>Previous</CPaginationItem>
             <CPaginationItem active>1</CPaginationItem>
             <CPaginationItem>2</CPaginationItem>
             <CPaginationItem>3</CPaginationItem>
-            <CPaginationItem>Suivant</CPaginationItem>
+            <CPaginationItem>Next</CPaginationItem>
           </CPagination>
         </div>
       </CCardFooter>
@@ -92,44 +92,44 @@ import {
 } from '@coreui/vue'
 
 const invoices = ref([
-  { id: 'INV001', date: '2025-04-01', amount: 150.00, status: 'Payée' },
-  { id: 'INV002', date: '2025-03-20', amount: 300.00, status: 'En attente' },
-  { id: 'INV003', date: '2025-02-15', amount: 200.00, status: 'Payée' },
-  { id: 'INV004', date: '2025-01-10', amount: 450.00, status: 'Annulée' },
-  { id: 'INV005', date: '2024-12-05', amount: 175.50, status: 'Payée' },
+  { id: 'INV001', date: '2025-04-01', amount: 150.00, status: 'Paid' },
+  { id: 'INV002', date: '2025-03-20', amount: 300.00, status: 'Pending' },
+  { id: 'INV003', date: '2025-02-15', amount: 200.00, status: 'Paid' },
+  { id: 'INV004', date: '2025-01-10', amount: 450.00, status: 'Cancelled' },
+  { id: 'INV005', date: '2024-12-05', amount: 175.50, status: 'Paid' },
 ])
 
 const formatDate = (dateString) => {
   const options = { year: 'numeric', month: 'short', day: 'numeric' }
-  return new Date(dateString).toLocaleDateString('fr-FR', options)
+  return new Date(dateString).toLocaleDateString('en-US', options)
 }
 
 const getStatusColor = (status) => {
   const statusColors = {
-    'Payée': 'success',
-    'En attente': 'warning',
-    'Annulée': 'danger'
+    'Paid': 'success',
+    'Pending': 'warning',
+    'Cancelled': 'danger'
   }
   return statusColors[status] || 'secondary'
 }
 
 const getStatusIcon = (status) => {
   const statusIcons = {
-    'Payée': 'cil-check-circle',
-    'En attente': 'cil-clock',
-    'Annulée': 'cil-ban'
+    'Paid': 'cil-check-circle',
+    'Pending': 'cil-clock',
+    'Cancelled': 'cil-ban'
   }
   return statusIcons[status] || 'cil-info'
 }
 
 const downloadInvoice = (invoice) => {
-  // Implémentation réelle du téléchargement
-  console.log(`Téléchargement de la facture: ${invoice.id}`)
+  // Actual download implementation
+  console.log(`Downloading invoice: ${invoice.id}`)
 }
 
 const viewDetails = (invoice) => {
-  // Navigation vers la page de détails
-  console.log(`Voir détails de: ${invoice.id}`)
+  // Navigation to details page
+  console.log(`Viewing details for: ${invoice.id}`)
 }
 </script>
 

@@ -24,7 +24,7 @@
               <select v-model="role" class="w100" required>
                 <option disabled value="">Select your role</option>
                 <option value="client">Client</option>
-                <option value="freelancer">Freelance</option>
+                <option value="freelancer">freelancer</option>
               </select>
             </div>
 

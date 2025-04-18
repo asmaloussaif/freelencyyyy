@@ -4,17 +4,17 @@
       <CCardHeader class="d-flex justify-content-between align-items-center bg-light py-3">
         <div>
           <CIcon name="cil-inbox" class="me-2" />
-          <strong class="h4">Boîte de réception</strong>
-          <CBadge color="primary" class="ms-2">{{ unreadCount }} non lus</CBadge>
+          <strong class="h4">Inbox</strong>
+          <CBadge color="primary" class="ms-2">{{ unreadCount }} unread</CBadge>
         </div>
         <div>
           <CButton color="primary" size="sm" @click="composeNew" class="me-2">
             <CIcon name="cil-pencil" class="me-1" />
-            Nouveau message
+            New Message
           </CButton>
           <CButton color="secondary" size="sm" variant="outline" @click="refreshInbox">
             <CIcon name="cil-reload" class="me-1" />
-            Actualiser
+            Refresh
           </CButton>
         </div>
       </CCardHeader>
@@ -27,8 +27,8 @@
                 <CTableHeaderCell scope="col" width="40">
                   <CFormCheck />
                 </CTableHeaderCell>
-                <CTableHeaderCell scope="col" width="120">De</CTableHeaderCell>
-                <CTableHeaderCell scope="col">Sujet</CTableHeaderCell>
+                <CTableHeaderCell scope="col" width="120">From</CTableHeaderCell>
+                <CTableHeaderCell scope="col">Subject</CTableHeaderCell>
                 <CTableHeaderCell scope="col" width="120">Date</CTableHeaderCell>
                 <CTableHeaderCell scope="col" width="80">Actions</CTableHeaderCell>
               </CTableRow>
@@ -76,7 +76,7 @@
                       size="sm" 
                       variant="outline"
                       @click.stop="deleteMessage(message)"
-                      title="Supprimer"
+                      title="Delete"
                     >
                       <CIcon name="cil-trash" />
                     </CButton>
@@ -85,7 +85,7 @@
                       size="sm" 
                       variant="outline"
                       @click.stop="toggleStar(message)"
-                      title="Étoile"
+                      title="Star"
                     >
                       <CIcon :name="message.starred ? 'cil-star' : 'cil-star-outline'" />
                     </CButton>
@@ -100,11 +100,11 @@
       <CCardFooter class="bg-light py-3">
         <div class="d-flex justify-content-between align-items-center">
           <div class="text-muted small">
-            Affichage de {{ filteredMessages.length }} sur {{ messages.length }} messages
+            Showing {{ filteredMessages.length }} of {{ messages.length }} messages
           </div>
           <CPagination size="sm">
             <CPaginationItem :disabled="currentPage === 1" @click="prevPage">
-              Précédent
+              Previous
             </CPaginationItem>
             <CPaginationItem 
               v-for="page in totalPages" 
@@ -115,7 +115,7 @@
               {{ page }}
             </CPaginationItem>
             <CPaginationItem :disabled="currentPage === totalPages" @click="nextPage">
-              Suivant
+              Next
             </CPaginationItem>
           </CPagination>
         </div>
@@ -147,7 +147,7 @@
           </div>
           
           <div v-if="selectedMessage.attachment" class="border-top pt-3">
-            <h6>Pièce jointe:</h6>
+            <h6>Attachment:</h6>
             <CButton color="primary" variant="outline" size="sm">
               <CIcon name="cil-paperclip" class="me-2" />
               {{ selectedMessage.attachment.name }}
@@ -157,11 +157,11 @@
       </CModalBody>
       <CModalFooter>
         <CButton color="secondary" @click="closeMessageModal">
-          Fermer
+          Close
         </CButton>
         <CButton color="primary" @click="replyMessage">
           <CIcon name="cil-reply" class="me-2" />
-          Répondre
+          Reply
         </CButton>
       </CModalFooter>
     </CModal>
@@ -182,51 +182,51 @@ import {
 const messages = ref([
   {
     id: 1,
-    sender: "Jean Dupont",
-    email: "jean.dupont@example.com",
-    subject: "Réunion de projet",
-    preview: "Bonjour, je vous confirme notre réunion demain à 10h pour discuter...",
-    content: "<p>Bonjour,</p><p>Je vous confirme notre réunion demain à 10h pour discuter de l'avancement du projet.</p><p>Cordialement,<br>Jean</p>",
+    sender: "John Smith",
+    email: "john.smith@example.com",
+    subject: "Project Meeting",
+    preview: "Hello, I confirm our meeting tomorrow at 10am to discuss...",
+    content: "<p>Hello,</p><p>I confirm our meeting tomorrow at 10am to discuss project progress.</p><p>Best regards,<br>John</p>",
     date: "2025-04-15T09:30:00",
     unread: true,
     starred: false,
-    label: "Travail",
+    label: "Work",
     attachment: { name: "Agenda.pdf", size: "2.4MB" }
   },
   {
     id: 2,
-    sender: "Marie Martin",
-    email: "marie.martin@example.com",
-    subject: "Facture avril 2025",
-    preview: "Veuillez trouver ci-joint la facture pour le mois d'avril...",
-    content: "<p>Bonjour,</p><p>Veuillez trouver ci-joint la facture pour le mois d'avril.</p><p>Merci,<br>Marie</p>",
+    sender: "Mary Johnson",
+    email: "mary.johnson@example.com",
+    subject: "Invoice April 2025",
+    preview: "Please find attached the invoice for April...",
+    content: "<p>Hello,</p><p>Please find attached the invoice for April.</p><p>Thank you,<br>Mary</p>",
     date: "2025-04-14T14:15:00",
     unread: false,
     starred: true,
-    label: "Factures"
+    label: "Invoices"
   },
   {
     id: 3,
-    sender: "Support Technique",
+    sender: "Technical Support",
     email: "support@example.com",
-    subject: "Votre ticket #45678",
-    preview: "Nous avons résolu votre problème concernant l'accès au...",
-    content: "<p>Bonjour,</p><p>Nous avons résolu votre problème concernant l'accès au système.</p><p>Cordialement,<br>L'équipe support</p>",
+    subject: "Your ticket #45678",
+    preview: "We have resolved your issue regarding access to...",
+    content: "<p>Hello,</p><p>We have resolved your issue regarding system access.</p><p>Best regards,<br>Support Team</p>",
     date: "2025-04-13T11:20:00",
     unread: false,
     starred: false
   },
   {
     id: 4,
-    sender: "Alexandre Leroy",
-    email: "alex.leroy@example.com",
-    subject: "Proposition de collaboration",
-    preview: "Je vous contacte pour vous proposer une collaboration sur...",
-    content: "<p>Bonjour,</p><p>Je vous contacte pour vous proposer une collaboration sur un nouveau projet.</p><p>Alexandre</p>",
+    sender: "Alex King",
+    email: "alex.king@example.com",
+    subject: "Collaboration Proposal",
+    preview: "I'm contacting you to propose a collaboration on...",
+    content: "<p>Hello,</p><p>I'm contacting you to propose a collaboration on a new project.</p><p>Alex</p>",
     date: "2025-04-12T16:45:00",
     unread: true,
     starred: false,
-    label: "Opportunités"
+    label: "Opportunities"
   }
 ])
 
@@ -253,12 +253,12 @@ const totalPages = computed(() => Math.ceil(filteredMessages.value.length / item
 // Methods
 const formatDate = (dateString) => {
   const date = new Date(dateString)
-  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' })
 }
 
 const formatDateTime = (dateString) => {
   const date = new Date(dateString)
-  return date.toLocaleString('fr-FR', { 
+  return date.toLocaleString('en-US', { 
     day: 'numeric', 
     month: 'short', 
     year: 'numeric',
@@ -269,9 +269,9 @@ const formatDateTime = (dateString) => {
 
 const getLabelColor = (label) => {
   const colors = {
-    'Travail': 'info',
-    'Factures': 'success',
-    'Opportunités': 'warning'
+    'Work': 'info',
+    'Invoices': 'success',
+    'Opportunities': 'warning'
   }
   return colors[label] || 'secondary'
 }
@@ -295,15 +295,15 @@ const toggleStar = (message) => {
 }
 
 const composeNew = () => {
-  alert("Ouvrir l'éditeur de nouveau message")
+  alert("Open new message editor")
 }
 
 const refreshInbox = () => {
-  alert("Actualisation de la boîte de réception")
+  alert("Refreshing inbox")
 }
 
 const replyMessage = () => {
-  alert(`Répondre à: ${selectedMessage.value?.sender}`)
+  alert(`Reply to: ${selectedMessage.value?.sender}`)
 }
 
 const prevPage = () => {

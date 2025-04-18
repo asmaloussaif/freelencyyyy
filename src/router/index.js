@@ -51,8 +51,8 @@ const routes = [
       },
       {
         path: 'invoices',
-        name: 'Invoice',
-        component: () => import('@/views/pages/Invocie.vue'),
+        name: 'Invocies',
+        component: () => import('@/views/pages/Invoices.vue'),
       },
       {
         path: 'inbox',
