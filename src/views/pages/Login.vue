@@ -68,11 +68,11 @@ const handleLogin = async () => {
 
     const data = await response.json()
     
-    const token = data.access_token
+    const token = data.token
     const role = data.role[0]
+    const user = data.user
 
-
-    authStore.setAuth(token, role)
+    authStore.setAuth(token, role,user)
 
    
     if (role === 'client') {

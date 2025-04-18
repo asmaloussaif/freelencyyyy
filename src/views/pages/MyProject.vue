@@ -4,7 +4,7 @@
 
     <CCard class="mb-4">
       <CCardBody>
-        <CDataTable
+    <!--     <CDataTable
           :items="projects"
           :fields="fields"
           hover
@@ -19,7 +19,7 @@
           <template #actions="{ item }">
             <CButton size="sm" color="info" @click="viewDetails(item)">View</CButton>
           </template>
-        </CDataTable>
+        </CDataTable> -->
       </CCardBody>
     </CCard>
 
@@ -46,7 +46,7 @@ import { ref, onMounted } from 'vue'
 import {
   CCard,
   CCardBody,
-  CDataTable,
+ // CDataTable,
   CBadge,
   CButton,
   CModal,

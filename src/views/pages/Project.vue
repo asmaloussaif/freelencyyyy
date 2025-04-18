@@ -1,26 +1,30 @@
 <template>
   <div class="container">
-    <!-- Offer List Card -->
+   
     <CCard class="mb-4">
       <CCardBody>
-        <!-- Search Bar with Search Icon -->
+     
         <CInputGroup class="mb-3">
           <CInputGroupText>
             <CIcon :icon="cilSearch" size="sm" />
           </CInputGroupText>
-          <CFormInput placeholder="Search for projects..." aria-label="Search" />
+          <CFormInput
+          v-model="searchQuery"
+          placeholder="Search for projects..."
+          aria-label="Search"
+        />
         </CInputGroup>
 
-        <!-- Offer Card for Each Project -->
-        <div v-for="(offer, index) in offers" :key="index" class="mb-4">
+        
+        <div v-for="(offer, index) in filteredOffers" :key="index" class="mb-4">
           <CCard class="p-3">
             <div class="d-flex justify-content-between">
-              <!-- Title and Description -->
+             
               <div>
                 <h4 class="mb-1">Title: {{ offer.title }}</h4>
                 <p>{{ offer.description }}</p>
               </div>
-              <!-- Project State -->
+             
               <div class="text-end">
                 <span :class="offer.state === 'Open' ? 'badge bg-success' : 'badge bg-danger'">
                   {{ offer.state }}
@@ -28,7 +32,7 @@
               </div>
             </div>
 
-            <!-- Apply Button -->
+        
             <CButton color="primary" @click="openModal(offer)">
               Apply
             </CButton>
@@ -58,7 +62,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import {
   CCard,
   CCardBody,
@@ -74,27 +79,65 @@ import {
   CFormTextarea,
 } from '@coreui/vue'
 
-import { CIcon } from '@coreui/icons-vue' 
-import { cilSearch } from '@coreui/icons' 
-
-
-const offers = ref([
-  {
-    title: 'Web Development Project',
-    description: 'A challenging web development project using Vue.js.',
-    state: 'Open',
-  },
-  {
-    title: 'Mobile App Development',
-    description: 'Create a mobile app for a healthcare startup.',
-    state: 'Closed',
-  },
-])
-
-
+import { CIcon } from '@coreui/icons-vue'
+import { cilSearch } from '@coreui/icons'
+import { useAuthStore } from '@/stores/authStore'
+import { defineComponent, computed, h, resolveComponent } from 'vue'
+// Reactive variables
+const offers = ref([])
 const modalVisible = ref(false)
 const motivationText = ref('')
 const selectedOffer = ref(null)
+const authStore = useAuthStore()
+const searchQuery = ref('')
+const filteredOffers = computed(() => {
+  return offers.value.filter(offer =>
+    offer.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
+const fetchProjects = async () => {
+  try {
+    const token = authStore.token 
+    const response = await axios.get('http://127.0.0.1:8000/api/projects', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    offers.value = response.data.map(project => ({
+      title: project.titre,
+      description: project.description,
+      state: project.statut === 'Open' ? 'Open' : 'Closed',
+      id: project.id,
+      client_id: project.client_id,
+    }))
+  } catch (error) {
+    console.error('Failed to fetch projects:', error)
+  }
+}
+const submitApplication = async () => {
+  const token = authStore.token 
+  try {
+    const response = await axios.post('http://127.0.0.1:8000/api/applications', {
+      project_id: selectedOffer.value.id,
+      motivation: motivationText.value,
+      // freelancer_id will be handled automatically in the backend using Auth::id()
+    }, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    console.log('Application submitted:', response.data)
+    closeModal()
+  } catch (error) {
+    console.error('Failed to submit application:', error)
+  }
+}
+
+onMounted(() => {
+  fetchProjects()
+})
 
 const openModal = (offer) => {
   selectedOffer.value = offer
@@ -105,18 +148,9 @@ const closeModal = () => {
   modalVisible.value = false
 }
 
-const clearModal = () => {
-  motivationText.value = ''
-  selectedOffer.value = null
-}
 
-
-const submitApplication = () => {
- 
-  console.log('Motivation:', motivationText.value)
-  closeModal()
-}
 </script>
+
 
 <style scoped>
 

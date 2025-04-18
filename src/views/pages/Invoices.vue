@@ -3,12 +3,12 @@
     <CCard class="shadow">
       <CCardHeader class="d-flex justify-content-between align-items-center bg-light py-3">
         <div>
-          <CIcon name="cil-list-rich" class="me-2" />
+         <!--  <CIcon name="cil-list-rich" class="me-2" /> -->
           <strong class="h4">My Invoices</strong>
         </div>
         <div>
           <CButton color="primary" size="sm">
-            <CIcon name="cil-plus" class="me-1" />
+          <!--   <CIcon name="cil-plus" class="me-1" /> -->
             New Invoice
           </CButton>
         </div>
@@ -35,7 +35,7 @@
                   class="py-1 px-2"
                   shape="rounded-pill"
                 >
-                  <CIcon :name="getStatusIcon(invoice.status)" class="me-1" />
+                 <!--  <CIcon :name="getStatusIcon(invoice.status)" class="me-1" /> -->
                   {{ invoice.status }}
                 </CBadge>
               </CTableDataCell>
@@ -47,7 +47,7 @@
                     @click="downloadInvoice(invoice)"
                     class="me-2"
                   >
-                    <CIcon name="cil-cloud-download" class="me-1" />
+                 <!--    <CIcon name="cil-cloud-download" class="me-1" /> -->
                     Download
                   </CButton>
                   <CButton 
@@ -56,7 +56,7 @@
                     variant="outline"
                     @click="viewDetails(invoice)"
                   >
-                    <CIcon name="cil-description" class="me-1" />
+                   <!--  <CIcon name="cil-description" class="me-1" /> -->
                     Details
                   </CButton>
                 </CButtonGroup>
@@ -88,7 +88,7 @@ import { ref } from 'vue'
 import {
   CContainer, CCard, CCardHeader, CCardBody, CCardFooter,
   CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell,
-  CButton, CButtonGroup, CBadge, CIcon, CPagination, CPaginationItem
+  CButton, CButtonGroup, CBadge, CPagination, CPaginationItem
 } from '@coreui/vue'
 
 const invoices = ref([

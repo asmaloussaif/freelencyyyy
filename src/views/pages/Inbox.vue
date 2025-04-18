@@ -3,17 +3,17 @@
     <CCard class="shadow">
       <CCardHeader class="d-flex justify-content-between align-items-center bg-light py-3">
         <div>
-          <CIcon name="cil-inbox" class="me-2" />
+          <!-- <CIcon name="cil-inbox" class="me-2" /> -->
           <strong class="h4">Inbox</strong>
           <CBadge color="primary" class="ms-2">{{ unreadCount }} unread</CBadge>
         </div>
         <div>
           <CButton color="primary" size="sm" @click="composeNew" class="me-2">
-            <CIcon name="cil-pencil" class="me-1" />
+           <!--  <CIcon name="cil-pencil" class="me-1" /> -->
             New Message
           </CButton>
           <CButton color="secondary" size="sm" variant="outline" @click="refreshInbox">
-            <CIcon name="cil-reload" class="me-1" />
+         <!--    <CIcon name="cil-reload" class="me-1" /> -->
             Refresh
           </CButton>
         </div>
@@ -173,7 +173,7 @@ import { ref, computed } from 'vue'
 import {
   CContainer, CCard, CCardHeader, CCardBody, CCardFooter,
   CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell,
-  CButton, CButtonGroup, CBadge, CIcon, CPagination, CPaginationItem,
+  CButton, CButtonGroup, CBadge, CPagination, CPaginationItem,
   CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter,
   CFormCheck, CAvatar
 } from '@coreui/vue'
