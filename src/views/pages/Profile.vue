@@ -151,7 +151,7 @@
   </div>
 </template>
 
-<script>
+<!-- <script>
 import { ref, computed } from 'vue'
 
 export default {
@@ -160,7 +160,7 @@ export default {
     // High-quality profile photo
     const profilePhoto = 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80'
     
-    const user = ref({
+     const user = ref({
       firstName: 'Ming',
       lastName: 'Tang',
       email: 'mtng@gmail.com',
@@ -169,7 +169,20 @@ export default {
       experience: 5,
       portfolio: 'mingtang-portfolio',
       photo: profilePhoto
+    }) 
+    const user = ref(null)
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get('https://your-api.com/api/user-profile/2') 
+        user.value = response.data
+      } catch (error) {
+        console.error('Failed to fetch user data:', error)
+      }
+    }
+        onMounted(() => {
+      fetchUserData()
     })
+
 
     const showEditModal = ref(false)
     const showPhotoModal = ref(false)
@@ -256,8 +269,100 @@ export default {
     }
   }
 }
-</script>
+</script> -->
+<script setup>
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
+// Main user data
+const user = ref({
+  firstName: '',
+  lastName: '',
+  email: '',
+  skills: '',
+  rate: 0,
+  experience: 0,
+  portfolio: '',
+  photo: ''
+})
 
+
+const editUser = ref({ ...user.value })
+const previewPhoto = ref(null)
+const showEditModal = ref(false)
+const showPhotoModal = ref(false)
+
+const backgroundStyle = {
+  background: '#f7f7f7',
+  padding: '2rem'
+}
+const authStore = useAuthStore()
+// API call to fetch user data
+const fetchUserData = async () => {
+  try {
+    const token = authStore.token 
+    const response = await axios.get('http://127.0.0.1:8000/api/profile/1', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    user.value = response.data
+    editUser.value = { ...response.data }
+  } catch (error) {
+    console.error('Error fetching user data:', error)
+  }
+}
+
+// Photo Modal Handlers
+const editPhoto = () => {
+  showPhotoModal.value = true
+}
+
+const handlePhotoUpload = (event) => {
+  const file = event.target.files[0]
+  if (file) {
+    const reader = new FileReader()
+    reader.onload = () => {
+      previewPhoto.value = reader.result
+    }
+    reader.readAsDataURL(file)
+  }
+}
+
+const savePhoto = () => {
+  if (previewPhoto.value) {
+    user.value.photo = previewPhoto.value
+    showPhotoModal.value = false
+    previewPhoto.value = null
+  }
+}
+
+const closePhotoModal = () => {
+  showPhotoModal.value = false
+  previewPhoto.value = null
+}
+
+// Edit Modal Handlers
+const editProfile = () => {
+  editUser.value = { ...user.value }
+  showEditModal.value = true
+}
+
+const closeModal = () => {
+  showEditModal.value = false
+}
+
+const saveProfile = () => {
+  user.value = { ...editUser.value }
+  showEditModal.value = false
+}
+
+// Fetch data when component mounts
+onMounted(() => {
+  fetchUserData()
+})
+</script>
 <style scoped>
 /* Your existing styles remain unchanged */
 .profile-container {

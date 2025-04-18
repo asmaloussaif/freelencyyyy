@@ -43,7 +43,7 @@ const email = ref('')
 const password = ref('')
 const loginValid = computed(() => email.value && password.value)
 
-const authStore = useAuthStore()  // Utilise le store Pinia pour gérer l'authentification
+const authStore = useAuthStore()  
 
 const handleLogin = async () => {
   if (!loginValid.value) return
@@ -67,15 +67,14 @@ const handleLogin = async () => {
     }
 
     const data = await response.json()
-    console.log("data",data);
     
     const token = data.access_token
-    const role = data.role  // Assure-toi que l'API retourne bien "role"
+    const role = data.role[0]
 
-    // Sauvegarde dans Pinia
+
     authStore.setAuth(token, role)
 
-    // Redirection selon le rôle
+   
     if (role === 'client') {
       router.push('/dashboard')
     } else if (role === 'freelancer') {
