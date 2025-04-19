@@ -39,4 +39,9 @@ onBeforeMount(() => {
 @use 'styles/style';
 // We use those styles to show code examples, you should remove them in your application.
 @use 'styles/examples';
+body {
+  background: linear-gradient(to bottom right, #f4f7fa, #e8edf3);
+  font-family: 'Inter', sans-serif;
+  color: #2e2e2e;
+}
 </style>

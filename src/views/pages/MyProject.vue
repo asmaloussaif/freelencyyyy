@@ -1,43 +1,28 @@
 <template>
   <div class="container">
-    <h2 class="mb-4">My Projects</h2>
+    <h2 class="mb-4 text-primary fw-bold">Offers</h2>
 
-    <CCard class="mb-4">
+    <CCard class="shadow-sm mb-4">
       <CCardBody>
-    <!--     <CDataTable
-          :items="projects"
+        <CDataTable
+          :items="offers"
           :fields="fields"
           hover
           striped
           bordered
           responsive
         >
-          <template #status="{ item }">
-            <CBadge :color="getStatusColor(item.status)">{{ item.status }}</CBadge>
-          </template>
-
           <template #actions="{ item }">
-            <CButton size="sm" color="info" @click="viewDetails(item)">View</CButton>
+            <CButton color="success" size="sm" class="me-2" @click="acceptOffer(item)">
+              Accept
+            </CButton>
+            <CButton color="danger" size="sm" @click="refuseOffer(item)">
+              Refuse
+            </CButton>
           </template>
-        </CDataTable> -->
+        </CDataTable>
       </CCardBody>
     </CCard>
-
-    <!-- Modal for project details -->
-    <CModal :visible="modalVisible" @close="modalVisible = false">
-      <CModalHeader>
-        <CModalTitle>Project Details</CModalTitle>
-      </CModalHeader>
-      <CModalBody>
-        <p><strong>Title:</strong> {{ selectedProject.title }}</p>
-        <p><strong>Description:</strong> {{ selectedProject.description }}</p>
-        <p><strong>Status:</strong> {{ selectedProject.status }}</p>
-        <p><strong>Client:</strong> {{ selectedProject.client_name }}</p>
-      </CModalBody>
-      <CModalFooter>
-        <CButton color="secondary" @click="modalVisible = false">Close</CButton>
-      </CModalFooter>
-    </CModal>
   </div>
 </template>
 
@@ -46,52 +31,37 @@ import { ref, onMounted } from 'vue'
 import {
   CCard,
   CCardBody,
- // CDataTable,
-  CBadge,
+  CDataTable,
   CButton,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
 } from '@coreui/vue'
 import axios from 'axios'
 
-const projects = ref([])
-const modalVisible = ref(false)
-const selectedProject = ref({})
+const offers = ref([])
 
 const fields = [
-  { key: 'title', label: 'Project Title' },
-  { key: 'client_name', label: 'Client' },
-  { key: 'status', label: 'Status' },
-  { key: 'actions', label: 'Actions', _style: 'width: 100px' },
+  { key: 'project_name', label: 'Project Name' },
+  { key: 'client_name', label: 'Client Name' },
+  { key: 'budget', label: 'Budget (€)' },
+  { key: 'date_finished', label: 'Date of Finished' },
+  { key: 'actions', label: 'Actions', _style: 'width: 150px' }
 ]
 
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'In Progress':
-      return 'warning'
-    case 'Completed':
-      return 'success'
-    case 'Pending':
-      return 'secondary'
-    default:
-      return 'primary'
-  }
+const acceptOffer = (offer) => {
+  console.log('Accepted offer:', offer)
+  // call API or show confirmation message here
 }
 
-const viewDetails = (project) => {
-  selectedProject.value = project
-  modalVisible.value = true
+const refuseOffer = (offer) => {
+  console.log('Refused offer:', offer)
+  // call API or show confirmation message here
 }
 
 onMounted(async () => {
   try {
-    const response = await axios.get('http://127.0.0.1:8000/api/freelancer-projects')
-    projects.value = response.data
+    const response = await axios.get('http://127.0.0.1:8000/api/freelancer-offers')
+    offers.value = response.data
   } catch (error) {
-    console.error('Error fetching projects:', error)
+    console.error('Error fetching offers:', error)
   }
 })
 </script>

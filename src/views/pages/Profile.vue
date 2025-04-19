@@ -5,62 +5,120 @@
         <CRow class="align-items-center">
           <!-- Profile Photo Column -->
           <CCol lg="5" class="text-center">
-            <div class="profile-photo-container">
-              <div class="avatar-wrapper">
-                <img :src="user.photo" alt="Profile Photo" class="profile-avatar" />
-                <div class="change-photo-overlay" @click="editPhoto">
-                  <CIcon name="cil-camera" size="xl" />
-                  <span>Change Photo</span>
+            <CCard class="profile-photo-card mb-4">
+              <CCardBody>
+                <div class="avatar-wrapper">
+                  <img :src="user.photo" alt="Profile Photo" class="profile-avatar" />
+                  <div class="change-photo-overlay" @click="editPhoto">
+                    <CIcon name="cil-camera" size="xl" />
+                    <span>Change Photo</span>
+                  </div>
                 </div>
-              </div>
-            </div>
+              </CCardBody>
+            </CCard>
+            
+            <CCard class="stats-card">
+              <CCardBody>
+                <div class="profile-stats">
+                  <div class="stat-item">
+                    <div class="stat-value">{{ user.experience }}+</div>
+                    <div class="stat-label">Years Experience</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">{{ completedProjects }}</div>
+                    <div class="stat-label">Projects Done</div>
+                  </div>
+                  <div class="stat-item">
+                    <div class="stat-value">${{ user.rate }}/hr</div>
+                    <div class="stat-label">Hourly Rate</div>
+                  </div>
+                </div>
+              </CCardBody>
+            </CCard>
           </CCol>
 
           <!-- Information Column -->
           <CCol lg="7">
-            <div class="profile-info-section">
-              <h4 class="profile-section-title">
-                <CIcon name="cil-user" class="me-2" /> Professional Information
-              </h4>
-              
-              <div class="profile-info-grid">
-                <div class="info-label">First Name:</div>
-                <div class="info-value">{{ user.firstName }}</div>
-                
-                <div class="info-label">Last Name:</div>
-                <div class="info-value">{{ user.lastName }}</div>
-                
-                <div class="info-label">Email:</div>
-                <div class="info-value">
-                  <a :href="`mailto:${user.email}`">
-                    <CIcon name="cil-envelope-open" class="me-2" />{{ user.email }}
-                  </a>
+            <CCard class="info-card">
+              <CCardBody>
+                <div class="profile-info-section">
+                  <h4 class="profile-section-title mb-4">
+                    <CIcon name="cil-user" class="me-2" /> Professional Information
+                  </h4>
+                  
+                  <CCard class="mb-3">
+                    <CCardBody>
+                      <div class="info-item">
+                        <div class="info-label">Full Name:</div>
+                        <div class="info-value">{{ user.firstName }} {{ user.lastName }}</div>
+                      </div>
+                    </CCardBody>
+                  </CCard>
+                  
+                  <CCard class="mb-3">
+                    <CCardBody>
+                      <div class="info-item">
+                        <div class="info-label">Email:</div>
+                        <div class="info-value">
+                          <a :href="`mailto:${user.email}`">
+                            <CIcon name="cil-envelope-open" class="me-2" />{{ user.email }}
+                          </a>
+                        </div>
+                      </div>
+                    </CCardBody>
+                  </CCard>
+                  
+                  <CCard class="mb-3">
+                    <CCardBody>
+                      <div class="info-item">
+                        <div class="info-label">Skills:</div>
+                        <div class="info-value">
+                          <CBadge v-for="(skill, index) in user.skills.split(',')" 
+                                  :key="index" 
+                                  color="primary" 
+                                  shape="rounded-pill" 
+                                  class="me-2 mb-2">
+                            {{ skill.trim() }}
+                          </CBadge>
+                        </div>
+                      </div>
+                    </CCardBody>
+                  </CCard>
+                  
+                  <CCard class="mb-4">
+                    <CCardBody>
+                      <div class="info-item">
+                        <div class="info-label">My Projects:</div>
+                        <div class="info-value">
+                          <div v-for="project in user.projects" :key="project.name" class="project-item">
+                            <span class="project-name">{{ project.name }}</span>
+                            <CBadge :color="project.status === 'Completed' ? 'success' : 'warning'">
+                              {{ project.status }}
+                            </CBadge>
+                          </div>
+                        </div>
+                      </div>
+                    </CCardBody>
+                  </CCard>
+                  
+                  <div class="profile-actions">
+                    <CButton color="primary" class="edit-btn" @click="editProfile">
+                      <CIcon name="cil-pencil" class="me-2" /> Edit Profile
+                    </CButton>
+                    <CButton color="light" variant="outline" class="ms-3 download-btn">
+                      <CIcon name="cil-cloud-download" class="me-2" /> Download CV
+                    </CButton>
+                  </div>
                 </div>
-                
-                <div class="info-label">Skills:</div>
-                <div class="info-value">{{ user.skills }}</div>
-                
-                <div class="info-label">Hourly Rate:</div>
-                <div class="info-value">${{ user.rate }}/hr</div>
-                
-                <div class="info-label">Experience:</div>
-                <div class="info-value">{{ user.experience }} years</div>
-                
-                <div class="info-label">Portfolio:</div>
-                <div class="info-value">{{ user.portfolio }}</div>
-              </div>
-              
-              <CButton color="primary" class="mt-4 edit-btn" @click="editProfile">
-                <CIcon name="cil-pencil" class="me-2" /> Edit Profile
-              </CButton>
-            </div>
+              </CCardBody>
+            </CCard>
           </CCol>
         </CRow>
       </CCardBody>
 
       <!-- Edit Profile Modal -->
-      <CModal :visible="showEditModal" @close="closeModal" size="lg">
-        <CModalHeader>
+      <CModal :visible="showEditModal" @close="closeModal" size="lg" backdrop="static">
+        <CModalHeader closeButton>
           <CModalTitle>Edit Profile</CModalTitle>
         </CModalHeader>
         <CModalBody>
@@ -75,34 +133,69 @@
             </CCol>
             <CCol md="6">
               <CForm>
-                <div class="mb-3">
-                  <CFormLabel>First Name</CFormLabel>
-                  <CFormInput v-model="editUser.firstName" />
-                </div>
-                <div class="mb-3">
-                  <CFormLabel>Last Name</CFormLabel>
-                  <CFormInput v-model="editUser.lastName" />
-                </div>
-                <div class="mb-3">
-                  <CFormLabel>Email</CFormLabel>
-                  <CFormInput v-model="editUser.email" type="email" />
-                </div>
-                <div class="mb-3">
-                  <CFormLabel>Skills</CFormLabel>
-                  <CFormInput v-model="editUser.skills" placeholder="e.g. Vue.js, UI/UX Design" />
-                </div>
-                <div class="mb-3">
-                  <CFormLabel>Hourly Rate ($)</CFormLabel>
-                  <CFormInput v-model="editUser.rate" type="number" />
-                </div>
-                <div class="mb-3">
-                  <CFormLabel>Experience (years)</CFormLabel>
-                  <CFormInput v-model="editUser.experience" type="number" />
-                </div>
-                <div class="mb-3">
-                  <CFormLabel>Portfolio</CFormLabel>
-                  <CFormInput v-model="editUser.portfolio" placeholder="Your portfolio name" />
-                </div>
+                <CCard class="mb-3">
+                  <CCardBody>
+                    <CFormLabel>First Name</CFormLabel>
+                    <CFormInput v-model="editUser.firstName" />
+                  </CCardBody>
+                </CCard>
+                
+                <CCard class="mb-3">
+                  <CCardBody>
+                    <CFormLabel>Last Name</CFormLabel>
+                    <CFormInput v-model="editUser.lastName" />
+                  </CCardBody>
+                </CCard>
+                
+                <CCard class="mb-3">
+                  <CCardBody>
+                    <CFormLabel>Email</CFormLabel>
+                    <CFormInput v-model="editUser.email" type="email" />
+                  </CCardBody>
+                </CCard>
+                
+                <CCard class="mb-3">
+                  <CCardBody>
+                    <CFormLabel>Skills (comma separated)</CFormLabel>
+                    <CFormInput v-model="editUser.skills" placeholder="e.g. Vue.js, UI/UX Design, JavaScript" />
+                  </CCardBody>
+                </CCard>
+                
+                <CCard class="mb-3">
+                  <CCardBody>
+                    <CFormLabel>Hourly Rate ($)</CFormLabel>
+                    <CFormInput v-model="editUser.rate" type="number" />
+                  </CCardBody>
+                </CCard>
+                
+                <CCard class="mb-3">
+                  <CCardBody>
+                    <CFormLabel>Experience (years)</CFormLabel>
+                    <CFormInput v-model="editUser.experience" type="number" />
+                  </CCardBody>
+                </CCard>
+                
+                <CCard class="mb-3">
+                  <CCardBody>
+                    <CFormLabel>Projects</CFormLabel>
+                    <div v-for="(project, index) in editUser.projects" :key="index" class="mb-2">
+                      <CRow class="g-2">
+                        <CCol sm="8">
+                          <CFormInput v-model="project.name" placeholder="Project name" />
+                        </CCol>
+                        <CCol sm="4">
+                          <CFormSelect v-model="project.status">
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
+                          </CFormSelect>
+                        </CCol>
+                      </CRow>
+                    </div>
+                    <CButton color="light" size="sm" @click="addProject">
+                      <CIcon name="cil-plus" /> Add Project
+                    </CButton>
+                  </CCardBody>
+                </CCard>
               </CForm>
             </CCol>
           </CRow>
@@ -114,8 +207,8 @@
       </CModal>
 
       <!-- Change Photo Modal -->
-      <CModal :visible="showPhotoModal" @close="closePhotoModal" size="lg">
-        <CModalHeader>
+      <CModal :visible="showPhotoModal" @close="closePhotoModal" size="lg" backdrop="static">
+        <CModalHeader closeButton>
           <CModalTitle>Change Profile Photo</CModalTitle>
         </CModalHeader>
         <CModalBody>
@@ -130,19 +223,17 @@
               </CButton>
             </CCol>
             <CCol md="6" class="d-flex align-items-center">
-              <div>
-                <h5>Photo Guidelines</h5>
-                <ul class="photo-tips">
-                  <li><CIcon name="cil-check" /> Use high-quality images</li>
-                  <li><CIcon name="cil-check" /> Face should be clearly visible</li>
-                  <li><CIcon name="cil-check" /> Square images work best</li>
-                  <li><CIcon name="cil-check" /> Max file size: 5MB</li>
-                </ul>
-                <div class="sample-photos">
-                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" alt="Good example" />
-                  <img src="https://images.unsplash.com/photo-1554151228-14d9def656e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80" alt="Good example" />
-                </div>
-              </div>
+              <CCard>
+                <CCardBody>
+                  <h5>Photo Guidelines</h5>
+                  <ul class="photo-tips">
+                    <li><CIcon name="cil-check" /> Use high-quality images</li>
+                    <li><CIcon name="cil-check" /> Face should be clearly visible</li>
+                    <li><CIcon name="cil-check" /> Square images work best</li>
+                    <li><CIcon name="cil-check" /> Max file size: 5MB</li>
+                  </ul>
+                </CCardBody>
+              </CCard>
             </CCol>
           </CRow>
         </CModalBody>
@@ -151,152 +242,43 @@
   </div>
 </template>
 
-<!-- <script>
-import { ref, computed } from 'vue'
-
-export default {
-  name: 'UserProfile',
-  setup() {
-    // High-quality profile photo
-    const profilePhoto = 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80'
-    
-     const user = ref({
-      firstName: 'Ming',
-      lastName: 'Tang',
-      email: 'mtng@gmail.com',
-      skills: 'Vue.js, UI/UX Design, JavaScript, CSS',
-      rate: 75,
-      experience: 5,
-      portfolio: 'mingtang-portfolio',
-      photo: profilePhoto
-    }) 
-    const user = ref(null)
-    const fetchUserData = async () => {
-      try {
-        const response = await axios.get('https://your-api.com/api/user-profile/2') 
-        user.value = response.data
-      } catch (error) {
-        console.error('Failed to fetch user data:', error)
-      }
-    }
-        onMounted(() => {
-      fetchUserData()
-    })
-
-
-    const showEditModal = ref(false)
-    const showPhotoModal = ref(false)
-    const previewPhoto = ref(null)
-    const editUser = ref({})
-    const newPhoto = ref(null)
-
-    const backgroundStyle = computed(() => ({
-      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1470&q=80')`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundAttachment: 'fixed',
-      minHeight: '100vh',
-      padding: '2rem'
-    }))
-
-    const editProfile = () => {
-      editUser.value = { ...user.value }
-      showEditModal.value = true
-    }
-
-    const editPhoto = () => {
-      showPhotoModal.value = true
-      showEditModal.value = false
-    }
-
-    const closeModal = () => {
-      showEditModal.value = false
-    }
-
-    const closePhotoModal = () => {
-      showPhotoModal.value = false
-      previewPhoto.value = null
-    }
-
-    const saveProfile = () => {
-      user.value = { ...editUser.value }
-      closeModal()
-    }
-
-    const handlePhotoUpload = (event) => {
-      const file = event.target.files[0]
-      if (file) {
-        if (file.size > 5 * 1024 * 1024) {
-          alert('File size should be less than 5MB')
-          return
-        }
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          previewPhoto.value = e.target.result
-          newPhoto.value = file
-        }
-        reader.readAsDataURL(file)
-      }
-    }
-
-    const savePhoto = () => {
-      if (previewPhoto.value) {
-        user.value.photo = previewPhoto.value
-        if (showEditModal.value) {
-          editUser.value.photo = previewPhoto.value
-        }
-      }
-      closePhotoModal()
-      if (!showEditModal.value) {
-        showEditModal.value = true
-      }
-    }
-
-    return {
-      user,
-      showEditModal,
-      showPhotoModal,
-      previewPhoto,
-      editUser,
-      backgroundStyle,
-      editProfile,
-      editPhoto,
-      closeModal,
-      closePhotoModal,
-      saveProfile,
-      handlePhotoUpload,
-      savePhoto
-    }
-  }
-}
-</script> -->
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, computed, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
+
 // Main user data
 const user = ref({
-  firstName: '',
-  lastName: '',
-  email: '',
-  skills: '',
-  rate: 0,
-  experience: 0,
-  portfolio: '',
-  photo: ''
+  firstName: 'John',
+  lastName: 'Doe',
+  email: 'john.doe@example.com',
+  skills: 'Vue.js, UI/UX Design, JavaScript',
+  rate: 85,
+  experience: 5,
+  photo: 'https://randomuser.me/api/portraits/men/32.jpg',
+  projects: [
+    { name: 'E-commerce Platform', status: 'Completed' },
+    { name: 'Portfolio Website', status: 'Completed' },
+    { name: 'Task Management App', status: 'In Progress' }
+  ]
 })
 
-
-const editUser = ref({ ...user.value })
+const editUser = ref(JSON.parse(JSON.stringify(user.value)))
 const previewPhoto = ref(null)
 const showEditModal = ref(false)
 const showPhotoModal = ref(false)
+const authStore = useAuthStore()
+
+// Computed properties
+const completedProjects = computed(() => {
+  return user.value.projects.filter(p => p.status === 'Completed').length
+})
 
 const backgroundStyle = {
-  background: '#f7f7f7',
-  padding: '2rem'
+  background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+  padding: '2rem',
+  minHeight: '100vh'
 }
-const authStore = useAuthStore()
+
 // API call to fetch user data
 const fetchUserData = async () => {
   try {
@@ -307,11 +289,16 @@ const fetchUserData = async () => {
       }
     })
 
-    user.value = response.data
-    editUser.value = { ...response.data }
+    user.value = { ...user.value, ...response.data }
+    editUser.value = JSON.parse(JSON.stringify(user.value))
   } catch (error) {
     console.error('Error fetching user data:', error)
   }
+}
+
+// Project management
+const addProject = () => {
+  editUser.value.projects.push({ name: '', status: 'In Progress' })
 }
 
 // Photo Modal Handlers
@@ -333,6 +320,7 @@ const handlePhotoUpload = (event) => {
 const savePhoto = () => {
   if (previewPhoto.value) {
     user.value.photo = previewPhoto.value
+    editUser.value.photo = previewPhoto.value
     showPhotoModal.value = false
     previewPhoto.value = null
   }
@@ -345,7 +333,7 @@ const closePhotoModal = () => {
 
 // Edit Modal Handlers
 const editProfile = () => {
-  editUser.value = { ...user.value }
+  editUser.value = JSON.parse(JSON.stringify(user.value))
   showEditModal.value = true
 }
 
@@ -354,7 +342,7 @@ const closeModal = () => {
 }
 
 const saveProfile = () => {
-  user.value = { ...editUser.value }
+  user.value = JSON.parse(JSON.stringify(editUser.value))
   showEditModal.value = false
 }
 
@@ -363,41 +351,54 @@ onMounted(() => {
   fetchUserData()
 })
 </script>
+
 <style scoped>
-/* Your existing styles remain unchanged */
 .profile-container {
   padding: 2rem;
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
   min-height: 100vh;
 }
 
 .profile-card {
-  border-radius: 18px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   border: none;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.95);
+  background: white;
   max-width: 1200px;
   margin: 0 auto;
-  backdrop-filter: blur(5px);
 }
 
-.profile-photo-container {
+.profile-photo-card,
+.stats-card,
+.info-card {
+  border-radius: 12px;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 1.5rem;
+}
+
+.profile-photo-card {
+  padding: 1rem;
+}
+
+.stats-card {
+  padding: 1rem;
+}
+
+.info-card {
   padding: 2rem;
-  position: relative;
 }
 
 .avatar-wrapper {
   position: relative;
-  width: 320px;
-  height: 320px;
+  width: 240px;
+  height: 240px;
   margin: 0 auto;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 25px rgba(100, 120, 200, 0.15);
   transition: all 0.3s ease;
+  border: 5px solid white;
 }
 
 .profile-avatar {
@@ -413,7 +414,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(59, 130, 246, 0.7);
   color: white;
   display: flex;
   flex-direction: column;
@@ -431,112 +432,162 @@ onMounted(() => {
 .change-photo-overlay span {
   margin-top: 10px;
   font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.profile-stats {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 1rem;
+  background: rgba(239, 246, 255, 0.7);
+  border-radius: 10px;
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #3b82f6;
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #64748b;
 }
 
 .profile-info-section {
-  padding: 3rem;
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
   height: 100%;
 }
 
 .profile-section-title {
-  color: #2c3e50;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #f1f3f5;
+  color: #1e293b;
   font-weight: 600;
   display: flex;
   align-items: center;
-  font-size: 1.5rem;
+  font-size: 1.35rem;
 }
 
-.profile-info-grid {
+.info-item {
   display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 1.5rem;
-  align-items: start;
+  grid-template-columns: 120px 1fr;
+  gap: 1rem;
+  align-items: center;
 }
 
 .info-label {
   font-weight: 600;
-  color: #495057;
-  padding: 0.8rem 0;
-  font-size: 1.1rem;
+  color: #334155;
+  font-size: 0.95rem;
 }
 
 .info-value {
-  padding: 0.8rem 1.2rem;
-  background-color: #f8f9fa;
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
-  color: #495057;
-  font-size: 1.1rem;
+  color: #475569;
+  font-size: 0.95rem;
+}
+
+.project-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.6rem 0;
+  border-bottom: 1px dashed #e2e8f0;
+}
+
+.project-item:last-child {
+  border-bottom: none;
+}
+
+.project-name {
+  flex-grow: 1;
+  font-size: 0.9rem;
+}
+
+.profile-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 2rem;
 }
 
 .edit-btn {
-  border-radius: 12px;
-  padding: 0.8rem 2.2rem;
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
   font-weight: 500;
   transition: all 0.3s ease;
-  font-size: 1.1rem;
-  box-shadow: 0 4px 12px rgba(50, 31, 219, 0.2);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
 }
 
 .edit-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(50, 31, 219, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+}
+
+.download-btn {
+  border-radius: 10px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.download-btn:hover {
+  transform: translateY(-2px);
+  background: #f8fafc;
 }
 
 a {
-  color: #321fdb;
+  color: #3b82f6;
   text-decoration: none;
   transition: color 0.2s;
   display: flex;
   align-items: center;
+  font-size: 0.95rem;
 }
 
 a:hover {
-  color: #1a1491;
+  color: #2563eb;
   text-decoration: underline;
 }
 
 .photo-tips {
   list-style: none;
   padding-left: 0;
+  margin-bottom: 0;
 }
 
 .photo-tips li {
   margin-bottom: 0.8rem;
   display: flex;
   align-items: center;
+  font-size: 0.95rem;
+  color: #475569;
 }
 
 .photo-tips .c-icon {
   margin-right: 10px;
-  color: #2eb85c;
-}
-
-.sample-photos {
-  display: flex;
-  gap: 15px;
-  margin-top: 20px;
-}
-
-.sample-photos img {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid #e9ecef;
+  color: #10b981;
 }
 
 /* Responsive adjustments */
 @media (max-width: 992px) {
   .avatar-wrapper {
-    width: 280px;
-    height: 280px;
+    width: 200px;
+    height: 200px;
+  }
+  
+  .profile-stats {
+    gap: 0.8rem;
+  }
+  
+  .stat-item {
+    padding: 0.8rem;
+  }
+  
+  .stat-value {
+    font-size: 1.2rem;
   }
 }
 
@@ -546,33 +597,50 @@ a:hover {
   }
   
   .avatar-wrapper {
-    width: 240px;
-    height: 240px;
+    width: 180px;
+    height: 180px;
   }
   
-  .profile-info-grid {
+  .info-item {
     grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .info-label {
-    padding: 0.5rem 0 0.2rem;
+    gap: 0.5rem;
   }
   
   .profile-info-section,
-  .profile-photo-container {
-    padding: 1.5rem;
+  .profile-photo-card {
+    padding: 1.25rem;
+  }
+  
+  .profile-actions {
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+  
+  .edit-btn, .download-btn {
+    width: 100%;
   }
 }
 
 @media (max-width: 576px) {
   .avatar-wrapper {
-    width: 200px;
-    height: 200px;
+    width: 160px;
+    height: 160px;
   }
   
   .profile-container {
     padding: 1rem;
+  }
+  
+  .stat-value {
+    font-size: 1.1rem;
+  }
+  
+  .stat-label {
+    font-size: 0.8rem;
+  }
+  
+  .profile-section-title {
+    font-size: 1.2rem;
   }
 }
 </style>
