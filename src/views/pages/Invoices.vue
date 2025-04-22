@@ -1,15 +1,13 @@
 <template>
   <div class="page-background">
     <CContainer fluid class="pt-4 pb-5">
-      <CCard class="shadow">
-        <CCardHeader class="d-flex justify-content-between align-items-center bg-light py-3">
-          <div>
-            <strong class="h4">My Invoices</strong>
-          </div>
+      <CCard class="shadow-lg rounded-4 border-0">
+        <CCardHeader class="d-flex justify-content-between align-items-center bg-dark text-white py-3 px-4 rounded-top-4">
+          <strong class="h4 mb-0">My Invoices</strong>
         </CCardHeader>
-        <CCardBody class="p-0">
-          <CTable hover responsive striped bordered>
-            <CTableHead class="table-light">
+        <CCardBody class="p-0 bg-gray-100">
+          <CTable hover responsive striped bordered class="rounded-3 overflow-hidden">
+            <CTableHead class="bg-gray-200">
               <CTableRow>
                 <CTableHeaderCell scope="col" class="w-10">Invoice ID</CTableHeaderCell>
                 <CTableHeaderCell scope="col" class="w-20">Project Name</CTableHeaderCell>
@@ -19,7 +17,7 @@
                 <CTableHeaderCell scope="col" class="w-25 text-center">Actions</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
-            <CTableBody>
+            <CTableBody class="bg-white">
               <CTableRow v-for="(invoice, index) in invoices" :key="index">
                 <CTableDataCell class="fw-semibold">{{ invoice.id }}</CTableDataCell>
                 <CTableDataCell>{{ invoice.projectName }}</CTableDataCell>
@@ -28,47 +26,46 @@
                 <CTableDataCell>
                   <CBadge 
                     :color="getStatusColor(invoice.status)" 
-                    class="py-1 px-2"
+                    class="py-1 px-2 text-capitalize"
                     shape="rounded-pill"
                   >
                     {{ invoice.status }}
                   </CBadge>
                 </CTableDataCell>
                 <CTableDataCell class="text-center">
-                  <CButtonGroup>
-                    <CButton 
-                      color="primary" 
-                      size="sm" 
-                      @click="downloadInvoice(invoice)"
-                      class="me-2"
-                    >
-                      Download
-                    </CButton>
-                    <CButton 
-                      color="secondary" 
-                      size="sm" 
-                      variant="outline"
-                      @click="viewDetails(invoice)"
-                    >
-                      Details
-                    </CButton>
-                  </CButtonGroup>
+                  <CButton 
+                    color="purple" 
+                    size="sm" 
+                    class="me-2 shadow-sm rounded-pill px-3 text-white"
+                    @click="downloadInvoice(invoice)"
+                  >
+                    Download
+                  </CButton>
+                  <CButton 
+                    color="dark" 
+                    variant="outline"
+                    size="sm" 
+                    class="shadow-sm rounded-pill px-3"
+                    @click="viewDetails(invoice)"
+                  >
+                    Details
+                  </CButton>
                 </CTableDataCell>
               </CTableRow>
             </CTableBody>
           </CTable>
         </CCardBody>
-        <CCardFooter class="bg-light py-3">
+        <CCardFooter class="bg-gray-200 py-3 px-4">
           <div class="d-flex justify-content-between align-items-center">
-            <div class="text-muted small">
+            <div class="text-gray-600 small">
               Showing {{ invoices.length }} invoices
             </div>
             <CPagination size="sm">
-              <CPaginationItem>Previous</CPaginationItem>
-              <CPaginationItem active>1</CPaginationItem>
-              <CPaginationItem>2</CPaginationItem>
-              <CPaginationItem>3</CPaginationItem>
-              <CPaginationItem>Next</CPaginationItem>
+              <CPaginationItem class="text-gray-700">Previous</CPaginationItem>
+              <CPaginationItem active class="bg-purple text-white">1</CPaginationItem>
+              <CPaginationItem class="text-gray-700">2</CPaginationItem>
+              <CPaginationItem class="text-gray-700">3</CPaginationItem>
+              <CPaginationItem class="text-gray-700">Next</CPaginationItem>
             </CPagination>
           </div>
         </CCardFooter>
@@ -82,7 +79,7 @@ import { ref } from 'vue'
 import {
   CContainer, CCard, CCardHeader, CCardBody, CCardFooter,
   CTable, CTableHead, CTableRow, CTableHeaderCell, CTableBody, CTableDataCell,
-  CButton, CButtonGroup, CBadge, CPagination, CPaginationItem
+  CButton, CBadge, CPagination, CPaginationItem
 } from '@coreui/vue'
 
 const invoices = ref([
@@ -115,63 +112,67 @@ const viewDetails = (invoice) => {
   console.log(`Viewing details for: ${invoice.id}`)
 }
 </script>
-
 <style scoped>
 .page-background {
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, #C4AECC 0%, #EAD7D6 100%);
   min-height: 100vh;
   padding: 1rem;
 }
 
-.table-responsive {
-  border-radius: 0.375rem;
-  overflow: hidden;
+.text-capitalize {
+  text-transform: capitalize;
 }
 
-.table thead th {
-  border-bottom-width: 2px;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.5px;
-}
-
-.table tbody tr {
-  transition: background-color 0.2s ease;
-}
-
-.table tbody tr:hover {
-  background-color: rgba(0, 123, 255, 0.05);
-}
-
-.badge {
-  font-weight: 500;
-  letter-spacing: 0.5px;
-}
-
-.text-end {
-  text-align: end;
-}
-
-/* Card styling */
 .shadow {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05) !important;
 }
 
-/* Responsive adjustments */
+.table thead {
+  background-color: #EAD7D6;
+}
+
+.table tbody td {
+  background-color: #fff;
+}
+
+/* Button overrides */
+.btn-info {
+  background-color: #A49BC5 !important;
+  border-color: #A49BC5 !important;
+  color: #fff !important;
+}
+
+.btn-outline-secondary {
+  border-color: #726F9F !important;
+  color: #726F9F !important;
+}
+
+.btn-outline-secondary:hover {
+  background-color: #726F9F !important;
+  color: #fff !important;
+}
+
+/* Card header with main deep purple */
+.card-header {
+  background-color: #726F9F !important;
+  color: white !important;
+  border-radius: 1rem 1rem 0 0;
+}
+
 @media (max-width: 768px) {
   .page-background {
     padding: 0.5rem;
   }
-  
+
   .table thead th {
-    font-size: 0.65rem;
+    font-size: 0.75rem;
   }
-  
+
   .table tbody td {
     font-size: 0.85rem;
     padding: 0.5rem;
   }
-  
+
   .btn {
     padding: 0.25rem 0.5rem;
     font-size: 0.75rem;

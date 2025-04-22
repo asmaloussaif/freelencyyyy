@@ -1,242 +1,147 @@
 <template>
-  <div class="container">
-   
-    <CCard class="mb-4">
-      <CCardBody>
-     
-        <CInputGroup class="mb-3">
-          <CInputGroupText>
-            <CIcon :icon="cilSearch" size="sm" />
-          </CInputGroupText>
-          <CFormInput
-          v-model="searchQuery"
-          placeholder="Search for projects..."
-          aria-label="Search"
-        />
-        </CInputGroup>
+  <CContainer class="py-4">
+    <h2 class="mb-4 fw-bold text-primary">Offer List</h2>
 
-        
-        <div v-for="(offer, index) in filteredOffers" :key="index" class="mb-4">
-          <CCard class="p-3">
-            <div class="d-flex justify-content-between">
-             
-              <div>
-                <h4 class="mb-1">Title: {{ offer.title }}</h4>
-                <p>{{ offer.description }}</p>
-              </div>
-             
-              <div class="text-end">
-                <span :class="offer.state === 'Open' ? 'badge bg-success' : 'badge bg-danger'">
-                  {{ offer.state }}
-                </span>
-              </div>
+    <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
+      <CFormInput
+        v-model="search"
+        placeholder="Search by project or client..."
+        class="w-100 w-md-50"
+      />
+      <CFormSelect v-model="statusFilter" class="w-100 w-md-25">
+        <option value="">All Statuses</option>
+        <option value="Pending">Pending</option>
+        <option value="Accepted">Accepted</option>
+        <option value="Rejected">Rejected</option>
+        <option value="Expired">Expired</option>
+      </CFormSelect>
+    </div>
+
+    <div class="row">
+      <div
+        v-for="offer in filteredOffers"
+        :key="offer.id"
+        class="col-md-6 col-lg-4 mb-4"
+      >
+        <CCard :class="`border-${statusColor(offer.status)} shadow-sm h-100 offer-card`">
+          <CCardBody>
+            <h5 class="fw-bold text-dark">{{ offer.project_name }}</h5>
+            <p class="mb-1"><strong>Description:</strong> {{ offer.description }}</p>
+            <p class="mb-1"><strong>Budget:</strong> {{ formatCurrency(offer.budget) }}</p>
+            <p class="mb-1"><strong>Deadline:</strong> {{ formatDate(offer.deadline) }}</p>
+            <p class="mb-2"><strong>Client:</strong> {{ offer.client_name }}</p>
+
+            <CBadge :color="statusColor(offer.status)" class="mb-3">{{ offer.status }}</CBadge>
+
+            <div v-if="offer.status === 'Pending'" class="d-flex gap-2">
+              <CButton color="success" @click="updateStatus(offer.id, 'Accepted')">Accept</CButton>
+              <CButton color="danger" @click="updateStatus(offer.id, 'Rejected')">Reject</CButton>
             </div>
 
-        
-            <CButton color="primary" @click="openModal(offer)">
-              Apply
-            </CButton>
-          </CCard>
-        </div>
-      </CCardBody>
-    </CCard>
-
-    <!-- Modal for Motivation Input -->
-    <CModal :backdrop="false" :keyboard="false" :visible="modalVisible">
-      <CModalHeader>
-        <CModalTitle>Apply for Project: {{ selectedOffer?.title }}</CModalTitle>
-      </CModalHeader>
-      <CModalBody>
-        <CFormTextarea
-          v-model="motivationText"
-          placeholder="Write your motivation here..."
-          rows="5"
-        />
-      </CModalBody>
-      <CModalFooter>
-        <CButton color="secondary" @click="closeModal">Cancel</CButton>
-        <CButton color="primary" @click="submitApplication">Submit</CButton>
-      </CModalFooter>
-    </CModal>
-  </div>
+            <div v-else class="text-muted small">
+              <i v-if="offer.status === 'Accepted'" class="cil-check-circle text-success me-1"></i>
+              <i v-else-if="offer.status === 'Rejected'" class="cil-x-circle text-danger me-1"></i>
+              {{ offer.status }} offer
+            </div>
+          </CCardBody>
+        </CCard>
+      </div>
+    </div>
+  </CContainer>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import { ref, computed, onMounted } from 'vue'
 import {
+  CContainer,
   CCard,
   CCardBody,
-  CFormInput,
-  CInputGroup,
-  CInputGroupText,
   CButton,
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-  CFormTextarea,
+  CBadge,
+  CFormInput,
+  CFormSelect
 } from '@coreui/vue'
 
-import { CIcon } from '@coreui/icons-vue'
-import { cilSearch } from '@coreui/icons'
-import { useAuthStore } from '@/stores/authStore'
-import { defineComponent, computed, h, resolveComponent } from 'vue'
-// Reactive variables
+import { format } from 'date-fns'
+
+const search = ref('')
+const statusFilter = ref('')
 const offers = ref([])
-const modalVisible = ref(false)
-const motivationText = ref('')
-const selectedOffer = ref(null)
-const authStore = useAuthStore()
-const searchQuery = ref('')
-const filteredOffers = computed(() => {
-  return offers.value.filter(offer =>
-    offer.title.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
-})
-const fetchProjects = async () => {
-  try {
-    const token = authStore.token 
-    const response = await axios.get('http://127.0.0.1:8000/api/projects', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    offers.value = response.data.map(project => ({
-      title: project.titre,
-      description: project.description,
-      state: project.statut === 'Open' ? 'Open' : 'Closed',
-      id: project.id,
-      client_id: project.client_id,
-    }))
-  } catch (error) {
-    console.error('Failed to fetch projects:', error)
-  }
-}
-const submitApplication = async () => {
-  const token = authStore.token 
-  try {
-    const response = await axios.post('http://127.0.0.1:8000/api/applications', {
-      project_id: selectedOffer.value.id,
-      motivation: motivationText.value,
-      // freelancer_id will be handled automatically in the backend using Auth::id()
-    }, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
-
-    console.log('Application submitted:', response.data)
-    closeModal()
-  } catch (error) {
-    console.error('Failed to submit application:', error)
-  }
-}
 
 onMounted(() => {
-  fetchProjects()
+  offers.value = [
+    {
+      id: 1,
+      project_name: 'UI Redesign',
+      description: 'Update the app UI with a new theme.',
+      budget: 1000,
+      deadline: '2025-05-01',
+      client_name: 'Jane Doe',
+      status: 'Pending'
+    },
+    {
+      id: 2,
+      project_name: 'Landing Page',
+      description: 'Build a modern, responsive landing page.',
+      budget: 750,
+      deadline: '2025-04-25',
+      client_name: 'Mark Twain',
+      status: 'Accepted'
+    },
+    {
+      id: 3,
+      project_name: 'Logo Design',
+      description: 'Design a logo for a new brand.',
+      budget: 400,
+      deadline: '2025-04-20',
+      client_name: 'Emma Smith',
+      status: 'Rejected'
+    }
+  ]
 })
 
-const openModal = (offer) => {
-  selectedOffer.value = offer
-  modalVisible.value = true
+const formatDate = (dateStr) => {
+  return format(new Date(dateStr), 'MMM dd, yyyy')
 }
 
-const closeModal = () => {
-  modalVisible.value = false
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD'
+  }).format(amount)
 }
 
+const updateStatus = (id, newStatus) => {
+  const offer = offers.value.find(o => o.id === id)
+  if (offer) offer.status = newStatus
+}
 
+const statusColor = (status) => {
+  switch (status) {
+    case 'Accepted': return 'success'
+    case 'Rejected': return 'danger'
+    case 'Expired': return 'secondary'
+    default: return 'warning'
+  }
+}
+
+const filteredOffers = computed(() => {
+  return offers.value.filter((offer) => {
+    const matchStatus = !statusFilter.value || offer.status === statusFilter.value
+    const matchSearch =
+      offer.project_name.toLowerCase().includes(search.value.toLowerCase()) ||
+      offer.client_name.toLowerCase().includes(search.value.toLowerCase())
+    return matchStatus && matchSearch
+  })
+})
 </script>
 
-
 <style scoped>
-
-.container {
-  font-family: 'Poppins', sans-serif;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px;
-  color: #333;
+.offer-card {
+  transition: transform 0.3s, box-shadow 0.3s;
 }
-
-/* Headings */
-.container h4 {
-  font-size: 22px;
-  font-weight: 600;
-  color: #222;
-  margin-bottom: 12px;
-  letter-spacing: 0.5px;
-}
-
-/* Paragraphs */
-.container p {
-  font-size: 15px;
-  line-height: 1.6;
-  color: #555;
-  margin-bottom: 10px;
-}
-
-/* Badges */
-.badge {
-  font-size: 13px;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-weight: 500;
-  text-transform: capitalize;
-}
-
-.badge.bg-success {
-  background-color: #28a745;
-  color: white;
-}
-
-.badge.bg-danger {
-  background-color: #dc3545;
-  color: white;
-}
-
-/* Inputs */
-input[type='text'] {
-  font-family: 'Poppins', sans-serif;
-  border-radius: 6px;
-  padding: 10px 12px;
-  font-size: 14px;
-  border: 1px solid #ccc;
-  width: 100%;
-}
-
-input[type='text']:focus {
-  outline: none;
-  border-color: #0d6efd;
-  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-}
-
-/* Buttons */
-button {
-  font-family: 'Poppins', sans-serif;
-  border-radius: 6px;
-  padding: 10px 16px;
-  background-color: #0d6efd;
-  color: white;
-  font-weight: 500;
-  font-size: 14px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-button:hover {
-  background-color: #0b5ed7;
-}
-
-/* Modal content */
-.modal-body {
-  font-family: 'Poppins', sans-serif;
-  font-size: 16px;
-  line-height: 1.6;
-  color: #444;
+.offer-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 </style>

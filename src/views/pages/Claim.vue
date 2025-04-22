@@ -1,21 +1,22 @@
 <template>
   <div class="container">
-    <CCard class="mb-4 shadow-lg rounded">
-      <CCardHeader class="bg-primary text-white">
-        <strong>Claims</strong>
+    <CCard class="mb-4 shadow rounded-4 overflow-hidden">
+      <CCardHeader class="bg-gradient bg-primary text-white py-3 px-4">
+        <h4 class="mb-0 fw-semibold">📝 Submit a Claim</h4>
       </CCardHeader>
+
       <CCardBody class="p-4">
         <!-- Claim Form -->
         <CForm @submit.prevent="submitClaim">
-          <CRow class="mb-3">
+          <CRow class="g-4">
             <CCol :md="6">
               <CFormLabel for="subject" class="fw-bold">Subject</CFormLabel>
               <CFormInput
                 id="subject"
                 v-model="form.subject"
-                placeholder="Claim subject"
+                placeholder="Enter the subject of your claim"
                 required
-                class="shadow-sm"
+                class="form-control-lg shadow-sm"
               />
             </CCol>
             <CCol :md="6">
@@ -24,37 +25,40 @@
                 id="description"
                 v-model="form.description"
                 rows="3"
-                placeholder="Describe your claim"
+                placeholder="Provide more details about your claim"
                 required
-                class="shadow-sm"
+                class="form-control-lg shadow-sm"
               />
             </CCol>
           </CRow>
-          <CButton color="primary" type="submit" class="w-100 py-2 mt-3 shadow-sm">Submit</CButton>
+
+          <CButton color="primary" type="submit" class="w-100 py-2 mt-4 shadow-sm fs-5">
+            Submit Claim
+          </CButton>
         </CForm>
 
-        <hr class="my-4" />
+        <hr class="my-5" />
 
         <!-- Claims List -->
         <div v-if="claims.length">
-          <h5 class="mb-3">Claims History</h5>
+          <h5 class="mb-4 fw-bold text-primary">📂 Your Claim History</h5>
           <div class="claim-list">
             <CCard
               v-for="claim in claims"
               :key="claim.id"
-              class="mb-3 p-3 shadow-sm rounded"
+              class="claim-card p-3 shadow-sm border-0 rounded-3"
             >
-              <div class="d-flex justify-content-between align-items-center">
-                <div>
-                  <h6 class="mb-1 text-dark">{{ claim.subject }}</h6>
-                  <p class="mb-0 text-muted">{{ claim.description }}</p>
-                  <small class="text-muted">By: {{ claim.user?.name || 'Unknown User' }}</small>
+              <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div class="flex-grow-1">
+                  <h6 class="mb-1 fw-semibold text-dark">{{ claim.subject }}</h6>
+                  <p class="mb-2 text-muted">{{ claim.description }}</p>
+                  <small class="text-muted">👤 {{ claim.user?.name || 'Unknown User' }}</small>
                 </div>
                 <CButton
                   color="danger"
                   size="sm"
                   @click="deleteClaim(claim.id)"
-                  class="shadow-sm"
+                  class="px-3 shadow-sm"
                 >
                   Delete
                 </CButton>
@@ -85,7 +89,7 @@ import {
 const form = ref({
   subject: '',
   description: '',
-  user_id: 1, // 📝 Replace with the logged-in user's ID
+  user_id: 1, // 🔒 Replace with the authenticated user's ID
 })
 
 const claims = ref([])
@@ -140,60 +144,30 @@ onMounted(() => {
   padding: 1rem;
 }
 
-CCardHeader {
-  border-radius: 10px 10px 0 0;
+h5,
+h6 {
+  font-weight: 600;
 }
 
 .claim-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 1rem;
 }
 
-.claim-list .card {
-  border: 1px solid #ddd;
+.claim-card {
+  background-color: #fdfdfd;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.claim-list .card:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-CCard {
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-CCard:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-}
-
-h5 {
-  font-size: 1.25rem;
-  font-weight: 600;
-}
-
-small {
-  font-size: 0.875rem;
-  color: #6c757d;
-}
-
-.text-muted {
-  color: #6c757d;
+.claim-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
 button:focus,
 input:focus,
 textarea:focus {
   box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-}
-
-.shadow-sm {
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-}
-
-.fw-bold {
-  font-weight: 700;
 }
 </style>

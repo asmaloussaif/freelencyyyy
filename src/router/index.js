@@ -56,7 +56,6 @@ const routes = [
       },
       {
         path: 'inbox',
-        name: 'Inbox',
         component: () => import('@/views/pages/Inbox.vue'),
       },
       {

@@ -84,25 +84,25 @@ const AppSidebarNav = defineComponent({
       {
         component: 'CNavItem',
         name: 'Project Management',
-        to: '/pages/project-management',
+        to: '/dashboard/project-management',
         icon: 'cil-task',
       },
       {
         component: 'CNavItem',
         name: 'Claim',
-        to: '/pages/claim',
+        to: '/dashboard/claim',
         icon: 'cil-library',
       },
       {
         component: 'CNavItem',
         name: 'Project List',
-        to: '/pages/project-list',
+        to: '/dashboard/Project-list',
         icon: 'cil-money',
       },
       {
         component: 'CNavItem',
         name: 'Inbox',
-        to: '/pages/inbox',
+        to: '/dashboard/inbox',
         icon: 'cil-envelope-open',
       },
     ]
@@ -111,19 +111,19 @@ const AppSidebarNav = defineComponent({
       {
         component: 'CNavItem',
         name: 'Claim Management',
-        to: '/pages/claim-management',
+        to: '/dashboard/claim-management',
         icon: 'cil-briefcase',
       },
       {
         component: 'CNavItem',
         name: 'Customer/Freelancer Management',
-        to: '/pages/customer-freelancer-management',
+        to: '/dashboard/customer-freelancer-management',
         icon: 'cil-task',
       },
       {
         component: 'CNavItem',
         name: 'Claim',
-        to: '/pages/claim',
+        to: '/dashboard/claim',
         icon: 'cil-library',
       },
     ]

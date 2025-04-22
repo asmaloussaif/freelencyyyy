@@ -22,10 +22,12 @@
               <input required type="password" class="w100" v-model="confirmPassword" placeholder="Confirm Password" />
 
               <select v-model="role" class="w100" required>
-                <option disabled value="">Select your role</option>
-                <option value="client">Client</option>
-                <option value="freelancer">freelancer</option>
-              </select>
+  <option disabled value="">Select your role</option>
+  <option value="client">Client</option>
+  <option value="freelancer">Freelancer</option>
+  <option value="admin">Admin</option>
+</select>
+
             </div>
 
             <div class="forgot-password">
