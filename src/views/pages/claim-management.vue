@@ -153,12 +153,11 @@ const rejectClaim = (id) => {
   if (claim) claim.status = 'rejected'
 }
 </script>
-
 <style scoped>
 .claims-container {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(151, 96, 208, 0.12); /* Using purple tint */
   padding: 24px;
   overflow: hidden;
 }
@@ -173,7 +172,7 @@ const rejectClaim = (id) => {
 .title {
   font-size: 24px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #5E2B97; /* Deep purple */
   margin: 0;
   display: flex;
   align-items: center;
@@ -182,15 +181,16 @@ const rejectClaim = (id) => {
 
 .icon {
   font-size: 28px;
+  color: #8A4EBF; /* Medium purple */
 }
 
 .search-bar {
   display: flex;
   align-items: center;
-  background: #f8f9fa;
+  background: #F5E9FF; /* Very light purple */
   border-radius: 8px;
   padding: 4px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #D9B3FF; /* Light purple border */
 }
 
 .search-input {
@@ -199,6 +199,11 @@ const rejectClaim = (id) => {
   padding: 8px 12px;
   outline: none;
   width: 200px;
+  color: #4A2C7A; /* Dark purple for text */
+}
+
+.search-input::placeholder {
+  color: #A78BC9; /* Medium-light purple */
 }
 
 .search-btn {
@@ -212,7 +217,7 @@ const rejectClaim = (id) => {
 
 .search-icon {
   font-size: 16px;
-  opacity: 0.7;
+  color: #8A4EBF; /* Medium purple */
 }
 
 .table-responsive {
@@ -227,8 +232,8 @@ const rejectClaim = (id) => {
 }
 
 .claims-table th {
-  background-color: #f8f9fa;
-  color: #495057;
+  background-color: #F0D9FF; /* Light purple */
+  color: #4A2C7A; /* Dark purple */
   font-weight: 600;
   padding: 12px 16px;
   text-align: left;
@@ -239,17 +244,18 @@ const rejectClaim = (id) => {
 }
 
 .claims-table th:hover {
-  background-color: #e9ecef;
+  background-color: #E2C3FF; /* Slightly darker light purple */
 }
 
 .sort-icon {
   margin-left: 4px;
   font-size: 12px;
+  color: #6E3FB4; /* Medium-dark purple */
 }
 
 .claims-table td {
   padding: 16px;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid #E9D5FF; /* Very light purple */
   vertical-align: middle;
 }
 
@@ -258,7 +264,7 @@ const rejectClaim = (id) => {
 }
 
 .claims-table tr:hover {
-  background-color: #f8f9fa;
+  background-color: #FAF2FF; /* Very light purple */
 }
 
 .description {
@@ -278,18 +284,18 @@ const rejectClaim = (id) => {
 }
 
 .status-badge.pending {
-  background-color: #fff3cd;
-  color: #856404;
+  background-color: #F3E5FF; /* Light purple */
+  color: #6A1B9A; /* Deep purple */
 }
 
 .status-badge.resolved {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: #E6F9E6; /* Light green */
+  color: #2E7D32; /* Keeping green for resolved status */
 }
 
 .status-badge.rejected {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: #FFEBEE; /* Light red */
+  color: #C62828; /* Keeping red for rejected status */
 }
 
 .user-cell {
@@ -301,14 +307,14 @@ const rejectClaim = (id) => {
 .user-avatar {
   width: 32px;
   height: 32px;
-  background-color: #e9ecef;
+  background-color: #E2C3FF; /* Light purple */
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: #495057;
+  color: #4A2C7A; /* Dark purple */
 }
 
 .action-buttons {
@@ -335,21 +341,21 @@ const rejectClaim = (id) => {
 }
 
 .resolve-btn {
-  background-color: #28a745;
+  background-color: #6E3FB4; /* Medium purple */
   color: white;
 }
 
 .resolve-btn:hover:not(:disabled) {
-  background-color: #218838;
+  background-color: #5E2B97; /* Darker purple */
 }
 
 .reject-btn {
-  background-color: #dc3545;
+  background-color: #9C27B0; /* Different purple */
   color: white;
 }
 
 .reject-btn:hover:not(:disabled) {
-  background-color: #c82333;
+  background-color: #7B1FA2; /* Darker purple */
 }
 
 .btn-icon {
@@ -362,25 +368,25 @@ const rejectClaim = (id) => {
   align-items: center;
   justify-content: center;
   padding: 40px 0;
-  color: #6c757d;
+  color: #A78BC9; /* Medium-light purple */
 }
 
 .empty-icon {
   font-size: 48px;
   margin-bottom: 16px;
-  opacity: 0.5;
+  color: #D9B3FF; /* Light purple */
 }
 
 /* Row status colors */
 tr.status-pending {
-  border-left: 3px solid #ffc107;
+  border-left: 3px solid #BA68C8; /* Purple */
 }
 
 tr.status-resolved {
-  border-left: 3px solid #28a745;
+  border-left: 3px solid #6E3FB4; /* Keeping purple theme but different shade */
 }
 
 tr.status-rejected {
-  border-left: 3px solid #dc3545;
+  border-left: 3px solid #9C27B0; /* Different purple */
 }
 </style>

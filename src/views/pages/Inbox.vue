@@ -172,7 +172,7 @@ const formatMessageDate = (timestamp) => {
 <style scoped>
 /* Base Styles */
 .chat-container {
-  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
+  background: linear-gradient(135deg, #F5E9FF 0%, #E2C3FF 100%);
   height: 100vh;
 }
 
@@ -180,27 +180,27 @@ const formatMessageDate = (timestamp) => {
   height: 100vh;
 }
 
-/* Soft Blue Sidebar Styles */
+/* Purple Sidebar Styles */
 .sidebar {
-  background: linear-gradient(to bottom, #f5f9ff, #e6f0ff);
-  border-right: 1px solid #d6e4ff;
+  background: linear-gradient(to bottom, #FAF2FF, #F0D9FF);
+  border-right: 1px solid #E2C3FF;
 }
 
 .sidebar-header {
-  background: rgba(230, 240, 255, 0.8);
-  border-color: #d6e4ff !important;
+  background: rgba(240, 217, 255, 0.8);
+  border-color: #E2C3FF !important;
 }
 
 .new-chat-btn {
-  border-color: #b8d1ff;
-  color: #3a7bd5;
+  border-color: #D9B3FF;
+  color: #6E3FB4;
   background: rgba(255, 255, 255, 0.7);
   transition: all 0.3s ease;
 }
 
 .new-chat-btn:hover {
   background: rgba(255, 255, 255, 0.9);
-  border-color: #3a7bd5;
+  border-color: #6E3FB4;
 }
 
 .chat-list {
@@ -209,29 +209,29 @@ const formatMessageDate = (timestamp) => {
 
 .chat-item {
   background: transparent;
-  border-color: #e6f0ff !important;
+  border-color: #F0D9FF !important;
   transition: all 0.2s ease;
 }
 
 .chat-item:hover {
-  background: rgba(214, 228, 255, 0.3);
+  background: rgba(226, 195, 255, 0.3);
 }
 
 .chat-item.active {
-  background: rgba(214, 228, 255, 0.5);
-  border-left: 3px solid #4facfe;
+  background: rgba(226, 195, 255, 0.5);
+  border-left: 3px solid #8A4EBF;
 }
 
 .chat-name {
-  color: #2c3e50;
+  color: #4A2C7A;
 }
 
 .chat-preview {
-  color: #6c7a92;
+  color: #8A4EBF;
 }
 
 .chat-time {
-  color: #8a9bb9;
+  color: #A78BC9;
 }
 
 /* Chat Content Styles */
@@ -248,14 +248,14 @@ const formatMessageDate = (timestamp) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(245, 247, 250, 0.85);
+  background: rgba(245, 233, 255, 0.85);
   backdrop-filter: blur(2px);
 }
 
 .chat-header {
   background: white;
   z-index: 1;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 10px rgba(151, 96, 208, 0.1);
 }
 
 .messages-container {
@@ -275,7 +275,7 @@ const formatMessageDate = (timestamp) => {
   padding: 12px 15px;
   border-radius: 18px;
   position: relative;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(151, 96, 208, 0.1);
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -285,7 +285,7 @@ const formatMessageDate = (timestamp) => {
 }
 
 .message-bubble.sent {
-  background: linear-gradient(to right, #4facfe 0%, #00f2fe 100%);
+  background: linear-gradient(to right, #8A4EBF 0%, #6E3FB4 100%);
   color: white;
   margin-left: auto;
   border-bottom-right-radius: 4px;
@@ -293,9 +293,10 @@ const formatMessageDate = (timestamp) => {
 
 .message-bubble.received {
   background: white;
-  color: #333;
+  color: #4A2C7A;
   margin-right: auto;
   border-bottom-left-radius: 4px;
+  border: 1px solid #E2C3FF;
 }
 
 .message-content {
@@ -310,7 +311,7 @@ const formatMessageDate = (timestamp) => {
 }
 
 .message-bubble.received .message-time {
-  color: #666;
+  color: #8A4EBF;
 }
 
 .message-bubble.sent .message-time {
@@ -321,19 +322,19 @@ const formatMessageDate = (timestamp) => {
 .chat-input-container {
   background: white;
   z-index: 1;
-  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 -2px 10px rgba(151, 96, 208, 0.1);
 }
 
 .message-input {
   border-radius: 20px;
-  border: 1px solid #e1e5eb;
+  border: 1px solid #E2C3FF;
   padding: 10px 15px;
   transition: all 0.3s ease;
 }
 
 .message-input:focus {
-  border-color: #4facfe;
-  box-shadow: 0 0 0 0.2rem rgba(79, 172, 254, 0.25);
+  border-color: #8A4EBF;
+  box-shadow: 0 0 0 0.2rem rgba(138, 78, 191, 0.25);
 }
 
 .send-btn {
@@ -344,6 +345,12 @@ const formatMessageDate = (timestamp) => {
   align-items: center;
   justify-content: center;
   padding: 0;
+  background: #6E3FB4;
+  color: white;
+}
+
+.send-btn:hover {
+  background: #5E2B97;
 }
 
 /* Empty Chat State */
@@ -355,7 +362,7 @@ const formatMessageDate = (timestamp) => {
 }
 
 .empty-chat-icon {
-  color: #d6deeb;
+  color: #D9B3FF;
   font-size: 4rem;
 }
 

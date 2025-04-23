@@ -1,39 +1,40 @@
 <template>
   <CContainer class="py-4">
-    <h2 class="mb-4 fw-bold text-primary">My Projects</h2>
+    <h2 class="mb-4 fw-bold" style="color: #5E2B97;">My Projects</h2>
 
-    <CTable hover responsive bordered class="shadow-sm">
-      <CTableHead color="light">
+    <CTable hover responsive bordered class="shadow-sm" style="border-color: #E2C3FF;">
+      <CTableHead style="background-color: #F0D9FF;">
         <CTableRow>
-          <CTableHeaderCell>Project Name</CTableHeaderCell>
-          <CTableHeaderCell>End Date</CTableHeaderCell>
-          <CTableHeaderCell>Amount</CTableHeaderCell>
-          <CTableHeaderCell>Status</CTableHeaderCell>
-          <CTableHeaderCell>Client Name</CTableHeaderCell>
-          <CTableHeaderCell>Rate Client</CTableHeaderCell>
+          <CTableHeaderCell style="color: #4A2C7A;">Project Name</CTableHeaderCell>
+          <CTableHeaderCell style="color: #4A2C7A;">End Date</CTableHeaderCell>
+          <CTableHeaderCell style="color: #4A2C7A;">Amount</CTableHeaderCell>
+          <CTableHeaderCell style="color: #4A2C7A;">Status</CTableHeaderCell>
+          <CTableHeaderCell style="color: #4A2C7A;">Client Name</CTableHeaderCell>
+          <CTableHeaderCell style="color: #4A2C7A;">Rate Client</CTableHeaderCell>
         </CTableRow>
       </CTableHead>
       <CTableBody>
         <CTableRow v-for="project in projects" :key="project.id">
-          <CTableDataCell>{{ project.name }}</CTableDataCell>
-          <CTableDataCell>{{ formatDate(project.end_date) }}</CTableDataCell>
-          <CTableDataCell>{{ formatCurrency(project.amount) }}</CTableDataCell>
+          <CTableDataCell style="color: #6E3FB4;">{{ project.name }}</CTableDataCell>
+          <CTableDataCell style="color: #6E3FB4;">{{ formatDate(project.end_date) }}</CTableDataCell>
+          <CTableDataCell style="color: #6E3FB4;">{{ formatCurrency(project.amount) }}</CTableDataCell>
           <CTableDataCell>
-            <CBadge :color="statusColor(project.status)">
+            <CBadge :style="statusStyle(project.status)">
               {{ project.status }}
             </CBadge>
           </CTableDataCell>
-          <CTableDataCell>{{ project.client_name }}</CTableDataCell>
+          <CTableDataCell style="color: #6E3FB4;">{{ project.client_name }}</CTableDataCell>
           <CTableDataCell>
             <CButton
               v-if="project.status === 'Finished'"
               color="info"
               size="sm"
               @click="openRatingModal(project)"
+              style="background-color: #6E3FB4; border-color: #6E3FB4;"
             >
               Rate
             </CButton>
-            <span v-else class="text-muted">—</span>
+            <span v-else style="color: #8A4EBF;">—</span>
           </CTableDataCell>
         </CTableRow>
       </CTableBody>
@@ -41,8 +42,8 @@
 
     <!-- Rating Modal -->
     <CModal :visible="showModal" @close="showModal = false">
-      <CModalHeader>
-        <strong>Rate {{ selectedProject?.client_name }}</strong>
+      <CModalHeader style="background-color: #F0D9FF; border-color: #E2C3FF;">
+        <strong style="color: #5E2B97;">Rate {{ selectedProject?.client_name }}</strong>
       </CModalHeader>
       <CModalBody>
         <div class="star-rating text-center">
@@ -57,9 +58,21 @@
           </span>
         </div>
       </CModalBody>
-      <CModalFooter>
-        <CButton color="secondary" @click="showModal = false">Cancel</CButton>
-        <CButton color="primary" @click="submitRating">Submit</CButton>
+      <CModalFooter style="background-color: #F5E9FF; border-color: #E2C3FF;">
+        <CButton 
+          color="secondary" 
+          @click="showModal = false"
+          style="background-color: #8A4EBF; border-color: #8A4EBF;"
+        >
+          Cancel
+        </CButton>
+        <CButton 
+          color="primary" 
+          @click="submitRating"
+          style="background-color: #5E2B97; border-color: #5E2B97;"
+        >
+          Submit
+        </CButton>
       </CModalFooter>
     </CModal>
   </CContainer>
@@ -85,6 +98,29 @@ import {
 import { format } from 'date-fns'
 
 const projects = ref([])
+
+const statusStyle = (status) => {
+  switch(status) {
+    case 'Finished':
+      return {
+        backgroundColor: '#D4EDDA',
+        color: '#155724',
+        border: '1px solid #28A745'
+      }
+    case 'In Progress':
+      return {
+        backgroundColor: '#F0D9FF',
+        color: '#5E2B97',
+        border: '1px solid #8A4EBF'
+      }
+    default:
+      return {
+        backgroundColor: '#F5E9FF',
+        color: '#6E3FB4',
+        border: '1px solid #D9B3FF'
+      }
+  }
+}
 
 onMounted(() => {
   projects.value = [
@@ -115,10 +151,6 @@ const formatCurrency = (amount) =>
     currency: 'USD',
   }).format(amount)
 
-const statusColor = (status) => {
-  return status === 'Finished' ? 'success' : 'warning'
-}
-
 // Rating logic
 const showModal = ref(false)
 const selectedProject = ref(null)
@@ -143,10 +175,6 @@ const submitRating = () => {
   }
 
   console.log('Submitted rating:', ratingData)
-
-  // Replace with API call to backend
-  // await axios.post('/api/ratings', ratingData)
-
   showModal.value = false
 }
 </script>
@@ -159,11 +187,45 @@ const submitRating = () => {
 
 .star {
   cursor: pointer;
-  color: #ccc;
+  color: #D9B3FF; /* Light purple */
   transition: color 0.2s;
 }
 
 .star.filled {
-  color: #facc15; /* Yellow-400 */
+  color: #8A4EBF; /* Medium purple */
+}
+
+/* Table hover effect */
+.table-hover tbody tr:hover {
+  background-color: #FAF2FF !important;
+}
+
+/* Badge styling */
+.badge {
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.badge[style*="Finished"]::before {
+  background-color: #155724;
+}
+
+.badge[style*="In Progress"]::before {
+  background-color: #5E2B97;
 }
 </style>

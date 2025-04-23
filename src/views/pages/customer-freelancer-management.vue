@@ -212,12 +212,11 @@ const prevPage = () => {
   if (currentPage.value > 1) currentPage.value--
 }
 </script>
-
 <style scoped>
 .management-container {
   background: white;
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(151, 96, 208, 0.12); /* Purple shadow */
   padding: 28px;
   overflow: hidden;
 }
@@ -238,7 +237,7 @@ const prevPage = () => {
 .title {
   font-size: 24px;
   font-weight: 600;
-  color: #2c3e50;
+  color: #5E2B97; /* Deep purple */
   margin: 0;
   display: flex;
   align-items: center;
@@ -247,10 +246,11 @@ const prevPage = () => {
 
 .icon {
   font-size: 28px;
+  color: #8A4EBF; /* Medium purple */
 }
 
 .subtitle {
-  color: #6c757d;
+  color: #A78BC9; /* Light purple-gray */
   font-size: 14px;
   margin: 0;
   margin-left: 40px;
@@ -271,23 +271,25 @@ const prevPage = () => {
 .search-input {
   flex: 1;
   padding: 10px 16px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #D9B3FF; /* Light purple border */
   border-radius: 8px;
   outline: none;
   transition: border 0.2s;
+  background: #F5E9FF; /* Very light purple background */
 }
 
 .search-input:focus {
-  border-color: #4361ee;
+  border-color: #6E3FB4; /* Medium-dark purple */
 }
 
 .role-filter, .status-filter {
   padding: 10px 12px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #D9B3FF; /* Light purple border */
   border-radius: 8px;
   outline: none;
-  background: white;
+  background: #F5E9FF; /* Very light purple */
   cursor: pointer;
+  color: #4A2C7A; /* Dark purple text */
 }
 
 .table-responsive {
@@ -303,24 +305,25 @@ const prevPage = () => {
 }
 
 .user-table .header-row {
-  background-color: #f8f9fa !important;
+  background-color: #F0D9FF !important; /* Light purple header */
 }
 
 .user-table .header-row th {
   border: none;
   padding: 14px 16px;
+  color: #4A2C7A; /* Dark purple text */
 }
 
 .user-card {
   background: white;
-  border: 1px solid #333; /* Solid black border */
+  border: 1px solid #E2C3FF; /* Light purple border */
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .user-card:hover {
-  border-color: #111; /* Darker border on hover */
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  border-color: #8A4EBF; /* Medium purple on hover */
+  box-shadow: 0 3px 10px rgba(151, 96, 208, 0.15); /* Purple shadow */
 }
 
 .user-table td {
@@ -329,7 +332,6 @@ const prevPage = () => {
   vertical-align: middle;
 }
 
-/* Rounded corners for first/last cells */
 .user-table td:first-child {
   border-top-left-radius: 8px;
   border-bottom-left-radius: 8px;
@@ -342,7 +344,7 @@ const prevPage = () => {
 
 .inactive-row {
   opacity: 0.8;
-  background-color: #f8f9fa;
+  background-color: #FAF2FF; /* Very light purple */
 }
 
 .user-cell {
@@ -356,7 +358,7 @@ const prevPage = () => {
   height: 40px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #e9ecef;
+  border: 2px solid #E2C3FF; /* Light purple border */
 }
 
 .user-details {
@@ -366,16 +368,16 @@ const prevPage = () => {
 
 .user-name {
   font-weight: 500;
-  color: #212529;
+  color: #4A2C7A; /* Dark purple */
 }
 
 .user-id {
   font-size: 12px;
-  color: #6c757d;
+  color: #A78BC9; /* Light purple-gray */
 }
 
 .user-email {
-  color: #4361ee;
+  color: #6E3FB4; /* Medium-dark purple */
 }
 
 .role-badge {
@@ -387,13 +389,13 @@ const prevPage = () => {
 }
 
 .role-badge.client {
-  background-color: #e6f2ff;
-  color: #0066cc;
+  background-color: #EDE7F6; /* Light purple */
+  color: #5E35B1; /* Deep purple */
 }
 
 .role-badge.freelancer {
-  background-color: #e6f7ff;
-  color: #0099cc;
+  background-color: #F3E5F5; /* Light purple-pink */
+  color: #8E24AA; /* Purple-pink */
 }
 
 .status-badge {
@@ -407,13 +409,13 @@ const prevPage = () => {
 }
 
 .status-badge.active {
-  background-color: #e6f7e6;
-  color: #2e7d32;
+  background-color: #E8F5E9; /* Light green */
+  color: #2E7D32; /* Keeping green for active status */
 }
 
 .status-badge.inactive {
-  background-color: #f5f5f5;
-  color: #616161;
+  background-color: #F5E9FF; /* Very light purple */
+  color: #6E3FB4; /* Medium-dark purple */
 }
 
 .status-dot {
@@ -423,11 +425,11 @@ const prevPage = () => {
 }
 
 .status-badge.active .status-dot {
-  background-color: #2e7d32;
+  background-color: #2E7D32; /* Green */
 }
 
 .status-badge.inactive .status-dot {
-  background-color: #616161;
+  background-color: #6E3FB4; /* Medium-dark purple */
 }
 
 .action-btn {
@@ -442,30 +444,30 @@ const prevPage = () => {
 }
 
 .suspend-btn {
-  background-color: #fff0f0;
-  color: #d32f2f;
+  background-color: #F3E5F5; /* Light purple-pink */
+  color: #8E24AA; /* Purple-pink */
 }
 
 .suspend-btn:hover {
-  background-color: #ffdddd;
+  background-color: #E1BEE7; /* Medium purple-pink */
 }
 
 .activate-btn {
-  background-color: #f0fff4;
-  color: #2e7d32;
+  background-color: #E8F5E9; /* Light green */
+  color: #2E7D32; /* Keeping green for activate */
 }
 
 .activate-btn:hover {
-  background-color: #e0ffe0;
+  background-color: #C8E6C9; /* Medium green */
 }
 
 .view-btn {
-  background-color: #f0f4ff;
-  color: #4361ee;
+  background-color: #EDE7F6; /* Light purple */
+  color: #5E35B1; /* Deep purple */
 }
 
 .view-btn:hover {
-  background-color: #e0e8ff;
+  background-color: #D1C4E9; /* Medium purple */
 }
 
 .empty-state {
@@ -474,19 +476,19 @@ const prevPage = () => {
   align-items: center;
   justify-content: center;
   padding: 40px 0;
-  color: #6c757d;
+  color: #A78BC9; /* Light purple-gray */
   text-align: center;
 }
 
 .empty-icon {
   font-size: 48px;
   margin-bottom: 16px;
-  opacity: 0.5;
+  color: #D9B3FF; /* Light purple */
 }
 
 .empty-state h3 {
   margin: 8px 0;
-  color: #495057;
+  color: #5E2B97; /* Deep purple */
 }
 
 .pagination {
@@ -499,16 +501,17 @@ const prevPage = () => {
 
 .page-btn {
   padding: 8px 16px;
-  border: 1px solid #e9ecef;
+  border: 1px solid #D9B3FF; /* Light purple border */
   background: white;
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
+  color: #5E2B97; /* Deep purple */
 }
 
 .page-btn:hover:not(:disabled) {
-  background: #f8f9fa;
-  border-color: #dee2e6;
+  background: #F5E9FF; /* Very light purple */
+  border-color: #8A4EBF; /* Medium purple */
 }
 
 .page-btn:disabled {
@@ -518,7 +521,7 @@ const prevPage = () => {
 
 .page-info {
   font-size: 14px;
-  color: #6c757d;
+  color: #A78BC9; /* Light purple-gray */
 }
 
 @media (max-width: 768px) {

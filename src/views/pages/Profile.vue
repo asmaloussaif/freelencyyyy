@@ -356,11 +356,12 @@ onMounted(() => {
 .profile-container {
   padding: 2rem;
   min-height: 100vh;
+  background-color: #FAF5FF; /* Very light purple background */
 }
 
 .profile-card {
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 24px rgba(151, 96, 208, 0.12); /* Purple shadow */
   border: none;
   overflow: hidden;
   background: white;
@@ -373,8 +374,9 @@ onMounted(() => {
 .info-card {
   border-radius: 12px;
   box-shadow: none;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid #E2C3FF; /* Light purple border */
   margin-bottom: 1.5rem;
+  background-color: #FDFCFF; /* Slightly off-white with purple tint */
 }
 
 .profile-photo-card {
@@ -396,7 +398,7 @@ onMounted(() => {
   margin: 0 auto;
   border-radius: 50%;
   overflow: hidden;
-  box-shadow: 0 8px 25px rgba(100, 120, 200, 0.15);
+  box-shadow: 0 8px 25px rgba(151, 96, 208, 0.15); /* Purple shadow */
   transition: all 0.3s ease;
   border: 5px solid white;
 }
@@ -414,7 +416,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(59, 130, 246, 0.7);
+  background: rgba(110, 63, 180, 0.7); /* Medium-dark purple overlay */
   color: white;
   display: flex;
   flex-direction: column;
@@ -444,7 +446,7 @@ onMounted(() => {
 .stat-item {
   text-align: center;
   padding: 1rem;
-  background: rgba(239, 246, 255, 0.7);
+  background: rgba(237, 231, 246, 0.7); /* Light purple background */
   border-radius: 10px;
   flex: 1;
 }
@@ -452,12 +454,12 @@ onMounted(() => {
 .stat-value {
   font-size: 1.4rem;
   font-weight: 600;
-  color: #3b82f6;
+  color: #6E3FB4; /* Medium-dark purple */
 }
 
 .stat-label {
   font-size: 0.85rem;
-  color: #64748b;
+  color: #8A4EBF; /* Medium purple */
 }
 
 .profile-info-section {
@@ -465,7 +467,7 @@ onMounted(() => {
 }
 
 .profile-section-title {
-  color: #1e293b;
+  color: #5E2B97; /* Deep purple */
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -481,12 +483,12 @@ onMounted(() => {
 
 .info-label {
   font-weight: 600;
-  color: #334155;
+  color: #4A2C7A; /* Dark purple */
   font-size: 0.95rem;
 }
 
 .info-value {
-  color: #475569;
+  color: #6E3FB4; /* Medium-dark purple */
   font-size: 0.95rem;
 }
 
@@ -495,7 +497,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 0.6rem 0;
-  border-bottom: 1px dashed #e2e8f0;
+  border-bottom: 1px dashed #E2C3FF; /* Light purple border */
 }
 
 .project-item:last-child {
@@ -505,6 +507,7 @@ onMounted(() => {
 .project-name {
   flex-grow: 1;
   font-size: 0.9rem;
+  color: #4A2C7A; /* Dark purple */
 }
 
 .profile-actions {
@@ -518,12 +521,15 @@ onMounted(() => {
   padding: 0.75rem 1.5rem;
   font-weight: 500;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 4px 12px rgba(110, 63, 180, 0.15); /* Purple shadow */
+  background-color: #6E3FB4; /* Medium-dark purple */
+  color: white;
 }
 
 .edit-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 6px 16px rgba(110, 63, 180, 0.25); /* Purple shadow */
+  background-color: #5E2B97; /* Darker purple */
 }
 
 .download-btn {
@@ -531,15 +537,17 @@ onMounted(() => {
   padding: 0.75rem 1.5rem;
   font-weight: 500;
   transition: all 0.3s ease;
+  background-color: #F0D9FF; /* Light purple */
+  color: #5E2B97; /* Deep purple */
 }
 
 .download-btn:hover {
   transform: translateY(-2px);
-  background: #f8fafc;
+  background: #E2C3FF; /* Slightly darker light purple */
 }
 
 a {
-  color: #3b82f6;
+  color: #6E3FB4; /* Medium-dark purple */
   text-decoration: none;
   transition: color 0.2s;
   display: flex;
@@ -548,7 +556,7 @@ a {
 }
 
 a:hover {
-  color: #2563eb;
+  color: #5E2B97; /* Deep purple */
   text-decoration: underline;
 }
 
@@ -563,12 +571,12 @@ a:hover {
   display: flex;
   align-items: center;
   font-size: 0.95rem;
-  color: #475569;
+  color: #6E3FB4; /* Medium-dark purple */
 }
 
 .photo-tips .c-icon {
   margin-right: 10px;
-  color: #10b981;
+  color: #8A4EBF; /* Medium purple */
 }
 
 /* Responsive adjustments */

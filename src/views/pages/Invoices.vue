@@ -112,53 +112,113 @@ const viewDetails = (invoice) => {
   console.log(`Viewing details for: ${invoice.id}`)
 }
 </script>
+
 <style scoped>
 .page-background {
-  background: linear-gradient(135deg, #C4AECC 0%, #EAD7D6 100%);
+  background: linear-gradient(135deg, #E2C3FF 0%, #F0D9FF 100%);
   min-height: 100vh;
   padding: 1rem;
 }
 
 .text-capitalize {
   text-transform: capitalize;
+  color: #4A2C7A;
 }
 
 .shadow {
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 0.5rem 1rem rgba(151, 96, 208, 0.1) !important;
 }
 
 .table thead {
-  background-color: #EAD7D6;
+  background-color: #F0D9FF;
+  color: #4A2C7A;
 }
 
 .table tbody td {
-  background-color: #fff;
+  background-color: #FFF;
+  border-bottom: 1px solid #E2C3FF;
 }
 
 /* Button overrides */
 .btn-info {
-  background-color: #A49BC5 !important;
-  border-color: #A49BC5 !important;
-  color: #fff !important;
+  background-color: #6E3FB4 !important;
+  border-color: #6E3FB4 !important;
+  color: #FFF !important;
+  transition: all 0.3s ease;
+}
+
+.btn-info:hover {
+  background-color: #5E2B97 !important;
+  border-color: #5E2B97 !important;
 }
 
 .btn-outline-secondary {
-  border-color: #726F9F !important;
-  color: #726F9F !important;
+  border-color: #8A4EBF !important;
+  color: #8A4EBF !important;
+  transition: all 0.3s ease;
 }
 
 .btn-outline-secondary:hover {
-  background-color: #726F9F !important;
-  color: #fff !important;
+  background-color: #8A4EBF !important;
+  color: #FFF !important;
 }
 
-/* Card header with main deep purple */
+/* Download Button - Fixed */
+.download-btn {
+  background-color: white !important;
+  color: #6E3FB4 !important;
+  border: 2px solid #6E3FB4 !important;
+  border-radius: 10px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 500 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 12px rgba(110, 63, 180, 0.15) !important;
+}
+
+.download-btn:hover {
+  background-color: #F5E9FF !important;
+  color: #5E2B97 !important;
+  border-color: #5E2B97 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(110, 63, 180, 0.25) !important;
+}
+
+.download-btn:active {
+  transform: translateY(0) !important;
+  box-shadow: 0 2px 8px rgba(110, 63, 180,0.2) !important;
+}
+
+/* Card header */
 .card-header {
-  background-color: #726F9F !important;
+  background-color: #5E2B97 !important;
   color: white !important;
   border-radius: 1rem 1rem 0 0;
+  border-bottom: 2px solid #4A2C7A !important;
 }
 
+/* Table enhancements */
+.table tbody tr:hover td {
+  background-color: #FAF2FF;
+}
+
+.table thead th {
+  border-bottom: 2px solid #8A4EBF;
+}
+
+.card {
+  border: 1px solid #E2C3FF;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+/* Focus states */
+.btn:focus,
+.form-control:focus {
+  box-shadow: 0 0 0 0.25rem rgba(110, 63, 180, 0.25) !important;
+  border-color: #8A4EBF !important;
+}
+
+/* Responsive adjustments */
 @media (max-width: 768px) {
   .page-background {
     padding: 0.5rem;
@@ -166,6 +226,7 @@ const viewDetails = (invoice) => {
 
   .table thead th {
     font-size: 0.75rem;
+    padding: 0.75rem 0.5rem;
   }
 
   .table tbody td {
@@ -174,8 +235,17 @@ const viewDetails = (invoice) => {
   }
 
   .btn {
-    padding: 0.25rem 0.5rem;
+    padding: 0.375rem 0.75rem;
     font-size: 0.75rem;
+  }
+
+  .card-header {
+    padding: 0.75rem;
+  }
+
+  /* Mobile download button */
+  .download-btn {
+    padding: 0.5rem 1rem !important;
   }
 }
 </style>

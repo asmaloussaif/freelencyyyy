@@ -107,7 +107,7 @@ const handleRegister = async () => {
 
 <style scoped>
 .auth-container {
-  background: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+  background: url('https://i.pinimg.com/736x/54/0c/16/540c16fe8d7c4529661b33cb6dedaea7.jpg') no-repeat center center fixed;
   background-size: cover;
   height: 100vh;
   display: flex;

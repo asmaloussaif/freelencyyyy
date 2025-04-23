@@ -74,6 +74,11 @@ const routes = [
         component: () => import('@/views/pages/claim-management.vue'),
       },
       {
+        path: 'project-list',
+        name: 'Project-list',
+        component: () => import('@/views/pages/Project-list.vue'),
+      },
+      {
         path: 'customer-freelancer-management',
         name: 'CustomerFreelancerManagement',
         component: () => import('@/views/pages/customer-freelancer-management.vue'),

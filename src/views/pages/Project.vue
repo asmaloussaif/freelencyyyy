@@ -1,14 +1,19 @@
 <template>
   <CContainer class="py-4">
-    <h2 class="mb-4 fw-bold text-primary">Offer List</h2>
+    <h2 class="mb-4 fw-bold" style="color: #5E2B97;">List of offers</h2>
 
     <div class="d-flex justify-content-between mb-3 flex-wrap gap-2">
       <CFormInput
         v-model="search"
         placeholder="Search by project or client..."
         class="w-100 w-md-50"
+        style="border-color: #E2C3FF; background-color: #F5E9FF;"
       />
-      <CFormSelect v-model="statusFilter" class="w-100 w-md-25">
+      <CFormSelect 
+        v-model="statusFilter" 
+        class="w-100 w-md-25"
+        style="border-color: #E2C3FF; background-color: #F5E9FF; color: #4A2C7A;"
+      >
         <option value="">All Statuses</option>
         <option value="Pending">Pending</option>
         <option value="Accepted">Accepted</option>
@@ -25,22 +30,32 @@
       >
         <CCard :class="`border-${statusColor(offer.status)} shadow-sm h-100 offer-card`">
           <CCardBody>
-            <h5 class="fw-bold text-dark">{{ offer.project_name }}</h5>
-            <p class="mb-1"><strong>Description:</strong> {{ offer.description }}</p>
-            <p class="mb-1"><strong>Budget:</strong> {{ formatCurrency(offer.budget) }}</p>
-            <p class="mb-1"><strong>Deadline:</strong> {{ formatDate(offer.deadline) }}</p>
-            <p class="mb-2"><strong>Client:</strong> {{ offer.client_name }}</p>
+            <h5 class="fw-bold" style="color: #4A2C7A;">{{ offer.project_name }}</h5>
+            <p class="mb-1"><strong style="color: #6E3FB4;">Description:</strong> {{ offer.description }}</p>
+            <p class="mb-1"><strong style="color: #6E3FB4;">Budget:</strong> {{ formatCurrency(offer.budget) }}</p>
+            <p class="mb-1"><strong style="color: #6E3FB4;">Deadline:</strong> {{ formatDate(offer.deadline) }}</p>
+            <p class="mb-2"><strong style="color: #6E3FB4;">Client:</strong> {{ offer.client_name }}</p>
 
-            <CBadge :color="statusColor(offer.status)" class="mb-3">{{ offer.status }}</CBadge>
+            <CBadge :style="statusStyle(offer.status)" class="mb-3">
+              {{ offer.status }}
+            </CBadge>
 
             <div v-if="offer.status === 'Pending'" class="d-flex gap-2">
-              <CButton color="success" @click="updateStatus(offer.id, 'Accepted')">Accept</CButton>
-              <CButton color="danger" @click="updateStatus(offer.id, 'Rejected')">Reject</CButton>
+              <CButton 
+                color="success" 
+                @click="updateStatus(offer.id, 'Accepted')"
+                style="background-color: #6E3FB4; border-color: #6E3FB4;"
+              >Accept</CButton>
+              <CButton 
+                color="danger" 
+                @click="updateStatus(offer.id, 'Rejected')"
+                style="background-color: #8A4EBF; border-color: #8A4EBF;"
+              >Reject</CButton>
             </div>
 
             <div v-else class="text-muted small">
-              <i v-if="offer.status === 'Accepted'" class="cil-check-circle text-success me-1"></i>
-              <i v-else-if="offer.status === 'Rejected'" class="cil-x-circle text-danger me-1"></i>
+              <i v-if="offer.status === 'Accepted'" class="cil-check-circle" style="color: #6E3FB4; margin-right: 4px;"></i>
+              <i v-else-if="offer.status === 'Rejected'" class="cil-x-circle" style="color: #8A4EBF; margin-right: 4px;"></i>
               {{ offer.status }} offer
             </div>
           </CCardBody>
@@ -67,6 +82,41 @@ import { format } from 'date-fns'
 const search = ref('')
 const statusFilter = ref('')
 const offers = ref([])
+
+const statusStyle = (status) => {
+  switch(status) {
+    case 'Pending':
+      return {
+        backgroundColor: '#F0D9FF',
+        color: '#5E2B97',
+        border: '1px solid #8A4EBF'
+      }
+    case 'Accepted':
+      return {
+        backgroundColor: '#D4EDDA',
+        color: '#155724',
+        border: '1px solid #28A745'
+      }
+    case 'Rejected':
+      return {
+        backgroundColor: '#F8D7DA',
+        color: '#721C24',
+        border: '1px solid #DC3545'
+      }
+    case 'Expired':
+      return {
+        backgroundColor: '#E2E3E5',
+        color: '#383D41',
+        border: '1px solid #D6D8DB'
+      }
+    default:
+      return {
+        backgroundColor: '#F5E9FF',
+        color: '#6E3FB4',
+        border: '1px solid #D9B3FF'
+      }
+  }
+}
 
 onMounted(() => {
   offers.value = [
@@ -138,10 +188,60 @@ const filteredOffers = computed(() => {
 
 <style scoped>
 .offer-card {
-  transition: transform 0.3s, box-shadow 0.3s;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid #E2C3FF;
+  background-color: white;
+  border-radius: 12px;
 }
+
 .offer-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 20px rgba(151, 96, 208, 0.15);
+  border-color: #8A4EBF;
+}
+
+.badge {
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.badge[style*="Pending"]::before {
+  background-color: #5E2B97;
+}
+
+.badge[style*="Accepted"]::before {
+  background-color: #155724;
+}
+
+.badge[style*="Rejected"]::before {
+  background-color: #721C24;
+}
+
+.badge[style*="Expired"]::before {
+  background-color: #383D41;
+}
+
+::placeholder {
+  color: #A78BC9 !important;
+  opacity: 1;
+}
+
+.text-muted {
+  color: #8A4EBF !important;
 }
 </style>
