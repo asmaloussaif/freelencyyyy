@@ -1,7 +1,7 @@
 <template>
   <div class="container my-4">
-    <CCard class="shadow rounded-4" style="border-color: #E2C3FF;">
-      <CCardHeader class="rounded-top-4 py-3 px-4" style="background: linear-gradient(to right, #6E3FB4, #8A4EBF); color: white;">
+    <CCard class="shadow rounded-4" style="border-color: #ADE1FB;">
+      <CCardHeader class="rounded-top-4 py-3 px-4" style="background: linear-gradient(to right, #266CA9, #0F2573); color: white;">
         <h4 class="mb-0">Project Management</h4>
       </CCardHeader>
       <CCardBody class="p-4">
@@ -11,14 +11,14 @@
               v-model="search"
               placeholder="Search by project name..."
               class="shadow-sm rounded-pill border-0 px-4 py-2"
-              style="border-color: #E2C3FF; background-color: #F5E9FF;"
+              style="border-color: #ADE1FB; background-color: #F0F8FF;"
             />
           </CCol>
           <CCol :md="6">
             <CFormSelect
               v-model="statusFilter"
               class="shadow-sm rounded-pill border-0 px-4 py-2"
-              style="border-color: #E2C3FF; background-color: #F5E9FF; color: #4A2C7A;"
+              style="border-color: #ADE1FB; background-color: #F0F8FF; color: #041D56;"
             >
               <option value="">All Status</option>
               <option value="pending">Pending</option>
@@ -30,14 +30,14 @@
 
         <div v-if="filteredProjects.length">
           <CTable hover responsive class="rounded-3 overflow-hidden shadow-sm">
-            <CTableHead style="background-color: #F0D9FF;">
+            <CTableHead style="background-color: #E1F0FF;">
               <CTableRow>
-                <CTableHeaderCell style="color: #4A2C7A;">Project Name</CTableHeaderCell>
-                <CTableHeaderCell style="color: #4A2C7A;">Date</CTableHeaderCell>
-                <CTableHeaderCell style="color: #4A2C7A;">Budget</CTableHeaderCell>
-                <CTableHeaderCell style="color: #4A2C7A;">Status</CTableHeaderCell>
-                <CTableHeaderCell style="color: #4A2C7A;">Freelancer</CTableHeaderCell>
-                <CTableHeaderCell style="color: #4A2C7A;">Actions</CTableHeaderCell>
+                <CTableHeaderCell style="color: #041D56;">Project Name</CTableHeaderCell>
+                <CTableHeaderCell style="color: #041D56;">Date</CTableHeaderCell>
+                <CTableHeaderCell style="color: #041D56;">Budget</CTableHeaderCell>
+                <CTableHeaderCell style="color: #041D56;">Status</CTableHeaderCell>
+                <CTableHeaderCell style="color: #041D56;">Freelancer</CTableHeaderCell>
+                <CTableHeaderCell style="color: #041D56;">Actions</CTableHeaderCell>
               </CTableRow>
             </CTableHead>
             <CTableBody>
@@ -46,9 +46,9 @@
                 :key="project.id"
                 style="background-color: white;"
               >
-                <CTableDataCell style="color: #6E3FB4;">{{ project.name }}</CTableDataCell>
-                <CTableDataCell style="color: #6E3FB4;">{{ formatDate(project.date) }}</CTableDataCell>
-                <CTableDataCell style="color: #6E3FB4;">\${{ project.budget }}</CTableDataCell>
+                <CTableDataCell style="color: #266CA9;">{{ project.name }}</CTableDataCell>
+                <CTableDataCell style="color: #266CA9;">{{ formatDate(project.date) }}</CTableDataCell>
+                <CTableDataCell style="color: #266CA9;">\${{ project.budget }}</CTableDataCell>
                 <CTableDataCell>
                   <CBadge
                     :style="statusStyle(project.status)"
@@ -58,15 +58,15 @@
                   </CBadge>
                 </CTableDataCell>
                 <CTableDataCell>
-                  <span v-if="project.status !== 'pending'" style="color: #6E3FB4;">{{ project.freelancer }}</span>
-                  <span v-else style="color: #A78BC9;">-</span>
+                  <span v-if="project.status !== 'pending'" style="color: #266CA9;">{{ project.freelancer }}</span>
+                  <span v-else style="color: #7D9FC7;">-</span>
                 </CTableDataCell>
                 <CTableDataCell>
                   <CButton 
                     color="primary" 
                     size="sm" 
                     class="me-2 shadow-sm rounded-pill px-3"
-                    style="background-color: #6E3FB4; border-color: #6E3FB4;"
+                    style="background-color: #266CA9; border-color: #266CA9;"
                   >
                     View
                   </CButton>
@@ -75,25 +75,27 @@
                     size="sm"
                     class="me-2 shadow-sm rounded-pill px-3"
                     @click="deleteProject(project.id)"
-                    style="background-color: #4A2C7A; border-color: #4A2C7A;"
+                    style="background-color: #041D56; border-color: #041D56;"
                   >
                     Delete
                   </CButton>
                   <CButton
-                    color="secondary"
-                    size="sm"
-                    class="shadow-sm rounded-pill px-3"
-                    @click="openRatingModal(project)"
-                    style="background-color: #8A4EBF; border-color: #8A4EBF;"
-                  >
-                    {{ project.rating ? project.rating + ' ★' : 'Rate' }}
-                  </CButton>
+  v-if="project.status === 'finished'"
+  color="secondary"
+  size="sm"
+  class="shadow-sm rounded-pill px-3"
+  @click="openRatingModal(project)"
+  style="background-color: #0F2573; border-color: #0F2573;"
+>
+  {{ project.rating ? project.rating + ' ★' : 'Rate' }}
+</CButton>
+
                 </CTableDataCell>
               </CTableRow>
             </CTableBody>
           </CTable>
         </div>
-        <div v-else class="text-center py-5" style="color: #8A4EBF; font-size: 1.25rem;">
+        <div v-else class="text-center py-5" style="color: #266CA9; font-size: 1.25rem;">
           No projects found.
         </div>
       </CCardBody>
@@ -101,19 +103,19 @@
 
     <!-- Rating Modal -->
     <CModal alignment="center" :visible="ratingModalVisible" @close="ratingModalVisible = false">
-      <CModalHeader style="background-color: #F0D9FF; border-color: #E2C3FF;">
-        <CModalTitle style="color: #5E2B97;">Rate Freelancer</CModalTitle>
+      <CModalHeader style="background-color: #E1F0FF; border-color: #ADE1FB;">
+        <CModalTitle style="color: #041D56;">Rate Freelancer</CModalTitle>
       </CModalHeader>
       <CModalBody>
         <div class="text-center">
-          <p class="mb-3" style="color: #4A2C7A;">How would you rate {{ selectedProject?.freelancer }}?</p>
+          <p class="mb-3" style="color: #041D56;">How would you rate {{ selectedProject?.freelancer }}?</p>
           <div class="d-flex justify-content-center gap-2">
             <CButton
               v-for="star in 5"
               :key="star"
               :style="star <= tempRating ? 
-                { backgroundColor: '#8A4EBF', borderColor: '#8A4EBF' } : 
-                { backgroundColor: '#E2C3FF', borderColor: '#E2C3FF', color: '#4A2C7A' }"
+                { backgroundColor: '#266CA9', borderColor: '#266CA9' } : 
+                { backgroundColor: '#E1F0FF', borderColor: '#ADE1FB', color: '#041D56' }"
               shape="rounded-pill"
               size="lg"
               @click="tempRating = star"
@@ -123,18 +125,18 @@
           </div>
         </div>
       </CModalBody>
-      <CModalFooter style="background-color: #F5E9FF; border-color: #E2C3FF;">
+      <CModalFooter style="background-color: #F0F8FF; border-color: #ADE1FB;">
         <CButton 
           color="outline-dark" 
           @click="ratingModalVisible = false"
-          style="border-color: #8A4EBF; color: #8A4EBF;"
+          style="border-color: #266CA9; color: #266CA9;"
         >
           Close
         </CButton>
         <CButton 
           color="primary" 
           @click="submitRating"
-          style="background-color: #5E2B97; border-color: #5E2B97;"
+          style="background-color: #0F2573; border-color: #0F2573;"
         >
           Submit
         </CButton>
@@ -180,9 +182,9 @@ const statusStyle = (status) => {
   switch(status) {
     case 'pending':
       return {
-        backgroundColor: '#F0D9FF',
-        color: '#5E2B97',
-        border: '1px solid #8A4EBF'
+        backgroundColor: '#E1F0FF',
+        color: '#266CA9',
+        border: '1px solid #ADE1FB'
       }
     case 'in_progress':
       return {
@@ -198,9 +200,9 @@ const statusStyle = (status) => {
       }
     default:
       return {
-        backgroundColor: '#F5E9FF',
-        color: '#6E3FB4',
-        border: '1px solid #D9B3FF'
+        backgroundColor: '#F0F8FF',
+        color: '#266CA9',
+        border: '1px solid #ADE1FB'
       }
   }
 }
@@ -277,12 +279,12 @@ onMounted(fetchProjects)
 
 /* Table hover effect */
 .table-hover tbody tr:hover {
-  background-color: #FAF2FF !important;
+  background-color: #F0F8FF !important;
 }
 
 /* Form placeholders */
 ::placeholder {
-  color: #A78BC9 !important;
+  color: #7D9FC7 !important;
   opacity: 1;
 }
 
@@ -308,7 +310,7 @@ onMounted(fetchProjects)
 }
 
 .badge[style*="pending"]::before {
-  background-color: #5E2B97;
+  background-color: #266CA9;
 }
 
 .badge[style*="in_progress"]::before {
@@ -323,7 +325,7 @@ onMounted(fetchProjects)
 button:focus,
 input:focus,
 select:focus {
-  box-shadow: 0 0 0 0.2rem rgba(110, 63, 180, 0.25) !important;
-  border-color: #8A4EBF !important;
+  box-shadow: 0 0 0 0.2rem rgba(38, 108, 169, 0.25) !important;
+  border-color: #266CA9 !important;
 }
 </style>

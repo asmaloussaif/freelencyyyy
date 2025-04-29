@@ -11,6 +11,8 @@ import * as iconSet from '@coreui/icons' // 👈 change ici !
 import DocsComponents from '@/components/DocsComponents'
 import DocsExample from '@/components/DocsExample'
 import DocsIcons from '@/components/DocsIcons'
+import '@fortawesome/fontawesome-free/css/all.min.css'
+
 
 const app = createApp(App)
 const pinia = createPinia()

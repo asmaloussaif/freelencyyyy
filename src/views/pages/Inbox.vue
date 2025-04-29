@@ -1,7 +1,7 @@
 <template>
   <CContainer fluid class="chat-container">
     <CRow class="g-0">
-      <!-- Chat List Sidebar - Soft Blue -->
+      <!-- Chat List Sidebar - Blue -->
       <CCol md="4" class="border-end vh-100 overflow-auto sidebar">
         <div class="p-3 border-bottom d-flex justify-content-between align-items-center sidebar-header">
           <h5 class="mb-0 text-dark">Messages</h5>
@@ -22,9 +22,9 @@
             <div class="chat-info">
               <div class="d-flex justify-content-between">
                 <strong class="chat-name">{{ chat.name }}</strong>
-                <small class="text-muted chat-time">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
+                <small class="chat-time">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
               </div>
-              <div class="text-muted small chat-preview">{{ chat.lastMessage }}</div>
+              <div class="small chat-preview">{{ chat.lastMessage }}</div>
             </div>
           </CListGroupItem>
         </CListGroup>
@@ -172,7 +172,7 @@ const formatMessageDate = (timestamp) => {
 <style scoped>
 /* Base Styles */
 .chat-container {
-  background: linear-gradient(135deg, #F5E9FF 0%, #E2C3FF 100%);
+  background: linear-gradient(135deg, #E6F4FE 0%, #D0E7FF 100%);
   height: 100vh;
 }
 
@@ -180,27 +180,27 @@ const formatMessageDate = (timestamp) => {
   height: 100vh;
 }
 
-/* Purple Sidebar Styles */
+/* Blue Sidebar Styles */
 .sidebar {
-  background: linear-gradient(to bottom, #FAF2FF, #F0D9FF);
-  border-right: 1px solid #E2C3FF;
+  background: linear-gradient(to bottom, #F0F8FF, #E1F0FF);
+  border-right: 1px solid #ADE1FB;
 }
 
 .sidebar-header {
-  background: rgba(240, 217, 255, 0.8);
-  border-color: #E2C3FF !important;
+  background: rgba(225, 240, 255, 0.8);
+  border-color: #ADE1FB !important;
 }
 
 .new-chat-btn {
-  border-color: #D9B3FF;
-  color: #6E3FB4;
+  border-color: #ADE1FB;
+  color: #266CA9;
   background: rgba(255, 255, 255, 0.7);
   transition: all 0.3s ease;
 }
 
 .new-chat-btn:hover {
   background: rgba(255, 255, 255, 0.9);
-  border-color: #6E3FB4;
+  border-color: #266CA9;
 }
 
 .chat-list {
@@ -209,29 +209,29 @@ const formatMessageDate = (timestamp) => {
 
 .chat-item {
   background: transparent;
-  border-color: #F0D9FF !important;
+  border-color: #E1F0FF !important;
   transition: all 0.2s ease;
 }
 
 .chat-item:hover {
-  background: rgba(226, 195, 255, 0.3);
+  background: rgba(173, 225, 251, 0.3);
 }
 
 .chat-item.active {
-  background: rgba(226, 195, 255, 0.5);
-  border-left: 3px solid #8A4EBF;
+  background: rgba(173, 225, 251, 0.5);
+  border-left: 3px solid #266CA9;
 }
 
 .chat-name {
-  color: #4A2C7A;
+  color: #041D56;
 }
 
 .chat-preview {
-  color: #8A4EBF;
+  color: #266CA9;
 }
 
 .chat-time {
-  color: #A78BC9;
+  color: #7D9FC7;
 }
 
 /* Chat Content Styles */
@@ -248,14 +248,14 @@ const formatMessageDate = (timestamp) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(245, 233, 255, 0.85);
+  background: rgba(240, 248, 255, 0.85);
   backdrop-filter: blur(2px);
 }
 
 .chat-header {
   background: white;
   z-index: 1;
-  box-shadow: 0 2px 10px rgba(151, 96, 208, 0.1);
+  box-shadow: 0 2px 10px rgba(38, 108, 169, 0.1);
 }
 
 .messages-container {
@@ -275,7 +275,7 @@ const formatMessageDate = (timestamp) => {
   padding: 12px 15px;
   border-radius: 18px;
   position: relative;
-  box-shadow: 0 2px 4px rgba(151, 96, 208, 0.1);
+  box-shadow: 0 2px 4px rgba(38, 108, 169, 0.1);
   animation: fadeIn 0.3s ease-out;
 }
 
@@ -285,7 +285,7 @@ const formatMessageDate = (timestamp) => {
 }
 
 .message-bubble.sent {
-  background: linear-gradient(to right, #8A4EBF 0%, #6E3FB4 100%);
+  background: linear-gradient(to right, #266CA9 0%, #0F2573 100%);
   color: white;
   margin-left: auto;
   border-bottom-right-radius: 4px;
@@ -293,10 +293,10 @@ const formatMessageDate = (timestamp) => {
 
 .message-bubble.received {
   background: white;
-  color: #4A2C7A;
+  color: #041D56;
   margin-right: auto;
   border-bottom-left-radius: 4px;
-  border: 1px solid #E2C3FF;
+  border: 1px solid #ADE1FB;
 }
 
 .message-content {
@@ -311,7 +311,7 @@ const formatMessageDate = (timestamp) => {
 }
 
 .message-bubble.received .message-time {
-  color: #8A4EBF;
+  color: #266CA9;
 }
 
 .message-bubble.sent .message-time {
@@ -322,19 +322,19 @@ const formatMessageDate = (timestamp) => {
 .chat-input-container {
   background: white;
   z-index: 1;
-  box-shadow: 0 -2px 10px rgba(151, 96, 208, 0.1);
+  box-shadow: 0 -2px 10px rgba(38, 108, 169, 0.1);
 }
 
 .message-input {
   border-radius: 20px;
-  border: 1px solid #E2C3FF;
+  border: 1px solid #ADE1FB;
   padding: 10px 15px;
   transition: all 0.3s ease;
 }
 
 .message-input:focus {
-  border-color: #8A4EBF;
-  box-shadow: 0 0 0 0.2rem rgba(138, 78, 191, 0.25);
+  border-color: #266CA9;
+  box-shadow: 0 0 0 0.2rem rgba(38, 108, 169, 0.25);
 }
 
 .send-btn {
@@ -345,12 +345,12 @@ const formatMessageDate = (timestamp) => {
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: #6E3FB4;
+  background: #266CA9;
   color: white;
 }
 
 .send-btn:hover {
-  background: #5E2B97;
+  background: #1D5A9B;
 }
 
 /* Empty Chat State */
@@ -362,7 +362,7 @@ const formatMessageDate = (timestamp) => {
 }
 
 .empty-chat-icon {
-  color: #D9B3FF;
+  color: #ADE1FB;
   font-size: 4rem;
 }
 

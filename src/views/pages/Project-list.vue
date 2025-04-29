@@ -1,9 +1,9 @@
 <template>
   <div class="container py-4">
     <!-- Project List -->
-    <CCard class="mb-4 shadow-sm" style="border-color: #E2C3FF;">
+    <CCard class="mb-4 shadow-sm" style="background-color: #F8FAFF; border-color: #E2C3FF;">
       <CCardBody>
-        <h4 class="fw-bold" style="color: #5E2B97;">Your Projects</h4>
+        <h4 class="fw-bold" style="color: #1F4788;">Your Projects</h4>
         <CRow class="mt-3">
           <CCol
             v-for="project in projects"
@@ -11,24 +11,25 @@
             :md="4"
             class="mb-4"
           >
-            <CCard class="h-100 shadow-sm hover-card" style="border-color: #E2C3FF;">
+            <CCard class="h-100 shadow-sm hover-card" style="border-color: #E2C3FF; background-color: #E1F0FF;">
               <CCardBody>
-                <h5 class="fw-bold mb-1" style="color: #4A2C7A;">{{ project.name }}</h5>
-                <p class="mb-1" style="color: #8A4EBF;">Date: {{ formatDate(project.date) }}</p>
-                <p class="mb-2" style="color: #6E3FB4;">Budget: ${{ project.budget }}</p>
-                <p class="mb-2" style="color: #6E3FB4;">
+                <h5 class="fw-bold mb-1" style="color: #3A6BB5;">{{ project.name }}</h5>
+                <p class="mb-1" style="color: #6A9BD9;">Date: {{ formatDate(project.date) }}</p>
+                <p class="mb-2" style="color: #4A8ED8;">Budget: {{ project.budget }} TND</p>
+                <p class="mb-2" style="color: #4A8ED8;">
                   Status: <strong :style="{ color: getStatusColor(project.status) }">{{ project.status }}</strong>
                 </p>
                 <div v-if="project.status === 'In Progress' || project.status === 'Finished'">
-                  <p class="mb-2" style="color: #6E3FB4;">
-                    Freelancer: <strong>{{ project.freelancer.name || 'N/A' }}</strong>
+                  <p class="mb-2" style="color: #4A8ED8;">
+                    Freelancer: <strong>{{ project.freelancer?.name || 'N/A' }}</strong>
                   </p>
                 </div>
                 <CButton
                   v-if="project.status === 'In Progress' || project.status === 'Finished'"
                   color="primary"
                   class="w-100 shadow-sm"
-                  style="background-color: #6E3FB4; border-color: #6E3FB4;"
+                  style="background-color: #4A8ED8; border-color: #4A8ED8;"
+                  @click="viewProjectDetails(project)"
                 >
                   View Project Details
                 </CButton>
@@ -36,27 +37,43 @@
             </CCard>
           </CCol>
         </CRow>
-        
-        <!-- No projects message -->
-        <div v-if="projects.length === 0" class="text-center mt-5" style="color: #8A4EBF;">
+
+        <!-- No projects -->
+        <div v-if="projects.length === 0" class="text-center mt-5" style="color: #6A9BD9;">
           <p>You don't have any projects yet.</p>
         </div>
       </CCardBody>
     </CCard>
+
+    <!-- Modal -->
+    <CModal v-model:visible="isModalVisible" size="lg">
+      <CModalHeader>
+        <CModalTitle>Project Details</CModalTitle>
+      </CModalHeader>
+      <CModalBody>
+        <div v-if="selectedProject">
+          <p><strong>Name:</strong> {{ selectedProject.name }}</p>
+          <p><strong>Date:</strong> {{ formatDate(selectedProject.date) }}</p>
+          <p><strong>Budget:</strong> {{ selectedProject.budget }} TND</p>
+          <p><strong>Status:</strong> {{ selectedProject.status }}</p>
+          <p><strong>Freelancer:</strong> {{ selectedProject.freelancer?.name || 'N/A' }}</p>
+        </div>
+      </CModalBody>
+      <CModalFooter>
+        <CButton color="secondary" @click="closeModal">Close</CButton>
+      </CModalFooter>
+    </CModal>
   </div>
 </template>
 
 <script setup>
 import {
-  CCard,
-  CCardBody,
-  CButton,
-  CRow,
-  CCol,
+  CCard, CCardBody, CButton, CRow, CCol,
+  CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter
 } from '@coreui/vue'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 
-// Sample projects data (should be fetched from an API)
+// Sample project data
 const projects = ref([
   {
     id: 1,
@@ -84,46 +101,30 @@ const projects = ref([
   },
 ])
 
-const getStatusColor = (status) => {
-  switch(status) {
-    case 'Pending': return '#8A4EBF';
-    case 'In Progress': return '#F0D9FF';
-    case 'Finished': return '#5E2B97';
-    default: return '#6E3FB4';
-  }
+// Modal logic
+const isModalVisible = ref(false)
+const selectedProject = ref(null)
+
+const viewProjectDetails = (project) => {
+  selectedProject.value = project
+  isModalVisible.value = true
 }
 
-// Method to format date (you can customize this format)
+const closeModal = () => {
+  isModalVisible.value = false
+}
+
+// Helpers
 const formatDate = (date) => {
   return new Date(date).toLocaleDateString('en-US')
 }
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'Pending': return '#6A9BD9'
+    case 'In Progress': return '#A9C9F2'
+    case 'Finished': return '#1F4788'
+    default: return '#4A8ED8'
+  }
+}
 </script>
-
-<style scoped>
-.container {
-  max-width: 1200px;
-  margin: auto;
-}
-
-.hover-card:hover {
-  transform: translateY(-5px);
-  transition: 0.3s ease;
-  box-shadow: 0 8px 20px rgba(151, 96, 208, 0.15);
-  border-color: #8A4EBF !important;
-}
-
-.fw-bold {
-  font-weight: 600;
-}
-
-/* Focus states */
-button:focus {
-  box-shadow: 0 0 0 0.2rem rgba(110, 63, 180, 0.25) !important;
-}
-
-/* Form placeholders */
-::placeholder {
-  color: #A78BC9 !important;
-  opacity: 1;
-}
-</style>

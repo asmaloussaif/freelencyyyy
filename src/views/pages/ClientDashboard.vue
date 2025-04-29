@@ -1,151 +1,91 @@
 <template>
-    <div class="container py-4">
-      <!-- Filters -->
-      <CCard class="mb-4 shadow-sm">
-        <CCardBody>
-          <CRow class="gy-3">
-            <CCol :md="3">
-              <CFormLabel class="fw-bold">Skill</CFormLabel>
-              <CFormSelect v-model="filters.skill" class="shadow-sm">
-                <option value="">All Skills</option>
-                <option v-for="skill in skillOptions" :key="skill" :value="skill">
-                  {{ skill }}
-                </option>
-              </CFormSelect>
-            </CCol>
+    <div class="client-dashboard">
+      <!-- Filter Bar -->
+      <div class="filter-bar">
+        <select v-model="selectedSkill" @change="filterFreelancers">
+          <option value="">Select Skill</option>
+          <option v-for="skill in skills" :key="skill" :value="skill">{{ skill }}</option>
+        </select>
+        <select v-model="selectedRating" @change="filterFreelancers">
+          <option value="">Select Rating</option>
+          <option v-for="rating in ratings" :key="rating" :value="rating">{{ rating }} & Up</option>
+        </select>
+        <button @click="addNewProject">Add New Project</button>
+      </div>
   
-            <CCol :md="3">
-              <CFormLabel class="fw-bold">Experience</CFormLabel>
-              <CFormSelect v-model="filters.experience" class="shadow-sm">
-                <option value="">Any Level</option>
-                <option>Junior</option>
-                <option>Mid-level</option>
-                <option>Senior</option>
-              </CFormSelect>
-            </CCol>
-  
-            <CCol :md="3">
-              <CFormLabel class="fw-bold">Max Rate ($/hr)</CFormLabel>
-              <CFormInput
-                type="number"
-                v-model="filters.rate"
-                placeholder="e.g. 50"
-                class="shadow-sm"
-              />
-            </CCol>
-  
-            <CCol :md="3" class="d-flex align-items-end">
-              <CButton color="primary" class="w-100 shadow-sm" @click="applyFilters">
-                Filter
-              </CButton>
-            </CCol>
-          </CRow>
-        </CCardBody>
-      </CCard>
-  
-      <!-- Freelancers List -->
-      <CRow>
-        <CCol
-          v-for="freelancer in filteredFreelancers"
-          :key="freelancer.id"
-          :md="4"
-          class="mb-4"
-        >
-          <CCard class="h-100 shadow-sm hover-card">
-            <CCardBody>
-              <h5 class="fw-bold mb-1">{{ freelancer.name }}</h5>
-              <p class="text-muted mb-2">{{ freelancer.skill }}</p>
-              <p class="mb-1">
-                Experience: <strong>{{ freelancer.experience }}</strong>
-              </p>
-              <p class="mb-3">
-                Rate: <strong>${{ freelancer.rate }}/hr</strong>
-              </p>
-              <CButton color="success" class="w-100">Send Offer</CButton>
-            </CCardBody>
-          </CCard>
-        </CCol>
-      </CRow>
-  
-      <!-- No results message -->
-      <div v-if="filteredFreelancers.length === 0" class="text-center mt-5 text-muted">
-        <p>No freelancers match your criteria.</p>
+      <!-- Freelancer Listings -->
+      <div class="freelancer-listing">
+        <div v-for="freelancer in filteredFreelancers" :key="freelancer.id" class="freelancer-card">
+          <h3>{{ freelancer.name }}</h3>
+          <p>{{ freelancer.skills.join(', ') }}</p>
+          <p>Rating: {{ freelancer.rating }}</p>
+          <button @click="viewProfile(freelancer)">View Profile</button>
+        </div>
       </div>
     </div>
   </template>
   
-  <script setup>
-  import {
-    CCard,
-    CCardBody,
-    CButton,
-    CFormInput,
-    CFormSelect,
-    CFormLabel,
-    CRow,
-    CCol,
-  } from '@coreui/vue'
-  import { ref, computed } from 'vue'
-  
-  // Filters state
-  const filters = ref({
-    skill: '',
-    experience: '',
-    rate: null,
-  })
-  
-  // Skill options
-  const skillOptions = [
-    'Web Developer',
-    'Graphic Designer',
-    'Mobile Developer',
-    'Writer',
-    'Data Analyst',
-  ]
-  
-  // Example freelancers
-  const freelancers = ref([
-    { id: 1, name: 'John Doe', skill: 'Web Developer', experience: 'Senior', rate: 50 },
-    { id: 2, name: 'Lisa Smith', skill: 'Graphic Designer', experience: 'Mid-level', rate: 35 },
-    { id: 3, name: 'Ahmed Ali', skill: 'Mobile Developer', experience: 'Junior', rate: 25 },
-    { id: 4, name: 'Sara Johnson', skill: 'Writer', experience: 'Senior', rate: 45 },
-    { id: 5, name: 'Marc Dupont', skill: 'Data Analyst', experience: 'Mid-level', rate: 40 },
-  ])
-  
-  // Filtered freelancers
-  const filteredFreelancers = computed(() => {
-    return freelancers.value.filter((f) => {
-      return (
-        (!filters.value.skill || f.skill === filters.value.skill) &&
-        (!filters.value.experience || f.experience === filters.value.experience) &&
-        (!filters.value.rate || f.rate <= filters.value.rate)
-      )
-    })
-  })
-  
-  const applyFilters = () => {
-    // Computed will auto update the list
-  }
+  <script>
+  export default {
+    data() {
+      return {
+        skills: ['Web Development', 'Graphic Design', 'App Development', 'Content Writing'], // Example skills
+        ratings: [1, 2, 3, 4, 5],
+        selectedSkill: '',
+        selectedRating: '',
+        freelancers: [ /* Array of freelancers data */ ],
+        filteredFreelancers: []
+      };
+    },
+    methods: {
+      filterFreelancers() {
+        this.filteredFreelancers = this.freelancers.filter(freelancer => {
+          let skillMatch = this.selectedSkill ? freelancer.skills.includes(this.selectedSkill) : true;
+          let ratingMatch = this.selectedRating ? freelancer.rating >= this.selectedRating : true;
+          return skillMatch && ratingMatch;
+        });
+      },
+      addNewProject() {
+        this.$router.push({ name: 'add-project' });
+      },
+      viewProfile(freelancer) {
+        this.$router.push({ name: 'freelancer-profile', params: { id: freelancer.id } });
+      }
+    },
+    mounted() {
+      this.filteredFreelancers = this.freelancers; // Initial load
+    }
+  };
   </script>
   
   <style scoped>
-  .container {
-    max-width: 1200px;
-    margin: auto;
+  .client-dashboard {
+    padding: 20px;
   }
   
-  .hover-card:hover {
-    transform: translateY(-5px);
-    transition: 0.3s ease;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  .filter-bar {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
   }
   
-  .fw-bold {
-    font-weight: 600;
+  .freelancer-listing {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
   }
   
-  .text-muted {
-    color: #6c757d;
+  .freelancer-card {
+    width: 220px;
+    border: 1px solid #ccc;
+    padding: 15px;
+    border-radius: 5px;
+    background-color: #f8fafa;
+    transition: box-shadow 0.3s;
+  }
+  
+  .freelancer-card:hover {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
   }
   </style>
   

@@ -1,11 +1,17 @@
+<!-- Template section - defines the component's HTML structure -->
 <template>
+  <!-- Main container div with claims-container class -->
   <div class="claims-container">
-    <!-- Header with title and search -->
+    
+    <!-- Header section containing title and search bar -->
     <div class="header">
+      <!-- Page title with icon -->
       <h2 class="title">
         <span class="icon">📋</span>
         Claims Management
       </h2>
+      
+      <!-- Search bar component -->
       <div class="search-bar">
         <input 
           type="text" 
@@ -19,11 +25,14 @@
       </div>
     </div>
 
-    <!-- Claims Table -->
+    <!-- Responsive table container -->
     <div class="table-responsive">
+      <!-- Claims table -->
       <table class="claims-table">
+        <!-- Table header -->
         <thead>
           <tr>
+            <!-- Sortable columns with click handlers -->
             <th @click="sortBy('id')">ID <span v-if="sortKey === 'id'" class="sort-icon">{{ sortOrder === 1 ? '↑' : '↓' }}</span></th>
             <th @click="sortBy('subject')">Subject <span v-if="sortKey === 'subject'" class="sort-icon">{{ sortOrder === 1 ? '↑' : '↓' }}</span></th>
             <th>Description</th>
@@ -32,28 +41,43 @@
             <th>Actions</th>
           </tr>
         </thead>
+        
+        <!-- Table body with dynamic data -->
         <tbody>
+          <!-- Table row for each claim, with dynamic class based on status -->
           <tr 
             v-for="claim in filteredClaims" 
             :key="claim.id"
             :class="'status-' + claim.status"
           >
+            <!-- Claim ID cell -->
             <td>#{{ claim.id }}</td>
+            
+            <!-- Claim subject cell -->
             <td>{{ claim.subject }}</td>
+            
+            <!-- Claim description cell with ellipsis for long text -->
             <td class="description">{{ claim.description }}</td>
+            
+            <!-- Status cell with colored badge -->
             <td>
               <span :class="'status-badge ' + getStatusColor(claim.status)">
                 {{ claim.status.toUpperCase() }}
               </span>
             </td>
+            
+            <!-- User cell with avatar -->
             <td>
               <div class="user-cell">
                 <span class="user-avatar">{{ getUserInitial(claim.user.name) }}</span>
                 {{ claim.user.name }}
               </div>
             </td>
+            
+            <!-- Action buttons cell -->
             <td>
               <div class="action-buttons">
+                <!-- Resolve button -->
                 <button 
                   class="btn resolve-btn" 
                   @click="resolveClaim(claim.id)"
@@ -61,6 +85,8 @@
                 >
                   <span class="btn-icon">✓</span> Resolve
                 </button>
+                
+                <!-- Reject button -->
                 <button 
                   class="btn reject-btn" 
                   @click="rejectClaim(claim.id)"
@@ -75,7 +101,7 @@
       </table>
     </div>
 
-    <!-- Empty state -->
+    <!-- Empty state shown when no claims match search -->
     <div v-if="filteredClaims.length === 0" class="empty-state">
       <div class="empty-icon">📭</div>
       <p>No claims found</p>
@@ -83,85 +109,141 @@
   </div>
 </template>
 
-<script setup>
+<!-- Script section - component logic -->
+<script>
+// Import required Vue functions
 import { ref, computed, onMounted } from 'vue'
 
-const claims = ref([])
-const searchQuery = ref('')
-const sortKey = ref('id')
-const sortOrder = ref(1) // 1 = asc, -1 = desc
+export default {
+  setup() {
+    // Reactive data properties
+    const claims = ref([])
+    const searchQuery = ref('')
+    const sortKey = ref('id')
+    const sortOrder = ref(1) // 1 = asc, -1 = desc
 
-onMounted(() => {
-  claims.value = [
-    { id: 1, subject: 'Payment delay', description: 'Freelancer did not pay on time despite multiple reminders', status: 'pending', user: { name: 'Sami Ben' } },
-    { id: 2, subject: 'Bug report', description: 'Critical functionality not working as described', status: 'resolved', user: { name: 'Mira Chen' } },
-    { id: 3, subject: 'Refund request', description: 'Service not delivered as promised', status: 'pending', user: { name: 'Alex Johnson' } },
-    { id: 4, subject: 'Account issue', description: 'Cannot access my account after password reset', status: 'rejected', user: { name: 'Taylor Smith' } },
-  ]
-})
+    // Initialize with sample data when component mounts
+    onMounted(() => {
+      claims.value = [
+        { 
+          id: 1, 
+          subject: 'Payment delay', 
+          description: 'Freelancer did not pay on time despite multiple reminders', 
+          status: 'pending', 
+          user: { name: 'Sami Ben' } 
+        },
+        { 
+          id: 2, 
+          subject: 'Bug report', 
+          description: 'Critical functionality not working as described', 
+          status: 'resolved', 
+          user: { name: 'Mira Chen' } 
+        },
+        { 
+          id: 3, 
+          subject: 'Refund request', 
+          description: 'Service not delivered as promised', 
+          status: 'pending', 
+          user: { name: 'Alex Johnson' } 
+        },
+        { 
+          id: 4, 
+          subject: 'Account issue', 
+          description: 'Cannot access my account after password reset', 
+          status: 'rejected', 
+          user: { name: 'Taylor Smith' } 
+        },
+      ]
+    })
 
-const filteredClaims = computed(() => {
-  let result = claims.value
-  
-  // Search filter
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    result = result.filter(claim => 
-      claim.subject.toLowerCase().includes(query) ||
-      claim.description.toLowerCase().includes(query) ||
-      claim.user.name.toLowerCase().includes(query)
-    )
+    // Computed property for filtered and sorted claims
+    const filteredClaims = computed(() => {
+      let result = claims.value
+      
+      // Apply search filter if query exists
+      if (searchQuery.value) {
+        const query = searchQuery.value.toLowerCase()
+        result = result.filter(claim => 
+          claim.subject.toLowerCase().includes(query) ||
+          claim.description.toLowerCase().includes(query) ||
+          claim.user.name.toLowerCase().includes(query)
+        )
+      }
+      
+      // Apply sorting
+      return result.sort((a, b) => {
+        if (a[sortKey.value] < b[sortKey.value]) return -1 * sortOrder.value
+        if (a[sortKey.value] > b[sortKey.value]) return 1 * sortOrder.value
+        return 0
+      })
+    })
+
+    // Method to handle column sorting
+    const sortBy = (key) => {
+      if (sortKey.value === key) {
+        sortOrder.value *= -1
+      } else {
+        sortKey.value = key
+        sortOrder.value = 1
+      }
+    }
+
+    // Method to get status badge color class
+    const getStatusColor = (status) => {
+      switch (status) {
+        case 'pending': return 'pending'
+        case 'resolved': return 'resolved'
+        case 'rejected': return 'rejected'
+        default: return ''
+      }
+    }
+
+    // Method to get user initials for avatar
+    const getUserInitial = (name) => {
+      return name.split(' ').map(n => n[0]).join('')
+    }
+
+    // Method to resolve a claim
+    const resolveClaim = (id) => {
+      const claim = claims.value.find(c => c.id === id)
+      if (claim) claim.status = 'resolved'
+    }
+
+    // Method to reject a claim
+    const rejectClaim = (id) => {
+      const claim = claims.value.find(c => c.id === id)
+      if (claim) claim.status = 'rejected'
+    }
+
+    // Expose properties and methods to template
+    return {
+      claims,
+      searchQuery,
+      sortKey,
+      sortOrder,
+      filteredClaims,
+      sortBy,
+      getStatusColor,
+      getUserInitial,
+      resolveClaim,
+      rejectClaim
+    }
   }
-  
-  // Sorting
-  return result.sort((a, b) => {
-    if (a[sortKey.value] < b[sortKey.value]) return -1 * sortOrder.value
-    if (a[sortKey.value] > b[sortKey.value]) return 1 * sortOrder.value
-    return 0
-  })
-})
-
-const sortBy = (key) => {
-  if (sortKey.value === key) {
-    sortOrder.value *= -1
-  } else {
-    sortKey.value = key
-    sortOrder.value = 1
-  }
-}
-
-const getStatusColor = (status) => {
-  switch (status) {
-    case 'pending': return 'pending'
-    case 'resolved': return 'resolved'
-    case 'rejected': return 'rejected'
-    default: return ''
-  }
-}
-
-const getUserInitial = (name) => {
-  return name.split(' ').map(n => n[0]).join('')
-}
-
-const resolveClaim = (id) => {
-  const claim = claims.value.find(c => c.id === id)
-  if (claim) claim.status = 'resolved'
-}
-
-const rejectClaim = (id) => {
-  const claim = claims.value.find(c => c.id === id)
-  if (claim) claim.status = 'rejected'
 }
 </script>
+
+<!-- Scoped styles - only affect this component -->
 <style scoped>
+/* Main container styling */
 .claims-container {
   background: white;
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(151, 96, 208, 0.12); /* Using purple tint */
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
   padding: 24px;
   overflow: hidden;
 }
 
+/* Header section styling */
 .header {
   display: flex;
   justify-content: space-between;
@@ -169,43 +251,49 @@ const rejectClaim = (id) => {
   margin-bottom: 24px;
 }
 
+/* Title styling */
 .title {
   font-size: 24px;
   font-weight: 600;
-  color: #5E2B97; /* Deep purple */
+  color: #1A365D; /* Dark blue */
   margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+/* Icon styling */
 .icon {
   font-size: 28px;
-  color: #8A4EBF; /* Medium purple */
+  color: #2B6CB0; /* Medium blue */
 }
 
+/* Search bar styling */
 .search-bar {
   display: flex;
   align-items: center;
-  background: #F5E9FF; /* Very light purple */
+  background: #EBF8FF; /* Very light blue */
   border-radius: 8px;
   padding: 4px;
-  border: 1px solid #D9B3FF; /* Light purple border */
+  border: 1px solid #BEE3F8; /* Light blue border */
 }
 
+/* Search input styling */
 .search-input {
   border: none;
   background: transparent;
   padding: 8px 12px;
   outline: none;
   width: 200px;
-  color: #4A2C7A; /* Dark purple for text */
+  color: #2C5282; /* Dark blue text */
 }
 
+/* Search placeholder styling */
 .search-input::placeholder {
-  color: #A78BC9; /* Medium-light purple */
+  color: #718096; /* Grayish blue */
 }
 
+/* Search button styling */
 .search-btn {
   background: transparent;
   border: none;
@@ -215,15 +303,18 @@ const rejectClaim = (id) => {
   align-items: center;
 }
 
+/* Search icon styling */
 .search-icon {
   font-size: 16px;
-  color: #8A4EBF; /* Medium purple */
+  color: #4299E1; /* Medium blue */
 }
 
+/* Table container styling */
 .table-responsive {
   overflow-x: auto;
 }
 
+/* Main table styling */
 .claims-table {
   width: 100%;
   border-collapse: separate;
@@ -231,9 +322,10 @@ const rejectClaim = (id) => {
   font-size: 14px;
 }
 
+/* Table header styling */
 .claims-table th {
-  background-color: #F0D9FF; /* Light purple */
-  color: #4A2C7A; /* Dark purple */
+  background-color: #BEE3F8; /* Light blue */
+  color: #2C5282; /* Dark blue */
   font-weight: 600;
   padding: 12px 16px;
   text-align: left;
@@ -243,30 +335,36 @@ const rejectClaim = (id) => {
   user-select: none;
 }
 
+/* Table header hover effect */
 .claims-table th:hover {
-  background-color: #E2C3FF; /* Slightly darker light purple */
+  background-color: #90CDF4; /* Slightly darker light blue */
 }
 
+/* Sort icon styling */
 .sort-icon {
   margin-left: 4px;
   font-size: 12px;
-  color: #6E3FB4; /* Medium-dark purple */
+  color: #3182CE; /* Medium blue */
 }
 
+/* Table cell styling */
 .claims-table td {
   padding: 16px;
-  border-bottom: 1px solid #E9D5FF; /* Very light purple */
+  border-bottom: 1px solid #E2E8F0; /* Very light gray-blue */
   vertical-align: middle;
 }
 
+/* Remove border from last row */
 .claims-table tr:last-child td {
   border-bottom: none;
 }
 
+/* Row hover effect */
 .claims-table tr:hover {
-  background-color: #FAF2FF; /* Very light purple */
+  background-color: #F7FAFC; /* Very light blue */
 }
 
+/* Description cell styling */
 .description {
   max-width: 250px;
   white-space: nowrap;
@@ -274,6 +372,7 @@ const rejectClaim = (id) => {
   text-overflow: ellipsis;
 }
 
+/* Status badge base styling */
 .status-badge {
   padding: 6px 12px;
   border-radius: 12px;
@@ -283,45 +382,52 @@ const rejectClaim = (id) => {
   letter-spacing: 0.5px;
 }
 
+/* Pending status styling */
 .status-badge.pending {
-  background-color: #F3E5FF; /* Light purple */
-  color: #6A1B9A; /* Deep purple */
+  background-color: #FEFCBF; /* Light yellow */
+  color: #975A16; /* Dark yellow */
 }
 
+/* Resolved status styling */
 .status-badge.resolved {
-  background-color: #E6F9E6; /* Light green */
-  color: #2E7D32; /* Keeping green for resolved status */
+  background-color: #C6F6D5; /* Light green */
+  color: #276749; /* Dark green */
 }
 
+/* Rejected status styling */
 .status-badge.rejected {
-  background-color: #FFEBEE; /* Light red */
-  color: #C62828; /* Keeping red for rejected status */
+  background-color: #FED7D7; /* Light red */
+  color: #9B2C2C; /* Dark red */
 }
 
+/* User cell styling */
 .user-cell {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
+/* User avatar styling */
 .user-avatar {
   width: 32px;
   height: 32px;
-  background-color: #E2C3FF; /* Light purple */
+  background-color: #90CDF4; /* Light blue */
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: #4A2C7A; /* Dark purple */
+  color: #1A365D; /* Dark blue */
 }
 
+/* Action buttons container */
 .action-buttons {
   display: flex;
   gap: 8px;
 }
 
+/* Base button styling */
 .btn {
   padding: 8px 12px;
   border-radius: 6px;
@@ -335,58 +441,68 @@ const rejectClaim = (id) => {
   border: none;
 }
 
+/* Disabled button styling */
 .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
+/* Resolve button styling */
 .resolve-btn {
-  background-color: #6E3FB4; /* Medium purple */
+  background-color: #38A169; /* Green */
   color: white;
 }
 
+/* Resolve button hover effect */
 .resolve-btn:hover:not(:disabled) {
-  background-color: #5E2B97; /* Darker purple */
+  background-color: #2F855A; /* Darker green */
 }
 
+/* Reject button styling */
 .reject-btn {
-  background-color: #9C27B0; /* Different purple */
+  background-color: #E53E3E; /* Red */
   color: white;
 }
 
+/* Reject button hover effect */
 .reject-btn:hover:not(:disabled) {
-  background-color: #7B1FA2; /* Darker purple */
+  background-color: #C53030; /* Darker red */
 }
 
+/* Button icon styling */
 .btn-icon {
   font-size: 14px;
 }
 
+/* Empty state styling */
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 40px 0;
-  color: #A78BC9; /* Medium-light purple */
+  color: #718096; /* Grayish blue */
 }
 
+/* Empty state icon */
 .empty-icon {
   font-size: 48px;
   margin-bottom: 16px;
-  color: #D9B3FF; /* Light purple */
+  color: #CBD5E0; /* Light gray-blue */
 }
 
-/* Row status colors */
+/* Pending row indicator */
 tr.status-pending {
-  border-left: 3px solid #BA68C8; /* Purple */
+  border-left: 3px solid #D69E2E; /* Yellow */
 }
 
+/* Resolved row indicator */
 tr.status-resolved {
-  border-left: 3px solid #6E3FB4; /* Keeping purple theme but different shade */
+  border-left: 3px solid #38A169; /* Green */
 }
 
+/* Rejected row indicator */
 tr.status-rejected {
-  border-left: 3px solid #9C27B0; /* Different purple */
+  border-left: 3px solid #E53E3E; /* Red */
 }
 </style>

@@ -1,231 +1,182 @@
 <template>
   <CContainer class="py-4">
-    <h2 class="mb-4 fw-bold" style="color: #5E2B97;">My Projects</h2>
+    <!-- Header Section -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <h2 class="fw-bold m-0" style="color: #0F2573;">My Projects</h2>
+      <CBadge color="primary" shape="rounded-pill" style="background-color: #0F2573;">
+        {{ ongoingProjects.length }} Ongoing Projects
+      </CBadge>
+    </div>
 
-    <CTable hover responsive bordered class="shadow-sm" style="border-color: #E2C3FF;">
-      <CTableHead style="background-color: #F0D9FF;">
-        <CTableRow>
-          <CTableHeaderCell style="color: #4A2C7A;">Project Name</CTableHeaderCell>
-          <CTableHeaderCell style="color: #4A2C7A;">End Date</CTableHeaderCell>
-          <CTableHeaderCell style="color: #4A2C7A;">Amount</CTableHeaderCell>
-          <CTableHeaderCell style="color: #4A2C7A;">Status</CTableHeaderCell>
-          <CTableHeaderCell style="color: #4A2C7A;">Client Name</CTableHeaderCell>
-          <CTableHeaderCell style="color: #4A2C7A;">Rate Client</CTableHeaderCell>
-        </CTableRow>
-      </CTableHead>
-      <CTableBody>
-        <CTableRow v-for="project in projects" :key="project.id">
-          <CTableDataCell style="color: #6E3FB4;">{{ project.name }}</CTableDataCell>
-          <CTableDataCell style="color: #6E3FB4;">{{ formatDate(project.end_date) }}</CTableDataCell>
-          <CTableDataCell style="color: #6E3FB4;">{{ formatCurrency(project.amount) }}</CTableDataCell>
-          <CTableDataCell>
-            <CBadge :style="statusStyle(project.status)">
-              {{ project.status }}
-            </CBadge>
-          </CTableDataCell>
-          <CTableDataCell style="color: #6E3FB4;">{{ project.client_name }}</CTableDataCell>
-          <CTableDataCell>
-            <CButton
-              v-if="project.status === 'Finished'"
-              color="info"
-              size="sm"
-              @click="openRatingModal(project)"
-              style="background-color: #6E3FB4; border-color: #6E3FB4;"
-            >
-              Rate
-            </CButton>
-            <span v-else style="color: #8A4EBF;">—</span>
-          </CTableDataCell>
-        </CTableRow>
-      </CTableBody>
-    </CTable>
+    <!-- Ongoing Projects -->
+    <CCard class="mb-4 border-0" style="box-shadow: 0 4px 20px rgba(15, 37, 115, 0.1);">
+      <CCardBody class="p-4" style="background-color: #F8FAFF; border-radius: 12px;">
+        <h5 class="mb-3 fw-semibold" style="color: #0F2573;">Ongoing Projects</h5>
+        <CRow class="gy-3">
+          <CCol v-for="project in ongoingProjects" :key="project.id" :md="4">
+            <CCard class="h-100 border-0" style="box-shadow: 0 4px 12px rgba(15, 37, 115, 0.08);">
+              <CCardBody class="p-4">
+                <div class="mb-3">
+                  <strong>{{ project.title }}</strong>
+                  <p>{{ project.description }}</p>
+                  <CBadge style="background-color: #FFB400; color: #fff; border-radius: 8px;">
+                    In Progress
+                  </CBadge>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span><strong>Client:</strong> {{ project.client }}</span>
+                  <span><strong>Deadline:</strong> {{ project.deadline }}</span>
+                </div>
+                <CButton class="w-100 mt-3"
+                  style="background-color: #0F2573; border-radius: 8px; color: white;"
+                  @click="viewProjectDetails(project.id)">
+                  View Details
+                </CButton>
+              </CCardBody>
+            </CCard>
+          </CCol>
+        </CRow>
+      </CCardBody>
+    </CCard>
 
-    <!-- Rating Modal -->
-    <CModal :visible="showModal" @close="showModal = false">
-      <CModalHeader style="background-color: #F0D9FF; border-color: #E2C3FF;">
-        <strong style="color: #5E2B97;">Rate {{ selectedProject?.client_name }}</strong>
+    <!-- Completed Projects -->
+    <CCard class="border-0" style="box-shadow: 0 4px 20px rgba(15, 37, 115, 0.1);">
+      <CCardBody class="p-4" style="background-color: #F8FAFF; border-radius: 12px;">
+        <h5 class="mb-3 fw-semibold" style="color: #0F2573;">Completed Projects</h5>
+        <CRow class="gy-3">
+          <CCol v-for="project in completedProjects" :key="project.id" :md="4">
+            <CCard class="h-100 border-0" style="box-shadow: 0 4px 12px rgba(15, 37, 115, 0.08);">
+              <CCardBody class="p-4">
+                <div class="mb-3">
+                  <strong>{{ project.title }}</strong>
+                  <p>{{ project.description }}</p>
+                  <CBadge style="background-color: #28A745; color: #fff; border-radius: 8px;">
+                    Completed
+                  </CBadge>
+                </div>
+                <div class="d-flex justify-content-between">
+                  <span><strong>Client:</strong> {{ project.client }}</span>
+                  <span><strong>Completion Date:</strong> {{ project.completionDate }}</span>
+                </div>
+                <CButton class="w-100 mt-2 mb-2"
+                  style="background-color: #0F2573; border-radius: 8px; color: white;"
+                  @click="viewProjectDetails(project.id)">
+                  View Details
+                </CButton>
+                <CButton color="success" class="w-100"
+                  @click="openRatingModal(project)">
+                  Rate Client
+                </CButton>
+              </CCardBody>
+            </CCard>
+          </CCol>
+        </CRow>
+      </CCardBody>
+    </CCard>
+
+    <!-- MODAL DE NOTATION CLIENT -->
+    <CModal
+      alignment="center"
+      backdrop="static"
+      :visible="ratingModalVisible"
+      @close="ratingModalVisible = false"
+    >
+      <CModalHeader>
+        <strong>Rate Client - {{ selectedProject?.client }}</strong>
       </CModalHeader>
       <CModalBody>
-        <div class="star-rating text-center">
-          <span
-            v-for="star in 5"
-            :key="star"
-            class="star"
-            :class="{ filled: star <= ratingValue }"
-            @click="ratingValue = star"
-          >
-            ★
-          </span>
+        <div class="text-center mb-3">
+          <p class="mb-2">How was your experience with this client?</p>
+          <div>
+            <span
+              v-for="i in 5"
+              :key="i"
+              class="fs-4"
+              @click="rating = i"
+              style="cursor: pointer; color: gold;"
+            >
+              <i :class="i <= rating ? 'fas fa-star' : 'far fa-star'"></i>
+            </span>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Comment</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            v-model="comment"
+            placeholder="Write your feedback..."
+          ></textarea>
         </div>
       </CModalBody>
-      <CModalFooter style="background-color: #F5E9FF; border-color: #E2C3FF;">
-        <CButton 
-          color="secondary" 
-          @click="showModal = false"
-          style="background-color: #8A4EBF; border-color: #8A4EBF;"
-        >
-          Cancel
-        </CButton>
-        <CButton 
-          color="primary" 
-          @click="submitRating"
-          style="background-color: #5E2B97; border-color: #5E2B97;"
-        >
-          Submit
-        </CButton>
+      <CModalFooter>
+        <CButton color="secondary" @click="ratingModalVisible = false">Cancel</CButton>
+        <CButton color="primary" @click="submitRating">Submit</CButton>
       </CModalFooter>
     </CModal>
   </CContainer>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
 import {
-  CContainer,
-  CTable,
-  CTableHead,
-  CTableRow,
-  CTableHeaderCell,
-  CTableBody,
-  CTableDataCell,
-  CBadge,
-  CButton,
-  CModal,
-  CModalHeader,
-  CModalBody,
-  CModalFooter,
+  CContainer, CCard, CCardBody, CButton, CRow, CCol, CBadge,
+  CModal, CModalHeader, CModalBody, CModalFooter
 } from '@coreui/vue'
-import { format } from 'date-fns'
+import { ref, computed } from 'vue'
 
-const projects = ref([])
+const projects = ref([
+  { id: 1, title: 'Web Design for E-Commerce', description: 'Building a responsive website.', client: 'Client A', deadline: '2025-05-15', status: 'in-progress', completionDate: '' },
+  { id: 2, title: 'Mobile App Development', description: 'Developing a fitness app.', client: 'Client B', deadline: '2025-06-01', status: 'completed', completionDate: '2025-04-20' },
+  { id: 3, title: 'Logo Design', description: 'Creating a brand identity.', client: 'Client C', deadline: '2025-05-10', status: 'in-progress', completionDate: '' },
+])
 
-const statusStyle = (status) => {
-  switch(status) {
-    case 'Finished':
-      return {
-        backgroundColor: '#D4EDDA',
-        color: '#155724',
-        border: '1px solid #28A745'
-      }
-    case 'In Progress':
-      return {
-        backgroundColor: '#F0D9FF',
-        color: '#5E2B97',
-        border: '1px solid #8A4EBF'
-      }
-    default:
-      return {
-        backgroundColor: '#F5E9FF',
-        color: '#6E3FB4',
-        border: '1px solid #D9B3FF'
-      }
-  }
-}
-
-onMounted(() => {
-  projects.value = [
-    {
-      id: 1,
-      name: 'E-commerce Website',
-      end_date: '2025-04-28',
-      amount: 1500,
-      status: 'Finished',
-      client_name: 'Olivia Smith',
-    },
-    {
-      id: 2,
-      name: 'Mobile App Development',
-      end_date: '2025-05-15',
-      amount: 2200,
-      status: 'In Progress',
-      client_name: 'Daniel Clark',
-    },
-  ]
+const ongoingProjects = computed(() => {
+  return projects.value.filter(project => project.status === 'in-progress')
 })
 
-const formatDate = (dateStr) => format(new Date(dateStr), 'MMM dd, yyyy')
+const completedProjects = computed(() => {
+  return projects.value.filter(project => project.status === 'completed')
+})
 
-const formatCurrency = (amount) =>
-  new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(amount)
+const viewProjectDetails = (id) => {
+  console.log('Viewing project', id)
+}
 
-// Rating logic
-const showModal = ref(false)
+// Rating Modal Logic
+const ratingModalVisible = ref(false)
 const selectedProject = ref(null)
-const ratingValue = ref(0)
+const rating = ref(0)
+const comment = ref('')
 
 const openRatingModal = (project) => {
   selectedProject.value = project
-  ratingValue.value = 0
-  showModal.value = true
+  rating.value = 0
+  comment.value = ''
+  ratingModalVisible.value = true
 }
 
 const submitRating = () => {
-  if (ratingValue.value === 0) {
-    alert('Please select a star rating.')
-    return
-  }
-
-  const ratingData = {
+  console.log('Submitted rating:', {
     projectId: selectedProject.value.id,
-    clientName: selectedProject.value.client_name,
-    rating: ratingValue.value,
-  }
-
-  console.log('Submitted rating:', ratingData)
-  showModal.value = false
+    client: selectedProject.value.client,
+    rating: rating.value,
+    comment: comment.value,
+  })
+  ratingModalVisible.value = false
 }
 </script>
 
 <style scoped>
-.star-rating {
-  font-size: 2rem;
-  user-select: none;
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(15, 37, 115, 0.15) !important;
 }
-
-.star {
-  cursor: pointer;
-  color: #D9B3FF; /* Light purple */
-  transition: color 0.2s;
+.card {
+  transition: all 0.3s ease;
 }
-
-.star.filled {
-  color: #8A4EBF; /* Medium purple */
-}
-
-/* Table hover effect */
-.table-hover tbody tr:hover {
-  background-color: #FAF2FF !important;
-}
-
-/* Badge styling */
 .badge {
-  padding: 0.5rem 0.75rem;
-  border-radius: 12px;
+  padding: 6px 12px;
   font-weight: 500;
-  text-transform: uppercase;
-  font-size: 0.75rem;
-  letter-spacing: 0.5px;
-  display: inline-flex;
-  align-items: center;
-}
-
-.badge::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.badge[style*="Finished"]::before {
-  background-color: #155724;
-}
-
-.badge[style*="In Progress"]::before {
-  background-color: #5E2B97;
+  letter-spacing: 0.3px;
 }
 </style>

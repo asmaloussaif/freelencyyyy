@@ -1,33 +1,50 @@
 <template>
   <div class="management-container">
-    <!-- Header with title and controls -->
+    <!-- Header Section -->
     <div class="header">
       <div class="title-section">
-        <h2 class="title">
-          <span class="icon">👥</span>
-          Customer & Freelancer Management
-        </h2>
-        <p class="subtitle">Manage all platform users</p>
+        <div class="title-wrapper">
+          <h2 class="title">
+            <span class="icon">👥</span>
+            Customer & Freelancer Management
+          </h2>
+          <div class="badge-count">
+            <span class="count">{{ filteredUsers.length }}</span>
+            <span>Total Users</span>
+          </div>
+        </div>
+        <p class="subtitle">Manage platform users with ease and precision</p>
       </div>
       
       <div class="controls">
         <div class="search-filter">
-          <input 
-            type="text" 
-            v-model="searchQuery" 
-            placeholder="Search users..." 
-            class="search-input"
-          >
-          <select v-model="roleFilter" class="role-filter">
-            <option value="all">All Roles</option>
-            <option value="client">Clients</option>
-            <option value="freelancer">Freelancers</option>
-          </select>
-          <select v-model="statusFilter" class="status-filter">
-            <option value="all">All Statuses</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              v-model="searchQuery" 
+              placeholder="Search users by name or email..." 
+              class="search-input"
+            />
+          </div>
+          <div class="filter-group">
+            <div class="filter-select">
+              <label>Role:</label>
+              <select v-model="roleFilter" class="role-filter">
+                <option value="all">All Roles</option>
+                <option value="client">Clients</option>
+                <option value="freelancer">Freelancers</option>
+              </select>
+            </div>
+            <div class="filter-select">
+              <label>Status:</label>
+              <select v-model="statusFilter" class="status-filter">
+                <option value="all">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -37,72 +54,92 @@
       <table class="user-table">
         <thead>
           <tr class="header-row">
-            <th @click="sortBy('name')">
-              User 
-              <span v-if="sortKey === 'name'" class="sort-icon">
-                {{ sortOrder === 1 ? '↑' : '↓' }}
-              </span>
+            <th @click="sortBy('name')" class="sortable">
+              <div class="th-content">
+                User
+                <span v-if="sortKey === 'name'" class="sort-icon">
+                  {{ sortOrder === 1 ? '↑' : '↓' }}
+                </span>
+              </div>
             </th>
-            <th @click="sortBy('email')">
-              Email 
-              <span v-if="sortKey === 'email'" class="sort-icon">
-                {{ sortOrder === 1 ? '↑' : '↓' }}
-              </span>
+            <th @click="sortBy('email')" class="sortable">
+              <div class="th-content">
+                Email
+                <span v-if="sortKey === 'email'" class="sort-icon">
+                  {{ sortOrder === 1 ? '↑' : '↓' }}
+                </span>
+              </div>
             </th>
-            <th @click="sortBy('role')">
-              Role 
-              <span v-if="sortKey === 'role'" class="sort-icon">
-                {{ sortOrder === 1 ? '↑' : '↓' }}
-              </span>
+            <th @click="sortBy('role')" class="sortable">
+              <div class="th-content">
+                Role
+                <span v-if="sortKey === 'role'" class="sort-icon">
+                  {{ sortOrder === 1 ? '↑' : '↓' }}
+                </span>
+              </div>
             </th>
-            <th @click="sortBy('active')">
-              Status 
-              <span v-if="sortKey === 'active'" class="sort-icon">
-                {{ sortOrder === 1 ? '↑' : '↓' }}
-              </span>
+            <th @click="sortBy('active')" class="sortable">
+              <div class="th-content">
+                Status
+                <span v-if="sortKey === 'active'" class="sort-icon">
+                  {{ sortOrder === 1 ? '↑' : '↓' }}
+                </span>
+              </div>
             </th>
-            <th>Actions</th>
+            <th class="actions-header">Actions</th>
           </tr>
         </thead>
         <tbody>
           <tr 
-            v-for="user in filteredUsers" 
+            v-for="user in paginatedUsers" 
             :key="user.id"
-            :class="{'inactive-row': !user.active, 'user-card': true}"
+            :class="['user-card', {'inactive-row': !user.active}]"
           >
             <td>
               <div class="user-cell">
-                <img :src="user.avatar" class="user-avatar" />
+                <div class="avatar-wrapper">
+                  <img :src="user.avatar" class="user-avatar" />
+                  <span v-if="user.active" class="online-indicator"></span>
+                </div>
                 <div class="user-details">
                   <span class="user-name">{{ user.name }}</span>
                   <span class="user-id">ID: {{ user.id }}</span>
+                  <span class="user-join-date">Joined: {{ formatDate(user.joinDate) }}</span>
                 </div>
               </div>
             </td>
             <td class="user-email">
-              {{ user.email }}
+              <a :href="`mailto:${user.email}`" class="email-link">{{ user.email }}</a>
             </td>
             <td>
-              <span :class="'role-badge ' + (user.role === 'client' ? 'client' : 'freelancer')">
+              <span :class="['role-badge', user.role]">
                 {{ user.role === 'client' ? 'Client' : 'Freelancer' }}
+                <span class="role-icon">{{ user.role === 'client' ? '👔' : '💻' }}</span>
               </span>
             </td>
             <td>
-              <span :class="'status-badge ' + (user.active ? 'active' : 'inactive')">
+              <span :class="['status-badge', user.active ? 'active' : 'inactive']">
                 <span class="status-dot"></span>
                 {{ user.active ? 'Active' : 'Inactive' }}
               </span>
             </td>
-            <td>
-              <button 
-                @click="toggleStatus(user.id)"
-                :class="['action-btn', user.active ? 'suspend-btn' : 'activate-btn']"
-              >
-                {{ user.active ? 'Suspend' : 'Activate' }}
-              </button>
-              <button class="action-btn view-btn">
-                View Profile
-              </button>
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <button 
+                  @click="toggleStatus(user.id)"
+                  :class="['action-btn', user.active ? 'suspend-btn' : 'activate-btn']"
+                >
+                  <span class="btn-icon">{{ user.active ? '⏸️' : '▶️' }}</span>
+                  {{ user.active ? 'Suspend' : 'Activate' }}
+                </button>
+                <button class="action-btn view-btn" @click="viewProfile(user.id)">
+                  <span class="btn-icon">👁️</span>
+                  View
+                </button>
+                <button class="action-btn message-btn" @click="sendMessage(user.id)">
+                  <span class="btn-icon">✉️</span>
+                </button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -112,18 +149,36 @@
     <!-- Empty State -->
     <div v-if="filteredUsers.length === 0" class="empty-state">
       <div class="empty-icon">👻</div>
-      <h3>No users found</h3>
-      <p>Try adjusting your search filters</p>
+      <h3>No users found matching your criteria</h3>
+      <p>Try adjusting your search filters or <a href="#" @click.prevent="resetFilters">reset all filters</a></p>
     </div>
 
     <!-- Pagination -->
     <div class="pagination">
-      <button class="page-btn" :disabled="currentPage === 1" @click="prevPage">
-        Previous
+      <button 
+        class="page-btn prev-btn" 
+        :disabled="currentPage === 1" 
+        @click="prevPage"
+      >
+        <span class="page-icon">◀</span> Previous
       </button>
-      <span class="page-info">Page {{ currentPage }} of {{ totalPages }}</span>
-      <button class="page-btn" :disabled="currentPage === totalPages" @click="nextPage">
-        Next
+      <div class="page-numbers">
+        <button 
+          v-for="page in visiblePages" 
+          :key="page"
+          :class="['page-number', {active: currentPage === page}]"
+          @click="goToPage(page)"
+        >
+          {{ page }}
+        </button>
+        <span v-if="showEllipsis" class="ellipsis">...</span>
+      </div>
+      <button 
+        class="page-btn next-btn" 
+        :disabled="currentPage === totalPages" 
+        @click="nextPage"
+      >
+        Next <span class="page-icon">▶</span>
       </button>
     </div>
   </div>
@@ -131,6 +186,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { format } from 'date-fns'
 
 const users = ref([])
 const searchQuery = ref('')
@@ -139,15 +195,101 @@ const statusFilter = ref('all')
 const sortKey = ref('name')
 const sortOrder = ref(1) // 1 = asc, -1 = desc
 const currentPage = ref(1)
-const itemsPerPage = 5
+const itemsPerPage = 10
+const maxVisiblePages = 5
 
 onMounted(() => {
   users.value = [
-    { id: 1, name: 'Asma Khan', email: 'asma@example.com', role: 'client', active: true, avatar: 'https://i.pravatar.cc/100?img=5' },
-    { id: 2, name: 'Khaled Ahmed', email: 'khaled@example.com', role: 'freelancer', active: false, avatar: 'https://i.pravatar.cc/100?img=10' },
-    { id: 3, name: 'Lina Mahmoud', email: 'lina@example.com', role: 'client', active: true, avatar: 'https://i.pravatar.cc/100?img=15' },
-    { id: 4, name: 'Omar Farouk', email: 'omar@example.com', role: 'freelancer', active: true, avatar: 'https://i.pravatar.cc/100?img=20' },
-    { id: 5, name: 'Yasmine Belhaj', email: 'yasmine@example.com', role: 'client', active: false, avatar: 'https://i.pravatar.cc/100?img=25' },
+    { 
+      id: 1, 
+      name: 'Asma Khan', 
+      email: 'asma@example.com', 
+      role: 'client', 
+      active: true, 
+      avatar: 'https://i.pravatar.cc/150?img=5',
+      joinDate: '2023-05-15'
+    },
+    { 
+      id: 2, 
+      name: 'Khaled Ahmed', 
+      email: 'khaled@example.com', 
+      role: 'freelancer', 
+      active: false, 
+      avatar: 'https://i.pravatar.cc/150?img=10',
+      joinDate: '2023-06-22'
+    },
+    { 
+      id: 3, 
+      name: 'Lina Mahmoud', 
+      email: 'lina@example.com', 
+      role: 'client', 
+      active: true, 
+      avatar: 'https://i.pravatar.cc/150?img=15',
+      joinDate: '2023-07-10'
+    },
+    { 
+      id: 4, 
+      name: 'Omar Farouk', 
+      email: 'omar@example.com', 
+      role: 'freelancer', 
+      active: true, 
+      avatar: 'https://i.pravatar.cc/150?img=20',
+      joinDate: '2023-08-05'
+    },
+    { 
+      id: 5, 
+      name: 'Yasmine Belhaj', 
+      email: 'yasmine@example.com', 
+      role: 'client', 
+      active: false, 
+      avatar: 'https://i.pravatar.cc/150?img=25',
+      joinDate: '2023-09-18'
+    },
+    { 
+      id: 6, 
+      name: 'Rami Nasr', 
+      email: 'rami@example.com', 
+      role: 'freelancer', 
+      active: true, 
+      avatar: 'https://i.pravatar.cc/150?img=30',
+      joinDate: '2023-10-22'
+    },
+    { 
+      id: 7, 
+      name: 'Nadia Fares', 
+      email: 'nadia@example.com', 
+      role: 'client', 
+      active: true, 
+      avatar: 'https://i.pravatar.cc/150?img=35',
+      joinDate: '2023-11-14'
+    },
+    { 
+      id: 8, 
+      name: 'Karim Said', 
+      email: 'karim@example.com', 
+      role: 'freelancer', 
+      active: false, 
+      avatar: 'https://i.pravatar.cc/150?img=40',
+      joinDate: '2023-12-03'
+    },
+    { 
+      id: 9, 
+      name: 'Leila Mansour', 
+      email: 'leila@example.com', 
+      role: 'client', 
+      active: true, 
+      avatar: 'https://i.pravatar.cc/150?img=45',
+      joinDate: '2024-01-19'
+    },
+    { 
+      id: 10, 
+      name: 'Tariq Jabbar', 
+      email: 'tariq@example.com', 
+      role: 'freelancer', 
+      active: true, 
+      avatar: 'https://i.pravatar.cc/150?img=50',
+      joinDate: '2024-02-27'
+    }
   ]
 })
 
@@ -190,6 +332,28 @@ const paginatedUsers = computed(() => {
   return filteredUsers.value.slice(start, end)
 })
 
+const visiblePages = computed(() => {
+  const pages = []
+  const half = Math.floor(maxVisiblePages / 2)
+  let start = Math.max(1, currentPage.value - half)
+  let end = Math.min(totalPages.value, start + maxVisiblePages - 1)
+  
+  if (end - start + 1 < maxVisiblePages) {
+    start = Math.max(1, end - maxVisiblePages + 1)
+  }
+  
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+})
+
+const showEllipsis = computed(() => {
+  return totalPages.value > maxVisiblePages && 
+         Math.max(...visiblePages.value) < totalPages.value
+})
+
 const sortBy = (key) => {
   if (sortKey.value === key) {
     sortOrder.value *= -1
@@ -197,11 +361,22 @@ const sortBy = (key) => {
     sortKey.value = key
     sortOrder.value = 1
   }
+  currentPage.value = 1
 }
 
 const toggleStatus = (id) => {
   const user = users.value.find(u => u.id === id)
   if (user) user.active = !user.active
+}
+
+const viewProfile = (id) => {
+  // In a real app, this would navigate to the user's profile
+  console.log(`Viewing profile for user ${id}`)
+}
+
+const sendMessage = (id) => {
+  // In a real app, this would open a messaging interface
+  console.log(`Sending message to user ${id}`)
 }
 
 const nextPage = () => {
@@ -211,33 +386,56 @@ const nextPage = () => {
 const prevPage = () => {
   if (currentPage.value > 1) currentPage.value--
 }
+
+const goToPage = (page) => {
+  currentPage.value = page
+}
+
+const resetFilters = () => {
+  searchQuery.value = ''
+  roleFilter.value = 'all'
+  statusFilter.value = 'all'
+  currentPage.value = 1
+}
+
+const formatDate = (dateStr) => {
+  return format(new Date(dateStr), 'MMM d, yyyy')
+}
 </script>
+
 <style scoped>
 .management-container {
-  background: white;
+  background: #ffffff;
   border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(151, 96, 208, 0.12); /* Purple shadow */
-  padding: 28px;
+  box-shadow: 0 8px 30px rgba(0, 75, 145, 0.08);
+  padding: 32px;
   overflow: hidden;
+  font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  margin-bottom: 24px;
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .title-section {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+}
+
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 20px;
 }
 
 .title {
-  font-size: 24px;
-  font-weight: 600;
-  color: #5E2B97; /* Deep purple */
+  font-size: 28px;
+  font-weight: 700;
+  color: #0F2573;
   margin: 0;
   display: flex;
   align-items: center;
@@ -245,229 +443,360 @@ const prevPage = () => {
 }
 
 .icon {
-  font-size: 28px;
-  color: #8A4EBF; /* Medium purple */
+  font-size: 36px;
+  color: #4A90E2;
+}
+
+.badge-count {
+  background-color: #E1F0FF;
+  border-radius: 20px;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: #0F2573;
+}
+
+.badge-count .count {
+  font-weight: 700;
+  font-size: 18px;
+  color: #4A90E2;
 }
 
 .subtitle {
-  color: #A78BC9; /* Light purple-gray */
-  font-size: 14px;
+  color: #6c757d;
+  font-size: 16px;
   margin: 0;
-  margin-left: 40px;
+  font-weight: 400;
 }
 
 .controls {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  gap: 16px;
 }
 
 .search-filter {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 16px;
   width: 100%;
+}
+
+.search-box {
+  position: relative;
+  width: 100%;
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6c757d;
 }
 
 .search-input {
-  flex: 1;
-  padding: 10px 16px;
-  border: 1px solid #D9B3FF; /* Light purple border */
-  border-radius: 8px;
-  outline: none;
-  transition: border 0.2s;
-  background: #F5E9FF; /* Very light purple background */
+  width: 100%;
+  padding: 12px 16px 12px 48px;
+  border: 1px solid #C5D9E3;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  background-color: #F8FAFF;
 }
 
 .search-input:focus {
-  border-color: #6E3FB4; /* Medium-dark purple */
+  outline: none;
+  border-color: #4A90E2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
 }
 
-.role-filter, .status-filter {
-  padding: 10px 12px;
-  border: 1px solid #D9B3FF; /* Light purple border */
+.filter-group {
+  display: flex;
+  gap: 16px;
+}
+
+.filter-select {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-select label {
+  font-size: 14px;
+  color: #4A5568;
+  font-weight: 500;
+}
+
+.role-filter,
+.status-filter {
+  padding: 10px 16px;
+  border: 1px solid #C5D9E3;
   border-radius: 8px;
-  outline: none;
-  background: #F5E9FF; /* Very light purple */
+  font-size: 14px;
+  background-color: white;
+  color: #2D3748;
+  transition: all 0.3s ease;
   cursor: pointer;
-  color: #4A2C7A; /* Dark purple text */
+}
+
+.role-filter:hover,
+.status-filter:hover {
+  border-color: #4A90E2;
+}
+
+.role-filter:focus,
+.status-filter:focus {
+  outline: none;
+  border-color: #4A90E2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
 }
 
 .table-responsive {
+  width: 100%;
   overflow-x: auto;
-  margin-bottom: 24px;
+  border-radius: 12px;
 }
 
-/* Enhanced Table Styling */
 .user-table {
   width: 100%;
   border-collapse: separate;
-  border-spacing: 0 10px;
+  border-spacing: 0;
+  font-size: 14px;
 }
 
-.user-table .header-row {
-  background-color: #F0D9FF !important; /* Light purple header */
+.user-table th {
+  background-color: #F0F7FF;
+  color: #0F2573;
+  font-weight: 600;
+  padding: 16px;
+  text-align: left;
+  position: sticky;
+  top: 0;
 }
 
-.user-table .header-row th {
-  border: none;
-  padding: 14px 16px;
-  color: #4A2C7A; /* Dark purple text */
+.th-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.user-card {
-  background: white;
-  border: 1px solid #E2C3FF; /* Light purple border */
-  border-radius: 8px;
-  transition: all 0.2s ease;
+.sortable {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 
-.user-card:hover {
-  border-color: #8A4EBF; /* Medium purple on hover */
-  box-shadow: 0 3px 10px rgba(151, 96, 208, 0.15); /* Purple shadow */
+.sortable:hover {
+  background-color: #E1F0FF;
+}
+
+.sort-icon {
+  font-size: 12px;
+  color: #4A90E2;
+}
+
+.actions-header {
+  text-align: center;
 }
 
 .user-table td {
-  padding: 14px 16px;
-  border: none;
+  padding: 16px;
+  border-bottom: 1px solid #EDF2F7;
   vertical-align: middle;
 }
 
-.user-table td:first-child {
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
-}
-
-.user-table td:last-child {
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
+.user-card:hover {
+  background-color: #F8FAFF !important;
 }
 
 .inactive-row {
   opacity: 0.8;
-  background-color: #FAF2FF; /* Very light purple */
+  background-color: #F9F9F9;
 }
 
 .user-cell {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+}
+
+.avatar-wrapper {
+  position: relative;
 }
 
 .user-avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #E2C3FF; /* Light purple border */
+  border: 2px solid #E1F0FF;
+}
+
+.online-indicator {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 12px;
+  height: 12px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+  border: 2px solid white;
 }
 
 .user-details {
   display: flex;
   flex-direction: column;
+  gap: 4px;
 }
 
 .user-name {
-  font-weight: 500;
-  color: #4A2C7A; /* Dark purple */
+  font-weight: 600;
+  color: #0F2573;
 }
 
-.user-id {
+.user-id,
+.user-join-date {
   font-size: 12px;
-  color: #A78BC9; /* Light purple-gray */
+  color: #718096;
 }
 
 .user-email {
-  color: #6E3FB4; /* Medium-dark purple */
+  color: #4A5568;
+}
+
+.email-link {
+  color: #4A90E2;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.email-link:hover {
+  color: #0F2573;
+  text-decoration: underline;
 }
 
 .role-badge {
   padding: 6px 12px;
-  border-radius: 12px;
+  border-radius: 16px;
   font-size: 12px;
   font-weight: 600;
-  text-transform: capitalize;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .role-badge.client {
-  background-color: #EDE7F6; /* Light purple */
-  color: #5E35B1; /* Deep purple */
+  background-color: #E1F0FF;
+  color: #0F2573;
 }
 
 .role-badge.freelancer {
-  background-color: #F3E5F5; /* Light purple-pink */
-  color: #8E24AA; /* Purple-pink */
+  background-color: #0F2573;
+  color: white;
+}
+
+.role-icon {
+  font-size: 14px;
 }
 
 .status-badge {
-  display: flex;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
 }
 
 .status-badge.active {
-  background-color: #E8F5E9; /* Light green */
-  color: #2E7D32; /* Keeping green for active status */
+  background-color: #E6FFED;
+  color: #1A6D3F;
 }
 
 .status-badge.inactive {
-  background-color: #F5E9FF; /* Very light purple */
-  color: #6E3FB4; /* Medium-dark purple */
+  background-color: #FFF5F5;
+  color: #C53030;
 }
 
 .status-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
+  display: inline-block;
 }
 
 .status-badge.active .status-dot {
-  background-color: #2E7D32; /* Green */
+  background-color: #38A169;
 }
 
 .status-badge.inactive .status-dot {
-  background-color: #6E3FB4; /* Medium-dark purple */
+  background-color: #E53E3E;
+}
+
+.actions-cell {
+  text-align: center;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
 }
 
 .action-btn {
   padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
   border: none;
-  margin-right: 8px;
+}
+
+.btn-icon {
+  font-size: 14px;
 }
 
 .suspend-btn {
-  background-color: #F3E5F5; /* Light purple-pink */
-  color: #8E24AA; /* Purple-pink */
+  background-color: #F6AD55;
+  color: #7B341E;
 }
 
 .suspend-btn:hover {
-  background-color: #E1BEE7; /* Medium purple-pink */
+  background-color: #ED8936;
 }
 
 .activate-btn {
-  background-color: #E8F5E9; /* Light green */
-  color: #2E7D32; /* Keeping green for activate */
+  background-color: #68D391;
+  color: #22543D;
 }
 
 .activate-btn:hover {
-  background-color: #C8E6C9; /* Medium green */
+  background-color: #48BB78;
 }
 
 .view-btn {
-  background-color: #EDE7F6; /* Light purple */
-  color: #5E35B1; /* Deep purple */
+  background-color: #E1F0FF;
+  color: #0F2573;
 }
 
 .view-btn:hover {
-  background-color: #D1C4E9; /* Medium purple */
+  background-color: #C5D9E3;
+}
+
+.message-btn {
+  background-color: transparent;
+  color: #4A90E2;
+  padding: 8px;
+}
+
+.message-btn:hover {
+  background-color: #E1F0FF;
 }
 
 .empty-state {
@@ -475,43 +804,57 @@ const prevPage = () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 40px 0;
-  color: #A78BC9; /* Light purple-gray */
+  padding: 60px 0;
   text-align: center;
 }
 
 .empty-icon {
-  font-size: 48px;
+  font-size: 64px;
   margin-bottom: 16px;
-  color: #D9B3FF; /* Light purple */
+  color: #C5D9E3;
 }
 
 .empty-state h3 {
-  margin: 8px 0;
-  color: #5E2B97; /* Deep purple */
+  color: #0F2573;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: #718096;
+  margin-bottom: 0;
+}
+
+.empty-state a {
+  color: #4A90E2;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.empty-state a:hover {
+  text-decoration: underline;
 }
 
 .pagination {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 16px;
-  margin-top: 24px;
+  gap: 8px;
+  margin-top: 32px;
 }
 
 .page-btn {
   padding: 8px 16px;
-  border: 1px solid #D9B3FF; /* Light purple border */
-  background: white;
-  border-radius: 6px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s;
-  color: #5E2B97; /* Deep purple */
-}
-
-.page-btn:hover:not(:disabled) {
-  background: #F5E9FF; /* Very light purple */
-  border-color: #8A4EBF; /* Medium purple */
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  border: 1px solid #C5D9E3;
+  background-color: white;
+  color: #4A5568;
 }
 
 .page-btn:disabled {
@@ -519,22 +862,77 @@ const prevPage = () => {
   cursor: not-allowed;
 }
 
-.page-info {
+.page-btn:hover:not(:disabled) {
+  background-color: #E1F0FF;
+  color: #0F2573;
+}
+
+.page-icon {
+  font-size: 12px;
+}
+
+.page-numbers {
+  display: flex;
+  gap: 4px;
+}
+
+.page-number {
+  min-width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
   font-size: 14px;
-  color: #A78BC9; /* Light purple-gray */
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  background-color: transparent;
+  color: #4A5568;
+}
+
+.page-number:hover {
+  background-color: #E1F0FF;
+  color: #0F2573;
+}
+
+.page-number.active {
+  background-color: #0F2573;
+  color: white;
+  border-color: #0F2573;
+}
+
+.ellipsis {
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  color: #718096;
 }
 
 @media (max-width: 768px) {
-  .search-filter {
-    flex-direction: column;
-  }
-  
   .header {
     gap: 16px;
   }
   
-  .title {
-    font-size: 20px;
+  .title-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  
+  .filter-group {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .action-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .pagination {
+    flex-wrap: wrap;
   }
 }
 </style>
