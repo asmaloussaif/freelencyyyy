@@ -15,15 +15,15 @@
         </div>
         <p class="subtitle">Manage platform users with ease and precision</p>
       </div>
-      
+
       <div class="controls">
         <div class="search-filter">
           <div class="search-box">
             <span class="search-icon">🔍</span>
-            <input 
-              type="text" 
-              v-model="searchQuery" 
-              placeholder="Search users by name or email..." 
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Search users by name or email..."
               class="search-input"
             />
           </div>
@@ -34,14 +34,6 @@
                 <option value="all">All Roles</option>
                 <option value="client">Clients</option>
                 <option value="freelancer">Freelancers</option>
-              </select>
-            </div>
-            <div class="filter-select">
-              <label>Status:</label>
-              <select v-model="statusFilter" class="status-filter">
-                <option value="all">All Statuses</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
               </select>
             </div>
           </div>
@@ -78,32 +70,20 @@
                 </span>
               </div>
             </th>
-            <th @click="sortBy('active')" class="sortable">
-              <div class="th-content">
-                Status
-                <span v-if="sortKey === 'active'" class="sort-icon">
-                  {{ sortOrder === 1 ? '↑' : '↓' }}
-                </span>
-              </div>
-            </th>
+
             <th class="actions-header">Actions</th>
           </tr>
         </thead>
         <tbody>
-          <tr 
-            v-for="user in paginatedUsers" 
+          <tr
+            v-for="user in filteredUsers"
             :key="user.id"
-            :class="['user-card', {'inactive-row': !user.active}]"
+            :class="['user-card', { 'inactive-row': !user.active }]"
           >
             <td>
               <div class="user-cell">
-                <div class="avatar-wrapper">
-                  <img :src="user.avatar" class="user-avatar" />
-                  <span v-if="user.active" class="online-indicator"></span>
-                </div>
                 <div class="user-details">
                   <span class="user-name">{{ user.name }}</span>
-                  <span class="user-id">ID: {{ user.id }}</span>
                   <span class="user-join-date">Joined: {{ formatDate(user.joinDate) }}</span>
                 </div>
               </div>
@@ -117,28 +97,17 @@
                 <span class="role-icon">{{ user.role === 'client' ? '👔' : '💻' }}</span>
               </span>
             </td>
-            <td>
-              <span :class="['status-badge', user.active ? 'active' : 'inactive']">
-                <span class="status-dot"></span>
-                {{ user.active ? 'Active' : 'Inactive' }}
-              </span>
-            </td>
+
             <td class="actions-cell">
               <div class="action-buttons">
-                <button 
-                  @click="toggleStatus(user.id)"
-                  :class="['action-btn', user.active ? 'suspend-btn' : 'activate-btn']"
-                >
-                  <span class="btn-icon">{{ user.active ? '⏸️' : '▶️' }}</span>
-                  {{ user.active ? 'Suspend' : 'Activate' }}
-                </button>
-                <button class="action-btn view-btn" @click="viewProfile(user.id)">
+                <button class="action-btn view-btn" @click="viewProfile(user.id, user.role)">
                   <span class="btn-icon">👁️</span>
                   View
                 </button>
-                <button class="action-btn message-btn" @click="sendMessage(user.id)">
+                <button class="action-btn message-btn" @click="goToChat">
                   <span class="btn-icon">✉️</span>
                 </button>
+                <button @click="deleteUser(user.id)" class="btn btn-danger">Delete</button>
               </div>
             </td>
           </tr>
@@ -148,38 +117,32 @@
 
     <!-- Empty State -->
     <div v-if="filteredUsers.length === 0" class="empty-state">
-      <div class="empty-icon">👻</div>
       <h3>No users found matching your criteria</h3>
-      <p>Try adjusting your search filters or <a href="#" @click.prevent="resetFilters">reset all filters</a></p>
+      <p>
+        Try adjusting your search filters or
+        <a href="#" @click.prevent="resetFilters">reset all filters</a>
+      </p>
     </div>
-
-    <!-- Pagination -->
-    <div class="pagination">
-      <button 
-        class="page-btn prev-btn" 
-        :disabled="currentPage === 1" 
-        @click="prevPage"
-      >
-        <span class="page-icon">◀</span> Previous
-      </button>
-      <div class="page-numbers">
-        <button 
-          v-for="page in visiblePages" 
-          :key="page"
-          :class="['page-number', {active: currentPage === page}]"
-          @click="goToPage(page)"
-        >
-          {{ page }}
-        </button>
-        <span v-if="showEllipsis" class="ellipsis">...</span>
+  </div>
+  <div v-if="showModal" class="modal">
+    <div class="modal-content">
+      <div v-if="role === 'freelancer'">
+        <h3>Freelance Profile</h3>
+        <p><strong>Titre:</strong> {{ freelance.titre }}</p>
+        <p><strong>Compétences:</strong> {{ freelance.competences }}</p>
+        <p><strong>Expérience:</strong> {{ freelance.experience }}</p>
+        <p><strong>Portfolio:</strong> {{ freelance.portfolio }}</p>
+        <p><strong>Note:</strong> {{ freelance.note }}</p>
       </div>
-      <button 
-        class="page-btn next-btn" 
-        :disabled="currentPage === totalPages" 
-        @click="nextPage"
-      >
-        Next <span class="page-icon">▶</span>
-      </button>
+
+      <div v-else-if="role === 'client'">
+        <h3>Client Profile</h3>
+        <p><strong>Entreprise:</strong> {{ profile.entreprise }}</p>
+        <p><strong>Description:</strong> {{ profile.description_entreprise }}</p>
+        <p><strong>Besoins:</strong> {{ profile.besoins }}</p>
+        <p><strong>Note:</strong> {{ profile.note }}</p>
+      </div>
+      <button @click="showModal = false">Close</button>
     </div>
   </div>
 </template>
@@ -187,171 +150,84 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { format } from 'date-fns'
-
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+const authStore = useAuthStore()
 const users = ref([])
 const searchQuery = ref('')
 const roleFilter = ref('all')
 const statusFilter = ref('all')
 const sortKey = ref('name')
-const sortOrder = ref(1) // 1 = asc, -1 = desc
-const currentPage = ref(1)
-const itemsPerPage = 10
-const maxVisiblePages = 5
+const sortOrder = ref(1)
+const showModal = ref(false)
+
+const fetchUser = async () => {
+  const headers = { Authorization: `Bearer ${authStore.token}` }
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/users', { headers })
+    users.value = response.data.map((user) => ({
+      id: user.id,
+      name: `${user.name} ${user.lastName ?? ''}`.trim(),
+      email: user.email,
+      role: user.role[0],
+      joinDate: user.created_at,
+    }))
+  } catch (error) {
+    console.error('Error fetching users:', error)
+  }
+}
+const deleteUser = async (id) => {
+  const confirmed = confirm('Are you sure you want to delete this user?')
+  if (!confirmed) return
+
+  const token = authStore.token
+
+  try {
+    await axios.delete(`http://localhost:8000/api/users/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    users.value = users.value.filter((user) => user.id !== id)
+    fetchUser()
+    alert('User deleted successfully!')
+  } catch (error) {
+    console.error('Error deleting user:', error)
+    alert('Failed to delete user.')
+  }
+}
 
 onMounted(() => {
-  users.value = [
-    { 
-      id: 1, 
-      name: 'Asma Khan', 
-      email: 'asma@example.com', 
-      role: 'client', 
-      active: true, 
-      avatar: 'https://i.pravatar.cc/150?img=5',
-      joinDate: '2023-05-15'
-    },
-    { 
-      id: 2, 
-      name: 'Khaled Ahmed', 
-      email: 'khaled@example.com', 
-      role: 'freelancer', 
-      active: false, 
-      avatar: 'https://i.pravatar.cc/150?img=10',
-      joinDate: '2023-06-22'
-    },
-    { 
-      id: 3, 
-      name: 'Lina Mahmoud', 
-      email: 'lina@example.com', 
-      role: 'client', 
-      active: true, 
-      avatar: 'https://i.pravatar.cc/150?img=15',
-      joinDate: '2023-07-10'
-    },
-    { 
-      id: 4, 
-      name: 'Omar Farouk', 
-      email: 'omar@example.com', 
-      role: 'freelancer', 
-      active: true, 
-      avatar: 'https://i.pravatar.cc/150?img=20',
-      joinDate: '2023-08-05'
-    },
-    { 
-      id: 5, 
-      name: 'Yasmine Belhaj', 
-      email: 'yasmine@example.com', 
-      role: 'client', 
-      active: false, 
-      avatar: 'https://i.pravatar.cc/150?img=25',
-      joinDate: '2023-09-18'
-    },
-    { 
-      id: 6, 
-      name: 'Rami Nasr', 
-      email: 'rami@example.com', 
-      role: 'freelancer', 
-      active: true, 
-      avatar: 'https://i.pravatar.cc/150?img=30',
-      joinDate: '2023-10-22'
-    },
-    { 
-      id: 7, 
-      name: 'Nadia Fares', 
-      email: 'nadia@example.com', 
-      role: 'client', 
-      active: true, 
-      avatar: 'https://i.pravatar.cc/150?img=35',
-      joinDate: '2023-11-14'
-    },
-    { 
-      id: 8, 
-      name: 'Karim Said', 
-      email: 'karim@example.com', 
-      role: 'freelancer', 
-      active: false, 
-      avatar: 'https://i.pravatar.cc/150?img=40',
-      joinDate: '2023-12-03'
-    },
-    { 
-      id: 9, 
-      name: 'Leila Mansour', 
-      email: 'leila@example.com', 
-      role: 'client', 
-      active: true, 
-      avatar: 'https://i.pravatar.cc/150?img=45',
-      joinDate: '2024-01-19'
-    },
-    { 
-      id: 10, 
-      name: 'Tariq Jabbar', 
-      email: 'tariq@example.com', 
-      role: 'freelancer', 
-      active: true, 
-      avatar: 'https://i.pravatar.cc/150?img=50',
-      joinDate: '2024-02-27'
-    }
-  ]
+  fetchUser()
 })
-
 const filteredUsers = computed(() => {
   let result = users.value
-  
+
   // Apply filters
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    result = result.filter(user => 
-      user.name.toLowerCase().includes(query) ||
-      user.email.toLowerCase().includes(query)
+    result = result.filter(
+      (user) => user.name.toLowerCase().includes(query) || user.email.toLowerCase().includes(query),
     )
   }
-  
+
   if (roleFilter.value !== 'all') {
-    result = result.filter(user => user.role === roleFilter.value)
+    result = result.filter((user) => user.role === roleFilter.value)
   }
-  
+
   if (statusFilter.value !== 'all') {
     const activeFilter = statusFilter.value === 'active'
-    result = result.filter(user => user.active === activeFilter)
+    result = result.filter((user) => user.active === activeFilter)
   }
-  
+
   // Apply sorting
   return result.sort((a, b) => {
     if (a[sortKey.value] < b[sortKey.value]) return -1 * sortOrder.value
     if (a[sortKey.value] > b[sortKey.value]) return 1 * sortOrder.value
     return 0
   })
-})
-
-const totalPages = computed(() => {
-  return Math.ceil(filteredUsers.value.length / itemsPerPage)
-})
-
-const paginatedUsers = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage
-  const end = start + itemsPerPage
-  return filteredUsers.value.slice(start, end)
-})
-
-const visiblePages = computed(() => {
-  const pages = []
-  const half = Math.floor(maxVisiblePages / 2)
-  let start = Math.max(1, currentPage.value - half)
-  let end = Math.min(totalPages.value, start + maxVisiblePages - 1)
-  
-  if (end - start + 1 < maxVisiblePages) {
-    start = Math.max(1, end - maxVisiblePages + 1)
-  }
-  
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
-  }
-  
-  return pages
-})
-
-const showEllipsis = computed(() => {
-  return totalPages.value > maxVisiblePages && 
-         Math.max(...visiblePages.value) < totalPages.value
 })
 
 const sortBy = (key) => {
@@ -361,45 +237,66 @@ const sortBy = (key) => {
     sortKey.value = key
     sortOrder.value = 1
   }
-  currentPage.value = 1
 }
 
 const toggleStatus = (id) => {
-  const user = users.value.find(u => u.id === id)
+  const user = users.value.find((u) => u.id === id)
   if (user) user.active = !user.active
 }
 
-const viewProfile = (id) => {
-  // In a real app, this would navigate to the user's profile
-  console.log(`Viewing profile for user ${id}`)
-}
+const freelance = ref({
+  id: '',
+  user_id: '',
+  titre: '',
+  competences: '',
+  experience: '',
+  portfolio: '',
+  note: '',
+})
 
-const sendMessage = (id) => {
-  // In a real app, this would open a messaging interface
-  console.log(`Sending message to user ${id}`)
-}
+const profile = ref({
+  id: '',
+  entreprise: '',
+  description_entreprise: '',
+  besoins: '',
+  note: '',
+})
+const role = ref('')
+const viewProfile = async (id, userRole) => {
+  const token = authStore.token
 
-const nextPage = () => {
-  if (currentPage.value < totalPages.value) currentPage.value++
-}
+  try {
+    const response = await axios.get(`http://localhost:8000/api/profile/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    console.log(response.data)
+    role.value = userRole
+    if (role.value === 'freelancer') {
+      freelance.value = response.data
+    } else if (role.value === 'client') {
+      profile.value = response.data
+    }
 
-const prevPage = () => {
-  if (currentPage.value > 1) currentPage.value--
-}
-
-const goToPage = (page) => {
-  currentPage.value = page
+    showModal.value = true
+  } catch (error) {
+    console.error('Erreur lors de la récupération du profil :', error)
+  }
 }
 
 const resetFilters = () => {
   searchQuery.value = ''
   roleFilter.value = 'all'
   statusFilter.value = 'all'
-  currentPage.value = 1
 }
 
-const formatDate = (dateStr) => {
-  return format(new Date(dateStr), 'MMM d, yyyy')
+function formatDate(dateString) {
+  const options = { year: 'numeric', month: 'short', day: 'numeric' }
+  return new Date(dateString).toLocaleDateString('fr-FR', options)
+}
+const goToChat = () => {
+  router.push('/dashboard/inbox')
 }
 </script>
 
@@ -435,7 +332,7 @@ const formatDate = (dateStr) => {
 .title {
   font-size: 28px;
   font-weight: 700;
-  color: #0F2573;
+  color: #0f2573;
   margin: 0;
   display: flex;
   align-items: center;
@@ -444,24 +341,24 @@ const formatDate = (dateStr) => {
 
 .icon {
   font-size: 36px;
-  color: #4A90E2;
+  color: #4a90e2;
 }
 
 .badge-count {
-  background-color: #E1F0FF;
+  background-color: #e1f0ff;
   border-radius: 20px;
   padding: 8px 16px;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 14px;
-  color: #0F2573;
+  color: #0f2573;
 }
 
 .badge-count .count {
   font-weight: 700;
   font-size: 18px;
-  color: #4A90E2;
+  color: #4a90e2;
 }
 
 .subtitle {
@@ -499,16 +396,16 @@ const formatDate = (dateStr) => {
 .search-input {
   width: 100%;
   padding: 12px 16px 12px 48px;
-  border: 1px solid #C5D9E3;
+  border: 1px solid #c5d9e3;
   border-radius: 10px;
   font-size: 15px;
   transition: all 0.3s ease;
-  background-color: #F8FAFF;
+  background-color: #f8faff;
 }
 
 .search-input:focus {
   outline: none;
-  border-color: #4A90E2;
+  border-color: #4a90e2;
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
 }
 
@@ -525,31 +422,31 @@ const formatDate = (dateStr) => {
 
 .filter-select label {
   font-size: 14px;
-  color: #4A5568;
+  color: #4a5568;
   font-weight: 500;
 }
 
 .role-filter,
 .status-filter {
   padding: 10px 16px;
-  border: 1px solid #C5D9E3;
+  border: 1px solid #c5d9e3;
   border-radius: 8px;
   font-size: 14px;
   background-color: white;
-  color: #2D3748;
+  color: #2d3748;
   transition: all 0.3s ease;
   cursor: pointer;
 }
 
 .role-filter:hover,
 .status-filter:hover {
-  border-color: #4A90E2;
+  border-color: #4a90e2;
 }
 
 .role-filter:focus,
 .status-filter:focus {
   outline: none;
-  border-color: #4A90E2;
+  border-color: #4a90e2;
   box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
 }
 
@@ -567,8 +464,8 @@ const formatDate = (dateStr) => {
 }
 
 .user-table th {
-  background-color: #F0F7FF;
-  color: #0F2573;
+  background-color: #f0f7ff;
+  color: #0f2573;
   font-weight: 600;
   padding: 16px;
   text-align: left;
@@ -588,12 +485,12 @@ const formatDate = (dateStr) => {
 }
 
 .sortable:hover {
-  background-color: #E1F0FF;
+  background-color: #e1f0ff;
 }
 
 .sort-icon {
   font-size: 12px;
-  color: #4A90E2;
+  color: #4a90e2;
 }
 
 .actions-header {
@@ -602,17 +499,17 @@ const formatDate = (dateStr) => {
 
 .user-table td {
   padding: 16px;
-  border-bottom: 1px solid #EDF2F7;
+  border-bottom: 1px solid #edf2f7;
   vertical-align: middle;
 }
 
 .user-card:hover {
-  background-color: #F8FAFF !important;
+  background-color: #f8faff !important;
 }
 
 .inactive-row {
   opacity: 0.8;
-  background-color: #F9F9F9;
+  background-color: #f9f9f9;
 }
 
 .user-cell {
@@ -630,7 +527,7 @@ const formatDate = (dateStr) => {
   height: 48px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid #E1F0FF;
+  border: 2px solid #e1f0ff;
 }
 
 .online-indicator {
@@ -639,7 +536,7 @@ const formatDate = (dateStr) => {
   right: 0;
   width: 12px;
   height: 12px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   border-radius: 50%;
   border: 2px solid white;
 }
@@ -652,7 +549,7 @@ const formatDate = (dateStr) => {
 
 .user-name {
   font-weight: 600;
-  color: #0F2573;
+  color: #0f2573;
 }
 
 .user-id,
@@ -662,17 +559,17 @@ const formatDate = (dateStr) => {
 }
 
 .user-email {
-  color: #4A5568;
+  color: #4a5568;
 }
 
 .email-link {
-  color: #4A90E2;
+  color: #4a90e2;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 
 .email-link:hover {
-  color: #0F2573;
+  color: #0f2573;
   text-decoration: underline;
 }
 
@@ -687,12 +584,12 @@ const formatDate = (dateStr) => {
 }
 
 .role-badge.client {
-  background-color: #E1F0FF;
-  color: #0F2573;
+  background-color: #e1f0ff;
+  color: #0f2573;
 }
 
 .role-badge.freelancer {
-  background-color: #0F2573;
+  background-color: #0f2573;
   color: white;
 }
 
@@ -711,13 +608,13 @@ const formatDate = (dateStr) => {
 }
 
 .status-badge.active {
-  background-color: #E6FFED;
-  color: #1A6D3F;
+  background-color: #e6ffed;
+  color: #1a6d3f;
 }
 
 .status-badge.inactive {
-  background-color: #FFF5F5;
-  color: #C53030;
+  background-color: #fff5f5;
+  color: #c53030;
 }
 
 .status-dot {
@@ -728,11 +625,11 @@ const formatDate = (dateStr) => {
 }
 
 .status-badge.active .status-dot {
-  background-color: #38A169;
+  background-color: #38a169;
 }
 
 .status-badge.inactive .status-dot {
-  background-color: #E53E3E;
+  background-color: #e53e3e;
 }
 
 .actions-cell {
@@ -763,40 +660,40 @@ const formatDate = (dateStr) => {
 }
 
 .suspend-btn {
-  background-color: #F6AD55;
-  color: #7B341E;
+  background-color: #f6ad55;
+  color: #7b341e;
 }
 
 .suspend-btn:hover {
-  background-color: #ED8936;
+  background-color: #ed8936;
 }
 
 .activate-btn {
-  background-color: #68D391;
-  color: #22543D;
+  background-color: #68d391;
+  color: #22543d;
 }
 
 .activate-btn:hover {
-  background-color: #48BB78;
+  background-color: #48bb78;
 }
 
 .view-btn {
-  background-color: #E1F0FF;
-  color: #0F2573;
+  background-color: #e1f0ff;
+  color: #0f2573;
 }
 
 .view-btn:hover {
-  background-color: #C5D9E3;
+  background-color: #c5d9e3;
 }
 
 .message-btn {
   background-color: transparent;
-  color: #4A90E2;
+  color: #4a90e2;
   padding: 8px;
 }
 
 .message-btn:hover {
-  background-color: #E1F0FF;
+  background-color: #e1f0ff;
 }
 
 .empty-state {
@@ -811,11 +708,11 @@ const formatDate = (dateStr) => {
 .empty-icon {
   font-size: 64px;
   margin-bottom: 16px;
-  color: #C5D9E3;
+  color: #c5d9e3;
 }
 
 .empty-state h3 {
-  color: #0F2573;
+  color: #0f2573;
   margin-bottom: 8px;
 }
 
@@ -825,7 +722,7 @@ const formatDate = (dateStr) => {
 }
 
 .empty-state a {
-  color: #4A90E2;
+  color: #4a90e2;
   text-decoration: none;
   font-weight: 500;
 }
@@ -852,9 +749,9 @@ const formatDate = (dateStr) => {
   align-items: center;
   gap: 6px;
   transition: all 0.2s ease;
-  border: 1px solid #C5D9E3;
+  border: 1px solid #c5d9e3;
   background-color: white;
-  color: #4A5568;
+  color: #4a5568;
 }
 
 .page-btn:disabled {
@@ -863,8 +760,8 @@ const formatDate = (dateStr) => {
 }
 
 .page-btn:hover:not(:disabled) {
-  background-color: #E1F0FF;
-  color: #0F2573;
+  background-color: #e1f0ff;
+  color: #0f2573;
 }
 
 .page-icon {
@@ -889,18 +786,18 @@ const formatDate = (dateStr) => {
   transition: all 0.2s ease;
   border: 1px solid transparent;
   background-color: transparent;
-  color: #4A5568;
+  color: #4a5568;
 }
 
 .page-number:hover {
-  background-color: #E1F0FF;
-  color: #0F2573;
+  background-color: #e1f0ff;
+  color: #0f2573;
 }
 
 .page-number.active {
-  background-color: #0F2573;
+  background-color: #0f2573;
   color: white;
-  border-color: #0F2573;
+  border-color: #0f2573;
 }
 
 .ellipsis {
@@ -914,25 +811,45 @@ const formatDate = (dateStr) => {
   .header {
     gap: 16px;
   }
-  
+
   .title-wrapper {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
   }
-  
+
   .filter-group {
     flex-direction: column;
     gap: 12px;
   }
-  
+
   .action-buttons {
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .pagination {
     flex-wrap: wrap;
   }
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+}
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 500px;
+  max-width: 90%;
+  min-height: 100px;
 }
 </style>

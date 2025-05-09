@@ -4,75 +4,71 @@
     <h2 class="page-title">👤 Profile</h2>
 
     <CCard class="profile-card position-relative">
-      <!-- Bouton Modifier -->
-      <CButton
-        color="dark"
-        variant="outline"
-        class="modify-btn position-absolute"
-        @click="openModal"
-      >
-        ✏️ Modify Profile
-      </CButton>
+    <!-- Bouton Modifier -->
+    <CButton
+      color="dark"
+      variant="outline"
+      class="modify-btn position-absolute"
+      @click="openModal"
+    >
+      ✏️ Modify Profile
+    </CButton>
 
-      <CCardBody>
-        <CRow>
-          <!-- Colonne gauche -->
-          <CCol md="4" class="text-center d-flex flex-column align-items-center">
-            <CImage
-              :src="freelancer.photo"
-              fluid
-              class="profile-photo mb-3"
-              alt="Freelancer Photo"
-            />
+    <CCardBody>
+      <CRow>
+        <!-- Colonne gauche -->
+        <CCol md="4" class="text-center d-flex flex-column align-items-center">
+          <CAvatar size="l" src="/src/assets/images/user.jpg" class="custom-avatar" />
 
-            <h5 class="name">{{ freelancer.name }}</h5>
-            <p class="title">{{ freelancer.title }}</p>
-            <CBadge color="primary" class="rate-badge">💰 {{ freelancer.rate }} TND/h</CBadge>
+          <h5 class="name">{{ freelance.user.name || '' }} {{ freelance.user.lastName || '' }}</h5>
+          <p class="title">{{ freelance.titre }}</p>
+          <CBadge color="primary" class="rate-badge">💰 {{ freelance.note }} TND/h</CBadge>
 
-            <!-- Affichage de la note -->
-            <div class="rating">
-              <span v-for="star in 5" :key="star" class="star" :class="{'filled': star <= freelancer.rating}">
-                ★
-              </span>
+          <!-- Affichage de la note -->
+          <div class="rating">
+            <span v-for="star in 5" :key="star" class="star" :class="{ 'filled': star <= freelance.note }">
+              ★
+            </span>
+          </div>
+        </CCol>
+
+        <!-- Colonne droite -->
+        <CCol md="8">
+          <!-- Skills -->
+          <section class="profile-section">
+            <h6>🧠 Skills</h6>
+            <div class="mb-3">
+              <CBadge
+                v-for="(skill, index) in skillsList"
+                :key="index"
+                color="info"
+                class="me-1 mb-1"
+              >
+                {{ skill }}
+              </CBadge>
             </div>
-          </CCol>
+          </section>
 
-          <!-- Colonne droite -->
-          <CCol md="8">
-            <section class="profile-section">
-              <h6>🧠 Skills</h6>
-              <div class="mb-3">
-                <CBadge
-                  v-for="skill in freelancer.skills"
-                  :key="skill"
-                  color="info"
-                  class="me-1 mb-1"
-                >
-                  {{ skill }}
-                </CBadge>
-              </div>
-            </section>
+          <!-- Experience -->
+          <section class="profile-section">
+            <h6>💼 Experience</h6>
+            <p>{{ freelance.experience || 'No experience provided' }}</p>
+          </section>
 
-            <section class="profile-section">
-              <h6>💼 Experience</h6>
-              <ul>
-                <li v-for="exp in freelancer.experience" :key="exp">{{ exp }}</li>
-              </ul>
-            </section>
-
-            <section class="profile-section">
-              <h6>🖼️ Portfolio</h6>
-              <ul>
-                <li v-for="item in freelancer.portfolio" :key="item.title">
-                  <strong>{{ item.title }}</strong> - 
-                  <a :href="item.link" target="_blank" class="link">View</a>
-                </li>
-              </ul>
-            </section>
-          </CCol>
-        </CRow>
-      </CCardBody>
-    </CCard>
+          <!-- Portfolio -->
+          <section class="profile-section">
+            <h6>🖼️ Portfolio</h6>
+            <ul>
+              <li v-if="freelance.portfolio">
+                <a :href="freelance.portfolio" target="_blank">{{ freelance.portfolio }}</a>
+              </li>
+              <li v-else>No portfolio provided</li>
+            </ul>
+          </section>
+        </CCol>
+      </CRow>
+    </CCardBody>
+  </CCard>
 
     <!-- Modal Modification -->
     <CModal :visible="visible" @close="visible = false">
@@ -81,68 +77,96 @@
       </CModalHeader>
       <CModalBody>
         <CForm>
-          <CFormInput v-model="edited.name" label="Name" class="mb-3" />
-          <CFormInput v-model="edited.title" label="Title" class="mb-3" />
-          <CFormInput v-model="edited.rate" label="Rate (TND/h)" type="number" class="mb-3" />
-          <CFormTextarea v-model="skillsInput" label="Skills (comma-separated)" class="mb-3" />
-
-          <!-- Input changement de photo -->
-          <CFormInput type="file" accept="image/*" label="Change Photo" @change="onPhotoSelected" />
+          <CFormInput v-model="editedProfile.titre" label="Title" class="mb-3" />
+          <CFormInput v-model="editedProfile.note" label="Rate (TND/h)" type="number" class="mb-3" />
+          <CFormTextarea v-model="skillsInput" label="Skills (comma-separated)" class="mb-3" />  
+          <CFormInput v-model="editedProfile.portfolio" label="Portfolio Link "class="mb-3" /> 
         </CForm>
       </CModalBody>
       <CModalFooter>
-        <CButton color="primary" @click="saveChanges">Save</CButton>
-        <CButton color="secondary" @click="visible = false">Cancel</CButton>
+        <CButton color="secondary" @click="closeModal">Cancel</CButton>
+        <CButton color="primary" @click="updateProfile">Save Changes</CButton>
       </CModalFooter>
     </CModal>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
+import { ref, onMounted } from 'vue'
+import { defineComponent, computed, h, resolveComponent } from 'vue'
 const visible = ref(false)
 const skillsInput = ref('')
 
-const freelancer = ref({
-  name: 'Sarah Lee',
-  title: 'Full Stack Developer',
-  photo: 'https://via.placeholder.com/150',
-  rate: 35,
-  rating: 4,  // Assuming the rating is out of 5
-  skills: ['Vue.js', 'Laravel', 'Tailwind CSS', 'Docker'],
-  experience: ['3 years at DevTech Solutions', 'Freelance projects on Upwork and Fiverr'],
-  portfolio: [
-    { title: 'E-commerce App', link: 'https://project1.example.com' },
-    { title: 'Portfolio Website', link: 'https://project2.example.com' },
-  ],
+const freelance = ref({
+  id: '',
+  user_id: '',
+  titre:'',
+  competences: '',
+  experience:'',
+  portfolio: '',
+  note: '',
+  user: {}
 })
 
-const edited = ref({ ...freelancer.value })
-
-function openModal() {
-  edited.value = { ...freelancer.value }
-  skillsInput.value = freelancer.value.skills.join(', ')
-  visible.value = true
-}
-
-function saveChanges() {
-  freelancer.value = {
-    ...edited.value,
-    skills: skillsInput.value.split(',').map(s => s.trim()),
-  }
+function closeModal() {
   visible.value = false
 }
-
-function onPhotoSelected(event) {
-  const file = event.target.files[0]
-  if (file) {
-    const reader = new FileReader()
-    reader.onload = () => {
-      edited.value.photo = reader.result
-    }
-    reader.readAsDataURL(file)
+const updateProfile = async () => {
+  const token = authStore.token
+  const profileId = freelance.value.id
+  try {
+    const res = await axios.put(`http://localhost:8000/api/profile/${profileId}`, editedProfile.value, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
+    fetchProfile(userId) 
+    visible.value = false
+    console.log('Freelancer profile updated successfully')
+  } catch (error) {
+    console.error('Error updating freelance profile:', error.response?.data || error)
   }
+}
+const skillsList = computed(() => {
+  return freelance.value.competences
+    ? freelance.value.competences.split(',').map(skill => skill.trim())
+    : []
+})
+const fetchProfile = async (id) => {
+  const token = authStore.token
+
+  try {
+    const res = await axios.get(`http://localhost:8000/api/profile/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    freelance.value = res.data
+    console.log(res.data)
+  } catch (error) {
+    console.error('Error fetching profile:', error)
+  }
+}
+
+const authStore = useAuthStore()
+  
+const userId = authStore.user.id
+
+
+   
+onMounted(() => {
+  fetchProfile(userId) 
+})
+
+const editedProfile = ref({ ...freelance.value })
+
+function openModal() {
+  editedProfile.value = { ...freelance.value }
+  skillsInput.value = freelance.value.competences 
+  visible.value = true
 }
 </script>
 
@@ -160,7 +184,7 @@ function onPhotoSelected(event) {
 }
 
 .profile-card {
-  background-color: #E1F0FF;
+  background-color: white;
   border: none;
   border-radius: 1rem;
   box-shadow: 0 4px 12px rgba(15, 37, 115, 0.1);
@@ -224,5 +248,11 @@ function onPhotoSelected(event) {
 .link {
   color: #0F2573;
   text-decoration: underline;
+}
+.custom-avatar {
+  width: 150px;     
+  height: 150px;
+  display: contents;    
+  margin-top: 20px;   
 }
 </style>

@@ -6,7 +6,16 @@ import DefaultLayout from '@/layouts/DefaultLayout'
 const routes = [
   {
     path: '/',
+    redirect: '/pages/LandingPage',
+  },
+/*   {
+    path: '/',
     redirect: '/pages/login',
+  }, */
+  {
+    path: '/pages/LandingPage',
+    name: 'LandingPage',
+    component: () => import('@/views/pages/LandingPage.vue'),
   },
   {
     path: '/pages/login',
@@ -82,6 +91,11 @@ const routes = [
         path: 'customer-freelancer-management',
         name: 'CustomerFreelancerManagement',
         component: () => import('@/views/pages/customer-freelancer-management.vue'),
+      },
+      {
+        path: 'ClientProfile',
+        name: 'ClientProfile',
+        component: () => import('@/views/pages/ClientProfile.vue'),
       },
     ],
   },

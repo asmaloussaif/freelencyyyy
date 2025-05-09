@@ -1,7 +1,6 @@
-<template>
+<!-- <template>
   <CContainer fluid class="chat-container">
     <CRow class="g-0">
-      <!-- Chat List Sidebar - Blue -->
       <CCol md="4" class="border-end vh-100 overflow-auto sidebar">
         <div class="p-3 border-bottom d-flex justify-content-between align-items-center sidebar-header">
           <h5 class="mb-0 text-dark">Messages</h5>
@@ -29,8 +28,6 @@
           </CListGroupItem>
         </CListGroup>
       </CCol>
-
-      <!-- Message Content Area -->
       <CCol md="8" class="vh-100 d-flex flex-column chat-content">
         <div v-if="selectedChat" class="border-bottom p-3 d-flex align-items-center chat-header">
           <CAvatar :src="selectedChat.avatar" size="lg" class="me-3" status="success" />
@@ -58,8 +55,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Chat Input -->
         <div v-if="selectedChat" class="border-top p-3 chat-input-container">
           <div class="d-flex align-items-center">
             <CButton color="link" class="text-muted me-2">
@@ -77,7 +72,6 @@
           </div>
         </div>
 
-        <!-- Placeholder when no chat is selected -->
         <div v-else class="flex-grow-1 d-flex flex-column justify-content-center align-items-center empty-chat">
           <div class="empty-chat-icon mb-3">
             <CIcon name="cil-chat-bubble" size="3xl" />
@@ -88,299 +82,229 @@
       </CCol>
     </CRow>
   </CContainer>
+</template> -->
+<template>
+  <div class="chat-container">
+    <!-- Conversation List -->
+    <div class="conversation-list">
+  <div
+    v-for="conv in conversations"
+    :key="conv?.id"
+    class="conversation-item"
+    @click="selectConversation(conv.id)"
+  >
+    <p><strong>{{ conv.name }}</strong></p>
+    <p class="last-message">{{ conv.last_message }}</p>
+    <small>{{ new Date(conv.last_time).toLocaleString() }}</small>
+  </div>
+</div>
+
+
+    <!-- Chat Window -->
+    <div class="chat-window" v-if="selectedUserId">
+      <div
+        v-for="msg in messages"
+        :key="msg.id"
+        class="message"
+        :class="{ 'own-message': msg.sender_id === currentUser }"
+      >
+        <div class="message-bubble">
+          <p class="message-sender">
+            {{ msg.sender_id === currentUser ? 'You' : msg.sender_name || msg.receiver_name }}
+          </p>
+          <p class="message-text">{{ msg.message.message }}</p>
+          <p class="message-receiver">
+            {{ msg.receiver_name }}
+          </p>
+        </div>
+      </div>
+
+      <!-- Input -->
+      <div class="input-bar">
+        <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type a message..." />
+        <button @click="sendMessage">Send</button>
+      </div>
+    </div>
+
+    <div v-else class="chat-placeholder">
+      <p>Select a conversation to start chatting.</p>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import echo from '@/js/echo.js'
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
 
-const currentUser = 'You'
-const chats = ref([
-  {
-    id: 1,
-    name: 'Jungkook 💜',
-    avatar: 'https://i.imgur.com/3GvwNBf.jpg',
-    lastMessage: 'I purple you 💜',
-    lastMessageTime: new Date(),
-    status: 'Online',
-    messages: [
-      { id: 1, sender: 'Jungkook 💜', text: 'Annyeong Asma!', timestamp: '10:00 AM' },
-      { id: 2, sender: 'You', text: 'Hey Jungkook 😭💜', timestamp: '10:01 AM' },
-      { id: 3, sender: 'Jungkook 💜', text: 'How are you doing today? I was thinking about our last conversation.', timestamp: '10:02 AM' },
-      { id: 4, sender: 'You', text: 'I\'m doing great! Just working on some projects. What about you?', timestamp: '10:05 AM' },
-      { id: 5, sender: 'Jungkook 💜', text: 'I purple you 💜', timestamp: '10:10 AM' },
-    ],
-  },
-  {
-    id: 2,
-    name: 'Client - Sarah Smith',
-    avatar: 'https://i.pravatar.cc/150?img=5',
-    lastMessage: 'Thank you for the delivery!',
-    lastMessageTime: new Date(Date.now() - 86400000),
-    status: 'Last seen today at 2:45 PM',
-    messages: [
-      { id: 1, sender: 'Sarah Smith', text: 'Great job on the project!', timestamp: 'Yesterday' },
-      { id: 2, sender: 'You', text: 'Thank you! I appreciate your feedback.', timestamp: 'Yesterday' },
-      { id: 3, sender: 'Sarah Smith', text: 'The design is exactly what we were looking for.', timestamp: 'Yesterday' },
-      { id: 4, sender: 'Sarah Smith', text: 'Thank you for the delivery!', timestamp: '2:45 PM' },
-    ],
-  },
-])
-
-const selectedChat = ref(null)
+const authStore = useAuthStore()
+const currentUser = authStore.user.id
+const messages = ref([])
 const newMessage = ref('')
+const selectedUserId = ref(null)
+const conversations = ref([])
 
-const selectChat = (chat) => {
-  selectedChat.value = chat
-  newMessage.value = ''
-}
+onMounted(() => {
+  fetchConversations()
+  console.log(selectedUserId.value)
 
-const sendMessage = () => {
-  if (newMessage.value.trim() !== '') {
-    selectedChat.value.messages.push({
-      id: Date.now(),
-      sender: currentUser,
-      text: newMessage.value,
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+  echo.private(`chat.${currentUser}`).listen('MessageSent', (e) => {
+    if (
+      selectedUserId.value &&
+      (e.message.sender_id === selectedUserId.value ||
+        e.message.receiver_id === selectedUserId.value)
+    ) {
+      messages.value.push(e.message)
+    }
+  })
+})
+
+const fetchConversations = async () => {
+  try {
+    const res = await axios.get('http://127.0.0.1:8000/api/conversations', {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+      },
     })
-    selectedChat.value.lastMessage = newMessage.value
-    selectedChat.value.lastMessageTime = new Date()
+    console.log('CONVERSATIONS API RESPONSE:', res.data)
+    conversations.value =  res.data 
+  } catch (err) {
+    console.error('Failed to fetch conversations:', err)
+    conversations.value = []
+  }
+}
+
+const selectConversation = async (userId) => {
+  selectedUserId.value = userId
+  try {
+    const res = await axios.get(`http://127.0.0.1:8000/api/messages/${userId}`, {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+      },
+    })
+    messages.value = res.data
+    console.log(messages.value)
+  } catch (err) {
+    console.error('Failed to fetch messages:', err)
+  }
+}
+
+const sendMessage = async () => {
+  if (!newMessage.value.trim()) return
+
+  try {
+    const res = await axios.post(
+      'http://127.0.0.1:8000/api/messages',
+      {
+        message: newMessage.value,
+        receiver_id: selectedUserId.value,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${authStore.token}`,
+        },
+      },
+    )
+    console.log(res.data)
+
+    const message = res.data
+    messages.value.push(message)
     newMessage.value = ''
+    fetchConversations()
+  } catch (err) {
+    console.error('Failed to send message:', err)
   }
 }
-
-const formatLastMessageTime = (date) => {
-  if (!date) return ''
-  const now = new Date()
-  const diff = now - date
-  const diffInHours = diff / (1000 * 60 * 60)
-  
-  if (diffInHours < 24) {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-  } else if (diffInHours < 48) {
-    return 'Yesterday'
-  } else {
-    return date.toLocaleDateString([], { month: 'short', day: 'numeric' })
-  }
-}
-
-const formatMessageDate = (timestamp) => {
-  if (timestamp.includes('Yesterday')) return 'Yesterday'
-  return 'Today'
+const formatDate = (date) => {
+  const options = { year: 'numeric', month: 'short', day: 'numeric' }
+  return new Date(date).toLocaleDateString(undefined, options)
 }
 </script>
 
 <style scoped>
-/* Base Styles */
 .chat-container {
-  background: linear-gradient(135deg, #E6F4FE 0%, #D0E7FF 100%);
-  height: 100vh;
-}
-
-.vh-100 {
-  height: 100vh;
-}
-
-/* Blue Sidebar Styles */
-.sidebar {
-  background: linear-gradient(to bottom, #F0F8FF, #E1F0FF);
-  border-right: 1px solid #ADE1FB;
-}
-
-.sidebar-header {
-  background: rgba(225, 240, 255, 0.8);
-  border-color: #ADE1FB !important;
-}
-
-.new-chat-btn {
-  border-color: #ADE1FB;
-  color: #266CA9;
-  background: rgba(255, 255, 255, 0.7);
-  transition: all 0.3s ease;
-}
-
-.new-chat-btn:hover {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: #266CA9;
-}
-
-.chat-list {
-  background: transparent;
-}
-
-.chat-item {
-  background: transparent;
-  border-color: #E1F0FF !important;
-  transition: all 0.2s ease;
-}
-
-.chat-item:hover {
-  background: rgba(173, 225, 251, 0.3);
-}
-
-.chat-item.active {
-  background: rgba(173, 225, 251, 0.5);
-  border-left: 3px solid #266CA9;
-}
-
-.chat-name {
-  color: #041D56;
-}
-
-.chat-preview {
-  color: #266CA9;
-}
-
-.chat-time {
-  color: #7D9FC7;
-}
-
-/* Chat Content Styles */
-.chat-content {
-  background: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80') no-repeat center center;
-  background-size: cover;
-  position: relative;
-}
-
-.chat-content::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(240, 248, 255, 0.85);
-  backdrop-filter: blur(2px);
-}
-
-.chat-header {
-  background: white;
-  z-index: 1;
-  box-shadow: 0 2px 10px rgba(38, 108, 169, 0.1);
-}
-
-.messages-container {
-  position: relative;
-  z-index: 1;
-  background: transparent;
-  padding-bottom: 20px;
-}
-
-.message-wrapper {
   display: flex;
-  margin-bottom: 12px;
+  flex-direction: column;
+  height: 500px;
+  max-width: 600px;
+  margin: auto;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: #f8faff;
+}
+
+.chat-window {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.message {
+  display: flex;
+}
+
+.message.own-message {
+  justify-content: flex-end;
 }
 
 .message-bubble {
   max-width: 70%;
-  padding: 12px 15px;
-  border-radius: 18px;
-  position: relative;
-  box-shadow: 0 2px 4px rgba(38, 108, 169, 0.1);
-  animation: fadeIn 0.3s ease-out;
+  background-color: #e1f0ff;
+  padding: 10px 14px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.message-bubble.sent {
-  background: linear-gradient(to right, #266CA9 0%, #0F2573 100%);
-  color: white;
-  margin-left: auto;
-  border-bottom-right-radius: 4px;
-}
-
-.message-bubble.received {
-  background: white;
-  color: #041D56;
-  margin-right: auto;
-  border-bottom-left-radius: 4px;
-  border: 1px solid #ADE1FB;
-}
-
-.message-content {
-  word-wrap: break-word;
-}
-
-.message-time {
-  font-size: 0.75rem;
-  opacity: 0.8;
+.message.own-message .message-bubble {
+  background-color: #d6beda;
   text-align: right;
-  margin-top: 4px;
 }
 
-.message-bubble.received .message-time {
-  color: #266CA9;
+.message-sender {
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+  color: #333;
 }
 
-.message-bubble.sent .message-time {
-  color: rgba(255, 255, 255, 0.8);
+.message-text {
+  font-size: 14px;
+  margin: 0;
+  color: #222;
 }
 
-/* Chat Input Styles */
-.chat-input-container {
-  background: white;
-  z-index: 1;
-  box-shadow: 0 -2px 10px rgba(38, 108, 169, 0.1);
-}
-
-.message-input {
-  border-radius: 20px;
-  border: 1px solid #ADE1FB;
-  padding: 10px 15px;
-  transition: all 0.3s ease;
-}
-
-.message-input:focus {
-  border-color: #266CA9;
-  box-shadow: 0 0 0 0.2rem rgba(38, 108, 169, 0.25);
-}
-
-.send-btn {
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
+.input-bar {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  background: #266CA9;
+  padding: 12px;
+  border-top: 1px solid #ccc;
+  background-color: #fff;
+}
+
+.input-bar input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #ccc;
+  border-radius: 20px;
+  margin-right: 10px;
+  outline: none;
+}
+
+.input-bar button {
+  padding: 10px 20px;
+  background-color: #5e548e;
   color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.send-btn:hover {
-  background: #1D5A9B;
-}
-
-/* Empty Chat State */
-.empty-chat {
-  position: relative;
-  z-index: 1;
-  text-align: center;
-  padding: 20px;
-}
-
-.empty-chat-icon {
-  color: #ADE1FB;
-  font-size: 4rem;
-}
-
-/* Responsive Adjustments */
-@media (max-width: 768px) {
-  .sidebar {
-    position: absolute;
-    width: 100%;
-    z-index: 10;
-    display: none;
-  }
-  
-  .sidebar.show {
-    display: block;
-  }
-  
-  .chat-content {
-    width: 100%;
-  }
+.input-bar button:hover {
+  background-color: #4a3b86;
 }
 </style>

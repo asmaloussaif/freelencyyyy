@@ -1,96 +1,87 @@
-<!-- Template section - defines the component's HTML structure -->
 <template>
-  <!-- Main container div with claims-container class -->
   <div class="claims-container">
-    
-    <!-- Header section containing title and search bar -->
     <div class="header">
-      <!-- Page title with icon -->
       <h2 class="title">
         <span class="icon">📋</span>
         Claims Management
       </h2>
-      
-      <!-- Search bar component -->
+
       <div class="search-bar">
-        <input 
-          type="text" 
-          v-model="searchQuery" 
-          placeholder="Search claims..." 
+        <input
+          type="text"
+          v-model="searchQuery"
+          placeholder="Search claims..."
           class="search-input"
-        >
+        />
         <button class="search-btn">
           <span class="search-icon">🔍</span>
         </button>
       </div>
     </div>
 
-    <!-- Responsive table container -->
     <div class="table-responsive">
-      <!-- Claims table -->
       <table class="claims-table">
-        <!-- Table header -->
         <thead>
           <tr>
-            <!-- Sortable columns with click handlers -->
-            <th @click="sortBy('id')">ID <span v-if="sortKey === 'id'" class="sort-icon">{{ sortOrder === 1 ? '↑' : '↓' }}</span></th>
-            <th @click="sortBy('subject')">Subject <span v-if="sortKey === 'subject'" class="sort-icon">{{ sortOrder === 1 ? '↑' : '↓' }}</span></th>
+            <th @click="sortBy('id')">
+              ID
+              <span v-if="sortKey === 'id'" class="sort-icon">{{
+                sortOrder === 1 ? '↑' : '↓'
+              }}</span>
+            </th>
+            <th @click="sortBy('sujet')">
+              Subject
+              <span v-if="sortKey === 'sujet'" class="sort-icon">{{
+                sortOrder === 1 ? '↑' : '↓'
+              }}</span>
+            </th>
             <th>Description</th>
-            <th @click="sortBy('status')">Status <span v-if="sortKey === 'status'" class="sort-icon">{{ sortOrder === 1 ? '↑' : '↓' }}</span></th>
+            <th @click="sortBy('statut')">
+              Status
+              <span v-if="sortKey === 'statut'" class="sort-icon">{{
+                sortOrder === 1 ? '↑' : '↓'
+              }}</span>
+            </th>
             <th>User</th>
             <th>Actions</th>
           </tr>
         </thead>
-        
-        <!-- Table body with dynamic data -->
+
         <tbody>
-          <!-- Table row for each claim, with dynamic class based on status -->
-          <tr 
-            v-for="claim in filteredClaims" 
-            :key="claim.id"
-            :class="'status-' + claim.status"
-          >
-            <!-- Claim ID cell -->
+          <tr v-for="claim in filteredClaims" :key="claim.id" :class="'status-' + claim.statut">
             <td>#{{ claim.id }}</td>
-            
-            <!-- Claim subject cell -->
-            <td>{{ claim.subject }}</td>
-            
-            <!-- Claim description cell with ellipsis for long text -->
+
+            <td>{{ claim.sujet }}</td>
+
             <td class="description">{{ claim.description }}</td>
-            
-            <!-- Status cell with colored badge -->
+
             <td>
-              <span :class="'status-badge ' + getStatusColor(claim.status)">
-                {{ claim.status.toUpperCase() }}
+              <span :class="'status-badge ' + getStatusColor(claim.statut)">
+                {{ claim.statut.toUpperCase() }}
               </span>
             </td>
-            
-            <!-- User cell with avatar -->
+
             <td>
               <div class="user-cell">
                 <span class="user-avatar">{{ getUserInitial(claim.user.name) }}</span>
                 {{ claim.user.name }}
               </div>
             </td>
-            
-            <!-- Action buttons cell -->
+
             <td>
               <div class="action-buttons">
-                <!-- Resolve button -->
-                <button 
-                  class="btn resolve-btn" 
+                <button
+                  class="btn resolve-btn"
                   @click="resolveClaim(claim.id)"
-                  :disabled="claim.status === 'resolved'"
+                  :disabled="claim.statut === 'resolved'"
                 >
                   <span class="btn-icon">✓</span> Resolve
                 </button>
-                
-                <!-- Reject button -->
-                <button 
-                  class="btn reject-btn" 
+
+                <button
+                  class="btn reject-btn"
                   @click="rejectClaim(claim.id)"
-                  :disabled="claim.status === 'rejected'"
+                  :disabled="claim.statut === 'rejected'"
                 >
                   <span class="btn-icon">✗</span> Reject
                 </button>
@@ -101,7 +92,6 @@
       </table>
     </div>
 
-    <!-- Empty state shown when no claims match search -->
     <div v-if="filteredClaims.length === 0" class="empty-state">
       <div class="empty-icon">📭</div>
       <p>No claims found</p>
@@ -109,68 +99,64 @@
   </div>
 </template>
 
-<!-- Script section - component logic -->
 <script>
-// Import required Vue functions
 import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
+
+const authStore = useAuthStore()
 
 export default {
   setup() {
-    // Reactive data properties
     const claims = ref([])
     const searchQuery = ref('')
     const sortKey = ref('id')
-    const sortOrder = ref(1) // 1 = asc, -1 = desc
+    const sortOrder = ref(1)
 
-    // Initialize with sample data when component mounts
-    onMounted(() => {
-      claims.value = [
-        { 
-          id: 1, 
-          subject: 'Payment delay', 
-          description: 'Freelancer did not pay on time despite multiple reminders', 
-          status: 'pending', 
-          user: { name: 'Sami Ben' } 
-        },
-        { 
-          id: 2, 
-          subject: 'Bug report', 
-          description: 'Critical functionality not working as described', 
-          status: 'resolved', 
-          user: { name: 'Mira Chen' } 
-        },
-        { 
-          id: 3, 
-          subject: 'Refund request', 
-          description: 'Service not delivered as promised', 
-          status: 'pending', 
-          user: { name: 'Alex Johnson' } 
-        },
-        { 
-          id: 4, 
-          subject: 'Account issue', 
-          description: 'Cannot access my account after password reset', 
-          status: 'rejected', 
-          user: { name: 'Taylor Smith' } 
-        },
-      ]
+    onMounted(async () => {
+      await fetchClaims()
     })
 
-    // Computed property for filtered and sorted claims
+    const fetchClaims = async () => {
+      try {
+        const response = await axios.get('http://localhost:8000/api/reclamations', {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        })
+        claims.value = response.data
+      } catch (error) {
+        console.error('Error fetching claims data:', error)
+      }
+    }
+
+    const deleteClaim = async (id) => {
+      try {
+        await axios.delete(`http://localhost:8000/api/claims/${id}`, {
+          headers: {
+            Authorization: `Bearer ${authStore.token}`,
+          },
+        })
+
+        await fetchClaims()
+      } catch (error) {
+        console.error('Error deleting claim', error)
+      }
+    }
+
     const filteredClaims = computed(() => {
       let result = claims.value
-      
-      // Apply search filter if query exists
+
       if (searchQuery.value) {
         const query = searchQuery.value.toLowerCase()
-        result = result.filter(claim => 
-          claim.subject.toLowerCase().includes(query) ||
-          claim.description.toLowerCase().includes(query) ||
-          claim.user.name.toLowerCase().includes(query)
+        result = result.filter(
+          (claim) =>
+            claim.sujet.toLowerCase().includes(query) ||
+            claim.description.toLowerCase().includes(query) ||
+            claim.user.name.toLowerCase().includes(query),
         )
       }
-      
-      // Apply sorting
+
       return result.sort((a, b) => {
         if (a[sortKey.value] < b[sortKey.value]) return -1 * sortOrder.value
         if (a[sortKey.value] > b[sortKey.value]) return 1 * sortOrder.value
@@ -178,7 +164,6 @@ export default {
       })
     })
 
-    // Method to handle column sorting
     const sortBy = (key) => {
       if (sortKey.value === key) {
         sortOrder.value *= -1
@@ -187,35 +172,59 @@ export default {
         sortOrder.value = 1
       }
     }
-
-    // Method to get status badge color class
-    const getStatusColor = (status) => {
-      switch (status) {
-        case 'pending': return 'pending'
-        case 'resolved': return 'resolved'
-        case 'rejected': return 'rejected'
-        default: return ''
+    const getStatusColor = (statut) => {
+      switch (statut) {
+        case 'pending':
+          return 'pending'
+        case 'resolved':
+          return 'resolved'
+        case 'rejected':
+          return 'rejected'
+        default:
+          return ''
       }
     }
 
-    // Method to get user initials for avatar
     const getUserInitial = (name) => {
-      return name.split(' ').map(n => n[0]).join('')
+      return name
+        .split(' ')
+        .map((n) => n[0])
+        .join('')
     }
 
-    // Method to resolve a claim
-    const resolveClaim = (id) => {
-      const claim = claims.value.find(c => c.id === id)
-      if (claim) claim.status = 'resolved'
+    const resolveClaim = async (id) => {
+      try {
+        await axios.put(
+          `http://localhost:8000/api/reclamations/${id}`,
+          { statut: 'resolved' },
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          },
+        )
+        await fetchClaims()
+      } catch (error) {
+        console.error('Error resolving claim:', error)
+      }
     }
 
-    // Method to reject a claim
-    const rejectClaim = (id) => {
-      const claim = claims.value.find(c => c.id === id)
-      if (claim) claim.status = 'rejected'
+    const rejectClaim = async (id) => {
+      try {
+        await axios.put(
+          `http://localhost:8000/api/reclamations/${id}`,
+          { statut: 'rejected' },
+          {
+            headers: {
+              Authorization: `Bearer ${authStore.token}`,
+            },
+          },
+        )
+        await fetchClaims() 
+      } catch (error) {
+        console.error('Error rejecting claim:', error)
+      }
     }
-
-    // Expose properties and methods to template
     return {
       claims,
       searchQuery,
@@ -226,15 +235,14 @@ export default {
       getStatusColor,
       getUserInitial,
       resolveClaim,
-      rejectClaim
+      rejectClaim,
+      deleteClaim,
     }
-  }
+  },
 }
 </script>
 
-<!-- Scoped styles - only affect this component -->
 <style scoped>
-/* Main container styling */
 .claims-container {
   background: white;
   border-radius: 12px;
@@ -255,7 +263,7 @@ export default {
 .title {
   font-size: 24px;
   font-weight: 600;
-  color: #1A365D; /* Dark blue */
+  color: #1a365d; /* Dark blue */
   margin: 0;
   display: flex;
   align-items: center;
@@ -265,17 +273,17 @@ export default {
 /* Icon styling */
 .icon {
   font-size: 28px;
-  color: #2B6CB0; /* Medium blue */
+  color: #2b6cb0; /* Medium blue */
 }
 
 /* Search bar styling */
 .search-bar {
   display: flex;
   align-items: center;
-  background: #EBF8FF; /* Very light blue */
+  background: #ebf8ff; /* Very light blue */
   border-radius: 8px;
   padding: 4px;
-  border: 1px solid #BEE3F8; /* Light blue border */
+  border: 1px solid #bee3f8; /* Light blue border */
 }
 
 /* Search input styling */
@@ -285,7 +293,7 @@ export default {
   padding: 8px 12px;
   outline: none;
   width: 200px;
-  color: #2C5282; /* Dark blue text */
+  color: #2c5282; /* Dark blue text */
 }
 
 /* Search placeholder styling */
@@ -306,7 +314,7 @@ export default {
 /* Search icon styling */
 .search-icon {
   font-size: 16px;
-  color: #4299E1; /* Medium blue */
+  color: #4299e1; /* Medium blue */
 }
 
 /* Table container styling */
@@ -324,8 +332,8 @@ export default {
 
 /* Table header styling */
 .claims-table th {
-  background-color: #BEE3F8; /* Light blue */
-  color: #2C5282; /* Dark blue */
+  background-color: #bee3f8; /* Light blue */
+  color: #2c5282; /* Dark blue */
   font-weight: 600;
   padding: 12px 16px;
   text-align: left;
@@ -337,20 +345,20 @@ export default {
 
 /* Table header hover effect */
 .claims-table th:hover {
-  background-color: #90CDF4; /* Slightly darker light blue */
+  background-color: #90cdf4; /* Slightly darker light blue */
 }
 
 /* Sort icon styling */
 .sort-icon {
   margin-left: 4px;
   font-size: 12px;
-  color: #3182CE; /* Medium blue */
+  color: #3182ce; /* Medium blue */
 }
 
 /* Table cell styling */
 .claims-table td {
   padding: 16px;
-  border-bottom: 1px solid #E2E8F0; /* Very light gray-blue */
+  border-bottom: 1px solid #e2e8f0; /* Very light gray-blue */
   vertical-align: middle;
 }
 
@@ -361,7 +369,7 @@ export default {
 
 /* Row hover effect */
 .claims-table tr:hover {
-  background-color: #F7FAFC; /* Very light blue */
+  background-color: #f7fafc; /* Very light blue */
 }
 
 /* Description cell styling */
@@ -384,20 +392,20 @@ export default {
 
 /* Pending status styling */
 .status-badge.pending {
-  background-color: #FEFCBF; /* Light yellow */
-  color: #975A16; /* Dark yellow */
+  background-color: #fefcbf; /* Light yellow */
+  color: #975a16; /* Dark yellow */
 }
 
 /* Resolved status styling */
 .status-badge.resolved {
-  background-color: #C6F6D5; /* Light green */
+  background-color: #c6f6d5; /* Light green */
   color: #276749; /* Dark green */
 }
 
 /* Rejected status styling */
 .status-badge.rejected {
-  background-color: #FED7D7; /* Light red */
-  color: #9B2C2C; /* Dark red */
+  background-color: #fed7d7; /* Light red */
+  color: #9b2c2c; /* Dark red */
 }
 
 /* User cell styling */
@@ -411,14 +419,14 @@ export default {
 .user-avatar {
   width: 32px;
   height: 32px;
-  background-color: #90CDF4; /* Light blue */
+  background-color: #90cdf4; /* Light blue */
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
   font-weight: 600;
-  color: #1A365D; /* Dark blue */
+  color: #1a365d; /* Dark blue */
 }
 
 /* Action buttons container */
@@ -449,24 +457,24 @@ export default {
 
 /* Resolve button styling */
 .resolve-btn {
-  background-color: #38A169; /* Green */
+  background-color: #38a169; /* Green */
   color: white;
 }
 
 /* Resolve button hover effect */
 .resolve-btn:hover:not(:disabled) {
-  background-color: #2F855A; /* Darker green */
+  background-color: #2f855a; /* Darker green */
 }
 
 /* Reject button styling */
 .reject-btn {
-  background-color: #E53E3E; /* Red */
+  background-color: #e53e3e; /* Red */
   color: white;
 }
 
 /* Reject button hover effect */
 .reject-btn:hover:not(:disabled) {
-  background-color: #C53030; /* Darker red */
+  background-color: #c53030; /* Darker red */
 }
 
 /* Button icon styling */
@@ -488,21 +496,21 @@ export default {
 .empty-icon {
   font-size: 48px;
   margin-bottom: 16px;
-  color: #CBD5E0; /* Light gray-blue */
+  color: #cbd5e0; /* Light gray-blue */
 }
 
 /* Pending row indicator */
 tr.status-pending {
-  border-left: 3px solid #D69E2E; /* Yellow */
+  border-left: 3px solid #d69e2e; /* Yellow */
 }
 
 /* Resolved row indicator */
 tr.status-resolved {
-  border-left: 3px solid #38A169; /* Green */
+  border-left: 3px solid #38a169; /* Green */
 }
 
 /* Rejected row indicator */
 tr.status-rejected {
-  border-left: 3px solid #E53E3E; /* Red */
+  border-left: 3px solid #e53e3e; /* Red */
 }
 </style>

@@ -1,153 +1,172 @@
 <template>
-  <div class="payment-page">
-    <h2 class="page-title">Secure Payment Management</h2>
+  <div class="container py-4">
+    <h2 class="mb-4 text-primary-dark fw-bold">My Payments</h2>
 
-    <!-- Payment Methods -->
-    <div class="card-grid">
-      <CRow>
-        <CCol v-for="(method, index) in paymentMethods" :key="index" md="6" xl="4">
-          <CCard class="payment-card">
-            <CCardBody>
-              <h5 class="card-title">{{ method.type }} **** {{ method.last4 }}</h5>
-              <p class="card-text">Expiry: {{ method.expiry }}</p>
-              <p class="card-text">Amount: {{ formatCurrency(method.amount) }}</p>
-              <CButton color="danger" variant="outline" @click="removeMethod(index)">
-                Remove
-              </CButton>
-            </CCardBody>
-          </CCard>
-        </CCol>
-      </CRow>
-    </div>
-
-    <!-- Add New Method Form -->
-    <div class="add-method-form">
-      <CCard>
-        <CCardHeader>
-          <strong>Add New Payment Method</strong>
-        </CCardHeader>
-        <CCardBody>
-          <CForm @submit.prevent="addPaymentMethod">
-            <CRow>
-              <CCol md="6">
-                <CFormInput v-model="newMethod.type" label="Card Type" placeholder="e.g. Visa" required />
-              </CCol>
-              <CCol md="6">
-                <CFormInput v-model="newMethod.last4" label="Last 4 Digits" placeholder="1234" required maxlength="4" />
-              </CCol>
-            </CRow>
-            <CRow>
-              <CCol md="6">
-                <CFormInput v-model="newMethod.expiry" label="Expiry Date" placeholder="MM/YY" required />
-              </CCol>
-              <CCol md="6">
-                <CFormInput
-                  v-model.number="newMethod.amount"
-                  label="Amount (TND)"
-                  type="number"
-                  min="1"
-                  placeholder="100"
-                  required
-                />
-              </CCol>
-            </CRow>
-            <CButton type="submit" color="primary" class="mt-3">Add Method</CButton>
-          </CForm>
-        </CCardBody>
-      </CCard>
-    </div>
+    <CRow>
+      <CCol cols="12">
+        <CCard>
+          <CCardHeader class="bg-light">
+            <strong>Transaction History</strong>
+          </CCardHeader>
+          <CCardBody>
+            <CTable striped hover responsive>
+              <CTableHead>
+                <CTableRow>
+                  <CTableHeaderCell>#</CTableHeaderCell>
+                  <CTableHeaderCell v-if="role === 'freelancer'">Client</CTableHeaderCell>
+                  <CTableHeaderCell v-else-if="role === 'client'">Freelancer</CTableHeaderCell>
+                  <CTableHeaderCell>Amount</CTableHeaderCell>
+                  <CTableHeaderCell>Status</CTableHeaderCell>
+                  <CTableHeaderCell>Date</CTableHeaderCell>
+                  <CTableHeaderCell>Action</CTableHeaderCell>
+                </CTableRow>
+              </CTableHead>
+              <CTableBody>
+                <CTableRow v-for="(payment, index) in payments" :key="payment.id">
+                  <CTableDataCell>{{ index + 1 }}</CTableDataCell>
+                  <CTableDataCell v-if="role.value === 'freelancer'">
+                    {{ payment.client.lastName }} {{ payment.client.name }}
+                  </CTableDataCell>
+                  <CTableDataCell v-else>
+                    {{ payment.freelancer.lastName }} {{ payment.freelancer.name }}
+                  </CTableDataCell>
+                  <CTableDataCell>{{ payment.montant }} TND</CTableDataCell>
+                  <CTableDataCell>
+                    <CBadge :color="statusColor(payment.statut)">
+                      {{ payment.statut }}
+                    </CBadge>
+                  </CTableDataCell>
+                  <CTableDataCell>{{ formatDate(payment.created_at) }}</CTableDataCell>
+                  <CTableDataCell>
+                    <CButton color="secondary" @click="openStatusModal(payment)">Close</CButton>
+                  </CTableDataCell>
+                </CTableRow>
+              </CTableBody>
+            </CTable>
+            <CModal :visible="statusModalVisible" @close="statusModalVisible = false">
+              <CModalHeader>
+                <CModalTitle>Change Status</CModalTitle>
+              </CModalHeader>
+              <CModalBody>
+                <label class="form-label">Select New Status</label>
+                <select v-model="selectedStatus" class="form-select">
+                  <option disabled value="">-- Choose status --</option>
+                  <option value="cancelled">Cancelled</option>
+                  <option value="finished">Finished</option>
+                </select>
+              </CModalBody>
+              <CModalFooter>
+                <CButton color="secondary" @click="statusModalVisible = false">Cancel</CButton>
+                <CButton color="primary" @click="saveStatus">Save</CButton>
+              </CModalFooter>
+            </CModal>
+          </CCardBody>
+        </CCard>
+      </CCol>
+    </CRow>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
-const paymentMethods = ref([
-  { type: 'Visa', last4: '4242', expiry: '12/26', amount: 150.0 },
-  { type: 'MasterCard', last4: '1234', expiry: '09/25', amount: 75.5 }
-])
-
-const newMethod = ref({
-  type: '',
-  last4: '',
-  expiry: '',
-  amount: null
-})
-
-function addPaymentMethod() {
-  if (newMethod.value.type && newMethod.value.last4 && newMethod.value.expiry && newMethod.value.amount > 0) {
-    paymentMethods.value.push({ ...newMethod.value })
-    newMethod.value = { type: '', last4: '', expiry: '', amount: null }
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { defineComponent, computed, h, resolveComponent } from 'vue'
+import { useAuthStore } from '@/stores/authStore'
+import {
+  CButton,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CToast,
+  CToastHeader,
+  CToastBody,
+} from '@coreui/vue'
+const payments = ref([])
+const role = computed(() => authStore.role)
+const authStore = useAuthStore()
+const fetchPayments = async () => {
+  const headers = { Authorization: `Bearer ${authStore.token}` }
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/payments/history', { headers })
+    payments.value = response.data
+    console.log(response.data, response)
+  } catch (error) {
+    console.error('Error fetching payments:', error)
   }
 }
 
-function removeMethod(index) {
-  paymentMethods.value.splice(index, 1)
+function formatDate(dateString) {
+  const options = { year: 'numeric', month: 'short', day: 'numeric' }
+  return new Date(dateString).toLocaleDateString('fr-FR', options)
+}
+const statusColor = (status) => {
+  switch (status) {
+    case 'finished':
+      return 'success'
+    case 'on hold':
+      return 'warning'
+    case 'canceled':
+      return 'danger'
+    default:
+      return 'secondary'
+  }
+}
+const saveStatus = async () => {
+  if (!selectedStatus.value) return
+console.log(selectedPayment.value.id);
+
+  try {
+    await axios.put(
+  `http://127.0.0.1:8000/api/payments/${selectedPayment.value.id}/status`,
+  { statut: selectedStatus.value },
+  {
+    headers: {
+      Authorization: `Bearer ${authStore.token}`,
+      'Content-Type': 'application/json',
+    },
+  }
+)
+    statusModalVisible.value = false
+    showSuccessToast('Status updated successfully!')
+    fetchPayments()
+  } catch (err) {
+    console.error(err)
+    showSuccessToast('Error updating status', true)
+  }
+}
+const statusModalVisible = ref(false)
+const selectedStatus = ref('')
+const selectedPayment = ref(null)
+
+const openStatusModal = (payment) => {
+  selectedPayment.value = payment
+  selectedStatus.value = ''
+  statusModalVisible.value = true
+}
+const showSuccessToast = (message, isError = false) => {
+  const toast = document.createElement('div')
+  toast.innerHTML = `
+    <div class="toast align-items-center text-white ${
+      isError ? 'bg-danger' : 'bg-success'
+    } border-0 show" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">
+          ${message}
+        </div>
+      </div>
+    </div>
+  `
+  document.body.appendChild(toast)
+  setTimeout(() => toast.remove(), 3000)
 }
 
-function formatCurrency(amount) {
-  return amount.toLocaleString('fr-TN', { style: 'currency', currency: 'TND' })
-}
+onMounted(fetchPayments)
 </script>
 
 <style scoped>
-.payment-page {
-  background-color: #F8FAFF;
-  padding: 2rem;
-  min-height: 100vh;
-}
-
-.page-title {
-  color: #0F2573;
-  margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-  font-weight: bold;
-}
-
-.payment-card {
-  background-color: #E1F0FF;
-  border: none;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border-radius: 1rem;
-}
-
-.payment-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 15px rgba(15, 37, 115, 0.2);
-}
-
-.card-title {
-  color: #0F2573;
-  font-weight: 600;
-}
-
-.card-text {
-  color: #5E548E;
-  margin-bottom: 1rem;
-}
-
-.add-method-form {
-  margin-top: 2rem;
-}
-
-.add-method-form .card {
-  border-radius: 1rem;
-  border: 1px solid #D6BEDA;
-}
-
-.add-method-form .card-header {
-  background-color: #0F2573;
-  color: white;
-  font-weight: bold;
-}
-
-.add-method-form .btn-primary {
-  background-color: #0F2573;
-  border: none;
-  transition: background-color 0.3s ease;
-}
-
-.add-method-form .btn-primary:hover {
-  background-color: #5E548E;
+.text-primary-dark {
+  color: #0f2573;
 }
 </style>

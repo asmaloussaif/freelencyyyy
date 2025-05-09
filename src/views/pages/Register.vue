@@ -5,7 +5,10 @@
       <div class="inner">
         <div class="signIn">
           <div class="top">
-            <img class="logo" src="https://res.cloudinary.com/dc3c8nrut/image/upload/v1685298768/logo-placeholder_l3yodl.png" />
+            <img
+              class="logo"
+             src="/src/assets/images/lastlogo.png"
+            />
             <div class="title">Create an Account</div>
             <div class="subtitle">
               Already have an account?
@@ -107,7 +110,7 @@ const handleRegister = async () => {
 
 <style scoped>
 .auth-container {
-  background: url('https://i.pinimg.com/736x/54/0c/16/540c16fe8d7c4529661b33cb6dedaea7.jpg') no-repeat center center fixed;
+  background: url('https://i.pinimg.com/736x/48/ba/42/48ba4280002826bad53baeedae59e9c3.jpg') no-repeat center center fixed;
   background-size: cover;
   height: 100vh;
   display: flex;

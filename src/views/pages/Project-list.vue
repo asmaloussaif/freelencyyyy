@@ -1,130 +1,246 @@
 <template>
-  <div class="container py-4">
-    <!-- Project List -->
-    <CCard class="mb-4 shadow-sm" style="background-color: #F8FAFF; border-color: #E2C3FF;">
-      <CCardBody>
-        <h4 class="fw-bold" style="color: #1F4788;">Your Projects</h4>
-        <CRow class="mt-3">
-          <CCol
-            v-for="project in projects"
-            :key="project.id"
-            :md="4"
-            class="mb-4"
-          >
-            <CCard class="h-100 shadow-sm hover-card" style="border-color: #E2C3FF; background-color: #E1F0FF;">
-              <CCardBody>
-                <h5 class="fw-bold mb-1" style="color: #3A6BB5;">{{ project.name }}</h5>
-                <p class="mb-1" style="color: #6A9BD9;">Date: {{ formatDate(project.date) }}</p>
-                <p class="mb-2" style="color: #4A8ED8;">Budget: {{ project.budget }} TND</p>
-                <p class="mb-2" style="color: #4A8ED8;">
-                  Status: <strong :style="{ color: getStatusColor(project.status) }">{{ project.status }}</strong>
-                </p>
-                <div v-if="project.status === 'In Progress' || project.status === 'Finished'">
-                  <p class="mb-2" style="color: #4A8ED8;">
-                    Freelancer: <strong>{{ project.freelancer?.name || 'N/A' }}</strong>
-                  </p>
-                </div>
-                <CButton
-                  v-if="project.status === 'In Progress' || project.status === 'Finished'"
-                  color="primary"
-                  class="w-100 shadow-sm"
-                  style="background-color: #4A8ED8; border-color: #4A8ED8;"
-                  @click="viewProjectDetails(project)"
-                >
-                  View Project Details
-                </CButton>
-              </CCardBody>
-            </CCard>
-          </CCol>
-        </CRow>
+  <CContainer>
+    <h4 class="mb-4">Projects with Applications</h4>
+    <CTable hover responsive>
+      <CTableHead>
+        <CTableRow>
+          <CTableHeaderCell>#</CTableHeaderCell>
+          <CTableHeaderCell>Project Title</CTableHeaderCell>
+          <CTableHeaderCell>Status</CTableHeaderCell>
+          <CTableHeaderCell>Proposals Number</CTableHeaderCell>
 
-        <!-- No projects -->
-        <div v-if="projects.length === 0" class="text-center mt-5" style="color: #6A9BD9;">
-          <p>You don't have any projects yet.</p>
-        </div>
-      </CCardBody>
-    </CCard>
+          <CTableHeaderCell>Actions</CTableHeaderCell>
+        </CTableRow>
+      </CTableHead>
+      <CTableBody>
+        <CTableRow v-for="(item, index) in projects" :key="item.project_id">
+          <CTableDataCell>{{ index + 1 }}</CTableDataCell>
+          <CTableDataCell>{{ item.project.titre }}</CTableDataCell>
+          <CTableDataCell>
+            <CBadge :color="getStatusColor(item.project.statut)">
+              {{ item.project.statut }}
+            </CBadge>
+          </CTableDataCell>
+          <CTableDataCell>{{ item.freelancer_count }}</CTableDataCell>
 
-    <!-- Modal -->
-    <CModal v-model:visible="isModalVisible" size="lg">
+          <CTableDataCell>
+            <CButton color="info" size="sm" @click="openModal(item)">View Proposel Details </CButton>
+          </CTableDataCell>
+        </CTableRow>
+      </CTableBody>
+    </CTable>
+
+    <CModal :visible="showModal" @close="showModal = false">
       <CModalHeader>
-        <CModalTitle>Project Details</CModalTitle>
+        <CModalTitle>Project Proposals</CModalTitle>
       </CModalHeader>
+
       <CModalBody>
-        <div v-if="selectedProject">
-          <p><strong>Name:</strong> {{ selectedProject.name }}</p>
-          <p><strong>Date:</strong> {{ formatDate(selectedProject.date) }}</p>
-          <p><strong>Budget:</strong> {{ selectedProject.budget }} TND</p>
-          <p><strong>Status:</strong> {{ selectedProject.status }}</p>
-          <p><strong>Freelancer:</strong> {{ selectedProject.freelancer?.name || 'N/A' }}</p>
+        <div v-if="selectedProject?.applications?.length">
+          <div
+            v-for="(application, index) in selectedProject.applications"
+            :key="index"
+            class="mb-3 p-3 border rounded"
+          >
+            <h6>{{ application.freelancer?.name }} {{ application.freelancer?.lastName }}</h6>
+            <p><strong>Email:</strong> {{ application.freelancer?.email }}</p>
+            <p><strong>Status:</strong> {{ application.status || 'Pending' }}</p>
+            <div class="d-flex gap-2 mt-2">
+              <CButton color="success" size="sm" @click="confirmAction(application.id, 'accepted')"
+                >Accept</CButton
+              >
+              <CButton color="info" size="sm" @click="goToChat">Chat</CButton>
+              <CButton color="danger" size="sm" @click="confirmAction(application.id, 'declined')"
+                >Decline</CButton
+              >
+            </div>
+          </div>
+        </div>
+
+        <div v-else>
+          <p>No proposals received yet.</p>
         </div>
       </CModalBody>
+
       <CModalFooter>
-        <CButton color="secondary" @click="closeModal">Close</CButton>
+        <CButton color="secondary" @click="showModal = false">Close</CButton>
       </CModalFooter>
     </CModal>
-  </div>
+  </CContainer>
+  <CModal :visible="showConfirmModal" @close="showConfirmModal = false">
+    <CModalHeader>
+      <CModalTitle>Confirm Action</CModalTitle>
+    </CModalHeader>
+
+    <CModalBody>
+      <p>
+        Are you sure you want to <strong>{{ selectedStatus }}</strong> this application?
+      </p>
+    </CModalBody>
+
+    <CModalFooter>
+      <CButton color="secondary" @click="showConfirmModal = false">Cancel</CButton>
+      <CButton color="primary" @click="submitStatusUpdate">Confirm</CButton>
+    </CModalFooter>
+  </CModal>
 </template>
 
 <script setup>
 import {
-  CCard, CCardBody, CButton, CRow, CCol,
-  CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter
+  CContainer,
+  CTable,
+  CTableHead,
+  CTableRow,
+  CTableHeaderCell,
+  CTableDataCell,
+  CTableBody,
+  CButton,
+  CModal,
+  CModalHeader,
+  CModalTitle,
+  CModalBody,
+  CModalFooter,
+  CBadge,
 } from '@coreui/vue'
-import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+import { ref, onMounted } from 'vue'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
 
-// Sample project data
-const projects = ref([
-  {
-    id: 1,
-    name: 'E-commerce Website',
-    date: '2025-04-15',
-    budget: 2000,
-    status: 'In Progress',
-    freelancer: { name: 'John Doe' },
-  },
-  {
-    id: 2,
-    name: 'Mobile App Development',
-    date: '2025-03-10',
-    budget: 3000,
-    status: 'Finished',
-    freelancer: { name: 'Lisa Smith' },
-  },
-  {
-    id: 3,
-    name: 'SEO Optimization',
-    date: '2025-01-20',
-    budget: 1500,
-    status: 'Pending',
-    freelancer: null,
-  },
-])
+const authStore = useAuthStore()
+const projects = ref([])
+const showModal = ref(false)
+const showConfirmModal = ref(false)
 
-// Modal logic
-const isModalVisible = ref(false)
 const selectedProject = ref(null)
+const selectedApplicationId = ref(null)
+const selectedStatus = ref('accepted')
 
-const viewProjectDetails = (project) => {
+const openModal = (project) => {
   selectedProject.value = project
-  isModalVisible.value = true
-}
+  console.log('fgggg', selectedProject)
 
-const closeModal = () => {
-  isModalVisible.value = false
+  showModal.value = true
 }
-
-// Helpers
-const formatDate = (date) => {
-  return new Date(date).toLocaleDateString('en-US')
+const goToChat = () => {
+  router.push('/dashboard/inbox')
 }
-
 const getStatusColor = (status) => {
-  switch (status) {
-    case 'Pending': return '#6A9BD9'
-    case 'In Progress': return '#A9C9F2'
-    case 'Finished': return '#1F4788'
-    default: return '#4A8ED8'
+  switch (status?.toLowerCase()) {
+    case 'open':
+      return 'success'
+    case 'in progress':
+      return 'warning'
+    case 'closed':
+    case 'completed':
+      return 'secondary'
+    default:
+      return 'primary'
+  }
+}
+
+// Fetch applied projects
+const fetchAppliedProjects = async () => {
+  try {
+    const res = await axios.get('http://127.0.0.1:8000/api/application_project', {
+      headers: {
+        Authorization: `Bearer ${authStore.token}`,
+      },
+    })
+    projects.value = res.data
+  } catch (error) {
+    console.error('Error fetching projects:', error)
+  }
+}
+
+onMounted(() => {
+  fetchAppliedProjects()
+})
+
+const confirmAction = (applicationId, status) => {
+  selectedApplicationId.value = applicationId
+  selectedStatus.value = status
+  showConfirmModal.value = true
+}
+
+const submitStatusUpdate = async () => {
+  try {
+    await axios.put(
+      `http://127.0.0.1:8000/api/applications/${selectedApplicationId.value}/status`,
+      { statut: selectedStatus.value },
+      { headers: { Authorization: `Bearer ${authStore.token}` } },
+    )
+
+    showConfirmModal.value = false
+    showModal.value = false
+    await fetchAppliedProjects()
+  } catch (error) {
+    console.error('Status update failed:', error)
   }
 }
 </script>
+
+<style scoped>
+/* Page container */
+.c-container {
+  background-color: #f8faff;
+  padding: 2rem;
+  border-radius: 12px;
+}
+
+/* Soft blue background for page title */
+.page-title {
+  background-color: #e1f0ff;
+  color: #0f2573;
+  padding: 1rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Proposal card */
+.proposal-card {
+  background-color: white;
+  border: 1px solid #be95c4;
+  border-left: 5px solid #0f2573;
+  border-radius: 10px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.proposal-card:hover {
+  background-color: #e1f0ff;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-danger {
+  background-color: #0f2573 !important;
+  color: white;
+  border: none !important;
+}
+
+.btn-primary:hover,
+.btn-success:hover,
+.btn-info:hover,
+.btn-danger:hover {
+  background-color: #191627 !important;
+}
+
+/* Status badges */
+.badge-success {
+  background-color: #5e548e !important;
+  color: white;
+}
+
+/* Table row hover */
+.table-hover tbody tr:hover {
+  background-color: #e1f0ff;
+  transition: background 0.3s ease;
+}
+</style>

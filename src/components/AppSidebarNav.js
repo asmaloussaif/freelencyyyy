@@ -28,20 +28,18 @@ const AppSidebarNav = defineComponent({
         name: 'Dashboard',
         to: '/dashboard/home',
         icon: 'cil-speedometer',
-        badge: {
-          color: 'primary',
-          text: 'NEW',
-        },
+        
       },
+     
+    ]
+
+    const freelancerNavItems = [
       {
         component: 'CNavItem',
         name: 'Profile',
         to: '/dashboard/profile',
         icon: 'cil-user',
       },
-    ]
-
-    const freelancerNavItems = [
       {
         component: 'CNavItem',
         name: 'List Of Offers',
@@ -62,7 +60,7 @@ const AppSidebarNav = defineComponent({
       },
       {
         component: 'CNavItem',
-        name: 'Invoices',
+        name: 'Transactions',
         to: '/dashboard/invoices',
         icon: 'cil-money',
       },
@@ -77,7 +75,13 @@ const AppSidebarNav = defineComponent({
     const clientNavItems = [
       {
         component: 'CNavItem',
-        name: 'Invoices',
+        name: 'ClientProfile',
+        to: '/dashboard/ClientProfile',
+        icon: 'cil-user',
+      },
+      {
+        component: 'CNavItem',
+        name: 'Transactions',
         to: '/dashboard/invoices',
         icon: 'cil-money',
       },
@@ -116,16 +120,16 @@ const AppSidebarNav = defineComponent({
       },
       {
         component: 'CNavItem',
-        name: 'Customer/Freelancer Management',
+        name: 'User Management',
         to: '/dashboard/customer-freelancer-management',
         icon: 'cil-task',
       },
       {
         component: 'CNavItem',
-        name: 'Claim',
-        to: '/dashboard/claim',
-        icon: 'cil-library',
-      },
+        name: 'Inbox',
+        to: '/dashboard/inbox',
+        icon: 'cil-envelope-open',
+      },      
     ]
 
     // Computed navItems that updates based on user role
