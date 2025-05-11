@@ -1,732 +1,362 @@
-<!-- <template>
-  <div class="client-dashboard">
-    <div class="filter-bar">
-      <div class="filter-item">
-        <select v-model="selectedSkill" @change="filterFreelancers" class="filter-select">
-          <option value="">Select Skill</option>
-          <option v-for="skill in skills" :key="skill" :value="skill">{{ skill }}</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <select v-model="selectedRating" @change="filterFreelancers" class="filter-select">
-          <option value="">Select Rating</option>
-          <option v-for="rating in ratings" :key="rating" :value="rating">{{ rating }} & Up</option>
-        </select>
-      </div>
-      <div class="filter-item">
-        <select v-model="selectedHourlyRate" @change="filterFreelancers" class="filter-select">
-          <option value="">Select Hourly Rate</option>
-          <option value="20">Less than $20/hr</option>
-          <option value="50">Less than $50/hr</option>
-          <option value="100">Less than $100/hr</option>
-        </select>
-      </div>
-      <button @click="openAddProjectModal" class="add-project-btn">
-        <i class="fas fa-plus"></i> Add New Project
-      </button>
-    </div>
+<script setup>
+import { ref, onMounted } from 'vue'
+import { Pie } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+const authStore = useAuthStore()
+ChartJS.register(Title, Tooltip, Legend, ArcElement)
 
-    <div class="freelancer-listing">
-      <div v-for="freelancer in filteredFreelancers" :key="freelancer.id" class="freelancer-card">
-        <h3>{{ freelancer.name }}</h3>
-        <p class="skills">{{ freelancer.skills.join(', ') }}</p>
-        <div class="rating">
-          <span v-for="n in 5" :key="n" class="star" :class="{'filled': freelancer.rating >= n}">&#9733;</span>
-          <span>({{ freelancer.rating }})</span>
+const statusData = ref([])
+const deadlineData = ref([])
+
+const pieChartData = ref({ labels: [], datasets: [] })
+const secondPieChartData = ref({ labels: [], datasets: [] })
+
+const chartOptions = {
+  responsive: true,
+  plugins: {
+    legend: { position: 'bottom' },
+  },
+}
+
+const summary = ref({ total: 0, completed: 0, in_progress: 0, open: 0 })
+const selectedSkill = ref('')
+const selectedRating = ref('')
+const selectedHourlyRate = ref('')
+const skills = ref(['Web Development', 'Graphic Design', 'SEO'])
+const ratings = ref([1, 2, 3, 4, 5])
+
+const freelancers = ref([])
+const freelancerProfiles = ref([])
+const filteredFreelancers = ref([])
+const fetchUser = async () => {
+  const headers = { Authorization: `Bearer ${authStore.token}` }
+
+  try {
+    const response = await axios.get('http://127.0.0.1:8000/api/freelencerId', { headers })
+    const userIds = response.data
+    console.log('User IDs:', userIds)
+    const profileResponse = await axios.get('http://127.0.0.1:8000/api/freelancers_list', {
+      headers,
+      params: { user_ids: userIds },
+    })
+
+    freelancers.value = profileResponse.data
+    console.log(freelancers.value)
+  } catch (error) {
+    console.error('Error fetching freelancers:', error)
+  }
+}
+const filterFreelancers = () => {
+  filteredFreelancers.value = freelancers.value.filter((f) => {
+    const skillMatch = !selectedSkill.value || f.competences.includes(selectedSkill.value)
+    const ratingMatch = !selectedRating.value || f.note >= parseInt(selectedRating.value)
+    const rateMatch = !selectedHourlyRate.value || f.tarif <= parseInt(selectedHourlyRate.value)
+    return skillMatch && ratingMatch && rateMatch
+  })
+}
+
+const userName = ref('')
+onMounted(async () => {
+  fetchUser()
+
+  const headers = { Authorization: `Bearer ${authStore.token}` }
+  userName.value = authStore.user.name
+
+  const statusRes = await axios.get('http://127.0.0.1:8000/api/charts/status', { headers })
+  statusData.value = statusRes.data
+  pieChartData.value = {
+    labels: statusData.value.map((item) => item.statut),
+    datasets: [
+      {
+        label: 'Projects by Status',
+        data: statusData.value.map((item) => item.count),
+        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+      },
+    ],
+  }
+
+  const deadlineRes = await axios.get('http://127.0.0.1:8000/api/charts/deadlines', { headers })
+  deadlineData.value = deadlineRes.data
+  secondPieChartData.value = {
+    labels: deadlineData.value.map((item) => item.month),
+    datasets: [
+      {
+        label: 'Projects by Deadline',
+        data: deadlineData.value.map((item) => item.count),
+        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+      },
+    ],
+  }
+
+  const summaryRes = await axios.get('http://127.0.0.1:8000/api/projects/summary', { headers })
+  let total = 0
+  summaryRes.data.forEach((item) => {
+    total += item.total
+    if (item.statut === 'completed') summary.value.completed = item.total
+    else if (item.statut === 'in_progress') summary.value.in_progress = item.total
+    else if (item.statut === 'open') summary.value.open = item.total
+  })
+  summary.value.total = total
+
+  filterFreelancers()
+})
+const goToUserManagement = () => {
+  router.push('/admin/customer-freelancer-management');
+};
+
+const goToProjectManagement = () => {
+  router.push('/admin/inbox');
+};
+
+const goToClaims = () => {
+  router.push('/admin/claim-management');
+};
+const goToChat = () => {
+  router.push('/dashboard/inbox')
+}
+const userRole = authStore.role
+
+</script>
+<template>
+  <div class="dashboard-container">
+    <!-- FREELANCER VIEW -->
+    <template v-if="userRole === 'freelancer'">
+      <div class="welcome-message">
+        <h3>Welcome back, {{ userName }}! 👋</h3>
+        <p>Here’s what’s happening in your dashboard today.</p>
+      </div>
+      <div class="summary-container">
+        <div class="summary-card" v-for="(value, key) in summary" :key="key">
+          <h6>{{ key.replace('_', ' ').toUpperCase() }}</h6>
+          <p>{{ value }}</p>
         </div>
-        <p>Hourly Rate: ${{ freelancer.hourlyRate }}/hr</p>
-        <button @click="viewProfile(freelancer)" class="view-profile-btn">View Profile</button>
       </div>
-    </div>
+      <div class="charts-container">
+        <div class="chart-card">
+          <h5 class="chart-title">📊 Projects by Status</h5>
+          <Pie :data="pieChartData" :options="chartOptions" />
+        </div>
+        <div class="chart-card">
+          <h5 class="chart-title">📅 Projects by Deadline</h5>
+          <Pie :data="secondPieChartData" :options="chartOptions" />
+        </div>
+      </div>
+      <div class="activity-card">
+        <h5>⚡ Recent Activity</h5>
+        <ul>
+          <li>💼 Client A posted a new project</li>
+          <li>✅ Project “UI Design” marked as completed</li>
+          <li>📅 Deadline approaching for “Backend Refactor”</li>
+        </ul>
+      </div>
+    </template>
+    <!-- ADMIN VIEW -->
+    <template v-else-if="userRole === 'admin'">
+      <div class="welcome-message">
+        <h3>Welcome back, Admin 👋</h3>
+        <p>Here’s an overview of the platform's activity today.</p>
+      </div>
 
-    <CModal :backdrop="false" :keyboard="false" v-model:visible="showModal">
-      <CModalHeader>
-        <CModalTitle>Create New Project</CModalTitle>
-      </CModalHeader>
-      <CModalBody>
-        <label for="project-name">Project Name:</label>
-        <input type="text" v-model="newProject.name" id="project-name" class="form-control" />
+      <!-- Summary Cards -->
+      <div class="summary-container">
+        <div class="summary-card" v-for="(value, key) in adminSummary" :key="key">
+          <h6>{{ key.replace('_', ' ').toUpperCase() }}</h6>
+          <p>{{ value }}</p>
+        </div>
+      </div>
 
-        <label for="project-description">Description:</label>
-        <textarea v-model="newProject.description" id="project-description" class="form-control"></textarea>
+      <!-- Charts -->
+      <div class="charts-container">
+        <div class="chart-card">
+          <h5 class="chart-title">👤 User Distribution</h5>
+         <!--  <Pie :data="userChartData" :options="chartOptions" /> -->
+        </div>
+        <div class="chart-card">
+          <h5 class="chart-title">📊 Projects by Status</h5>
+        <!--   <Pie :data="projectChartData" :options="chartOptions" /> -->
+        </div>
+      </div>
 
-        <label for="project-skill">Required Skill:</label>
-        <select v-model="newProject.skill" id="project-skill" class="form-control">
-          <option v-for="skill in skills" :key="skill" :value="skill">{{ skill }}</option>
-        </select>
+      <!-- Latest Reclamations -->
+      <div class="activity-card">
+        <h5>📩 Latest Claims</h5>
+        <ul>
+          <li v-for="claim in recentClaims" :key="claim.id">
+            {{ claim.user.name }} submitted a claim: "{{ claim.subject }}"
+          </li>
+        </ul>
+      </div>
 
-        <label for="project-budget">Budget:</label>
-        <input type="number" v-model="newProject.budget" id="project-budget" class="form-control" />
-      </CModalBody>
-      <CModalFooter>
-        <CButton color="secondary" @click="closeModal">Cancel</CButton>
-        <CButton color="primary" @click="submitProject">Submit</CButton>
-      </CModalFooter>
-    </CModal>
+      <!-- Management Shortcuts -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+        <button class="admin-btn" @click="goToUserManagement">Manage Users</button>
+        <button class="admin-btn" @click="goToProjectManagement">Manage Projects</button>
+        <button class="admin-btn" @click="goToClaims">View All Claims</button>
+      </div>
+    </template>
+
+    <template v-else>
+      <div class="welcome-message">
+        <h3>Welcome back, {{ userName }}! 👋</h3>
+        <p>Here’s what’s happening in your dashboard today.</p>
+      </div>
+      <div class="filter-bar">
+        <div class="filter-item">
+          <select v-model="selectedSkill" @change="filterFreelancers" class="filter-select">
+            <option value="">Select Skill</option>
+            <option v-for="skill in skills" :key="skill" :value="skill">{{ skill }}</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <select v-model="selectedRating" @change="filterFreelancers" class="filter-select">
+            <option value="">Select Rating</option>
+            <option v-for="rating in ratings" :key="rating" :value="rating"
+              >{{ rating }} & Up</option
+            >
+          </select>
+        </div>
+        <div class="filter-item">
+          <select v-model="selectedHourlyRate" @change="filterFreelancers" class="filter-select">
+            <option value="">Select Hourly Rate</option>
+            <option value="20">Less than 20DT/hr</option>
+            <option value="50">Less than 50DT/hr</option>
+            <option value="100">Less than 100DT/hr</option>
+          </select>
+        </div>
+      </div>
+      <div class="summary-container">
+        <div class="summary-card" v-for="(value, key) in summary" :key="key">
+          <h6>{{ key.replace('_', ' ').toUpperCase() }}</h6>
+          <p>{{ value }}</p>
+        </div>
+      </div>
+      <div class="charts-container">
+        <div class="chart-card">
+          <h5 class="chart-title">📊 Projects by Status</h5>
+          <Pie :data="pieChartData" :options="chartOptions" />
+        </div>
+        <div class="chart-card">
+          <h5 class="chart-title">📅 Projects by Deadline</h5>
+          <Pie :data="secondPieChartData" :options="chartOptions" />
+        </div>
+      </div>
+      <div>
+        <h2 class="text-xl font-semibold text-[#0F2573] mb-4">Suggested Freelancers</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div
+            v-for="freelancer in filteredFreelancers"
+            :key="freelancer.id"
+            class="freelancer-card"
+          >
+            <div class="flex items-center gap-4">
+              <div>
+                <h3 class="font-bold">{{ freelancer.user.name }} {{ freelancer.user.lastName }}</h3>
+                <p class="text-sm text-gray-500">
+                  {{
+                    freelancer.competences
+                      .split(',')
+                      .map((skill) => skill.trim())
+                      .join(', ')
+                  }}
+                </p>
+              </div>
+            </div>
+            <p class="mt-2 text-sm">{{ freelancer.experience }}</p>
+            <p class="mt-2 text-sm">{{ freelancer.portfolio }}</p>
+            <div class="mt-2 text-sm font-semibold text-[#0F2573]">{{ freelancer.tarif }}/hr</div>
+            <div>
+              <button
+                class="mt-2 px-3 py-2 bg-[#0F2573] text-white rounded-full hover:bg-[#091c4d] transition text-sm flex items-center gap-2"
+                @click="goToChat"
+              >
+                <i class="fa fa-comment-dots"></i>
+                Chat
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity -->
+      <div class="activity-card">
+        <h5>⚡ Recent Activity</h5>
+        <ul>
+          <li>💼 Client A posted a new project</li>
+          <li>✅ Project “UI Design” marked as completed</li>
+          <li>📅 Deadline approaching for “Backend Refactor”</li>
+        </ul>
+      </div>
+    </template>
   </div>
 </template>
 
-<script>
-import { CModal, CModalHeader, CModalTitle, CModalBody, CModalFooter, CButton } from '@coreui/vue';
-
-export default {
-  components: {
-    CModal,
-    CModalHeader,
-    CModalTitle,
-    CModalBody,
-    CModalFooter,
-    CButton,
-  },
-  data() {
-    return {
-      skills: ['Web Development', 'Graphic Design', 'App Development', 'Content Writing', 'SEO', 'Digital Marketing'],
-      ratings: [3, 4, 5],
-      selectedSkill: '',
-      selectedRating: '',
-      selectedHourlyRate: '',
-      freelancers: [
-        { id: 1, name: 'John Doe', skills: ['Web Development', 'SEO'], rating: 4, hourlyRate: 25 },
-        { id: 2, name: 'Jane Smith', skills: ['Graphic Design', 'Content Writing'], rating: 5, hourlyRate: 40 },
-        { id: 3, name: 'Alice Johnson', skills: ['App Development', 'Digital Marketing'], rating: 3, hourlyRate: 60 },
-      ],
-      filteredFreelancers: [],
-      showModal: false,
-      newProject: {
-        name: '',
-        description: '',
-        skill: '',
-        budget: ''
-      }
-    };
-  },
-  methods: {
-    filterFreelancers() {
-      this.filteredFreelancers = this.freelancers.filter(freelancer => {
-        let skillMatch = this.selectedSkill ? freelancer.skills.includes(this.selectedSkill) : true;
-        let ratingMatch = this.selectedRating ? freelancer.rating >= this.selectedRating : true;
-        let hourlyRateMatch = this.selectedHourlyRate ? freelancer.hourlyRate <= this.selectedHourlyRate : true;
-        return skillMatch && ratingMatch && hourlyRateMatch;
-      });
-    },
-    openAddProjectModal() {
-      this.showModal = true;
-    },
-    closeModal() {
-      this.showModal = false;
-    },
-    submitProject() {
-  
-      console.log('New Project Created:', this.newProject);
-      this.closeModal();
-    },
-    viewProfile(freelancer) {
-      this.$router.push({ name: 'freelancer-profile', params: { id: freelancer.id } });
-    }
-  },
-  mounted() {
-    this.filteredFreelancers = this.freelancers;
-  }
-};
-</script>
-
 <style scoped>
-.client-dashboard {
-  padding: 30px;
-  background-color: #E1F0FF; 
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.dashboard-container {
+  padding: 20px;
+}
+
+.welcome-message {
+  margin-bottom: 20px;
 }
 
 .filter-bar {
   display: flex;
   gap: 20px;
   margin-bottom: 20px;
-  flex-wrap: wrap;
-  justify-content: space-between;
 }
 
-.filter-item {
-  flex: 1;
-  min-width: 150px;
-}
-
-.filter-select {
-  width: 100%;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #A9C8E7;
-  background-color: #B0D1F3;
-  color: #0F2573;
-  font-size: 14px;
-}
-
-.add-project-btn {
-  background-color: #0F2573;
-  color: white;
-  padding: 12px 25px;
-  border: none;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
-}
-
-.add-project-btn:hover {
-  background-color: #A9C8E7;
-}
-
-.freelancer-listing {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 25px;
-}
-
-.freelancer-card {
-  width: 230px;
-  border: 1px solid #A9C8E7;
-  padding: 20px;
-  border-radius: 10px;
-  background-color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: box-shadow 0.3s, transform 0.3s;
-  cursor: pointer;
-}
-
-.freelancer-card:hover {
-  box-shadow: 0px 8px 18px rgba(0, 0, 0, 0.15);
-  transform: translateY(-8px);
-}
-
-.skills {
-  color: #0F2573;
-  font-weight: bold;
-  margin-bottom: 5px;
-}
-
-.rating .star {
-  color: #A9C8E7;
-  font-size: 18px;
-}
-
-.rating .star.filled {
-  color: #0F2573;
-}
-
-.view-profile-btn {
-  background-color: #0F2573;
-  color: white;
-  padding: 10px 18px;
-  border: none;
+.filter-item select {
+  padding: 8px;
   border-radius: 5px;
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.3s;
 }
 
-.view-profile-btn:hover {
-  background-color: #A9C8E7;
-}
-
-/* Modal */
-.modal .form-control {
+.summary-container {
+  display: flex;
+  gap: 20px;
   margin-bottom: 20px;
-  background-color: #B0D1F3;
-  color: #0F2573;
-  border: 1px solid #A9C8E7;
+}
+
+.summary-card {
+  background-color: #f8f8f8;
+  padding: 20px;
   border-radius: 8px;
-  font-size: 14px;
+  width: 200px;
 }
 
-@media (max-width: 768px) {
-  .filter-bar {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .freelancer-card {
-    width: 100%;
-  }
-}
-</style>
- -->
-<!--  <template>
-  <div class="p-4">
-    <h5 class="mb-3">Projects by Status</h5>
-    <Pie :data="statusData" :options="chartOptions" style="height: 300px;" />
-
-    <h5 class="mt-5 mb-3">Projects by Deadline</h5>
-    <Bar :data="deadlineData" :options="chartOptionsBar" style="height: 300px;" />
-  </div>
-</template>
-
-<script>
-import { Pie, Bar } from 'vue-chartjs'
-import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-  BarElement,
-  CategoryScale,
-  LinearScale,
-} from 'chart.js'
-import axios from 'axios'
-import { useAuthStore } from '@/stores/authStore'
-
-ChartJS.register(Title, Tooltip, Legend, ArcElement, BarElement, CategoryScale, LinearScale)
-
-export default {
-  components: {
-    Pie,
-    Bar,
-  },
-  data() {
-    return {
-      statusData: {
-        labels: [],
-        datasets: [
-          {
-            backgroundColor: ['#5E548E', '#9F86C0', '#BE95C4'],
-            data: [],
-          },
-        ],
-      },
-      deadlineData: {
-        labels: [],
-        datasets: [
-          {
-            label: 'Projects',
-            backgroundColor: '#041d56',
-            data: [],
-          },
-        ],
-      },
-      chartOptions: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: 'bottom',
-          },
-        },
-      },
-      chartOptionsBar: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: true,
-            position: 'top',
-          },
-        },
-        scales: {
-          x: { title: { display: true, text: 'Month' } },
-          y: { title: { display: true, text: 'Projects' }, beginAtZero: true },
-        },
-      },
-    }
-  },
-  async mounted() {
-    const authStore = useAuthStore()
-    const headers = { Authorization: `Bearer ${authStore.token}` }
-
-    try {
-      const statusRes = await axios.get('http://127.0.0.1:8000/api/charts/status', { headers })
-      this.statusData.labels = statusRes.data.map(item => item.statut)
-      this.statusData.datasets[0].data = statusRes.data.map(item => item.count)
-
-      const deadlineRes = await axios.get('http://127.0.0.1:8000/api/charts/deadlines', { headers })
-      this.deadlineData.labels = deadlineRes.data.map(item => item.month)
-      this.deadlineData.datasets[0].data = deadlineRes.data.map(item => item.count)
-
-      console.log('Status data:', statusRes.data)
-      console.log('Deadline data:', deadlineRes.data)
-    } catch (error) {
-      console.error('Error fetching chart data:', error)
-    }
-  },
-}
-</script> -->
-
-<!-- <script setup>
-import { ref, onMounted } from 'vue'
-import { Pie } from 'vue-chartjs'
-import {
-  Chart as ChartJS,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from 'chart.js'
-import axios from 'axios'
-import { useAuthStore } from '@/stores/authStore'
-ChartJS.register(Title, Tooltip, Legend, ArcElement)
-
-const statusData = ref([])
-const deadlineData = ref([])
-const pieChartData = ref({
-  labels: [],
-  datasets: [],
-})
-const secondPieChartData = ref({
-  labels: [],
-  datasets: [],
-})
-const chartOptions = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: 'bottom',
-    },
-  },
-}
-const BarchartOptions = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: 'bottom',
-    },
-  },
-}
-
-onMounted(async () => {
-
-  const authStore = useAuthStore()
-  const headers = { Authorization: `Bearer ${authStore.token}` }
-  const statusRes = await axios.get('http://127.0.0.1:8000/api/charts/status', { headers })
-  statusData.value = statusRes.data 
-  pieChartData.value = {
-    labels: statusData.value.map(item => item.statut),
-    datasets: [
-      {
-        label: 'Projects by Status',
-        data: statusData.value.map(item => item.count),
-        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'], 
-      },
-    ],
-  }
-  const deadlineRes = await axios.get('http://127.0.0.1:8000/api/charts/deadlines', { headers })
-  deadlineData.value = deadlineRes.data 
-  secondPieChartData.value = {
-    labels: deadlineData.value.map(item => item.month),
-    datasets: [
-      {
-        label: 'Projects by Deadline',
-        data: deadlineData.value.map(item => item.count),
-        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'], 
-      },
-    ],
-  }
-})
-</script>
-
-<template>
-  <div class="charts-container">
-    <div class="chart-card">
-      <h5 class="chart-title">Projects by Status</h5>
-      <Pie :data="pieChartData" :options="chartOptions" style="height: 160px;" />
-    </div>
-    <div class="chart-card">
-      <h5 class="chart-title">Projects by Deadline</h5>
-      <Pie :data="secondPieChartData" :options="chartOptions" style="height: 160px;" />
-    </div>
-  </div>
-</template>
-
-
-<style scoped>
 .charts-container {
   display: flex;
-  justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 20px;
 }
 
 .chart-card {
-  flex: 0 1 280px;
-  max-width: 300px;
-  background: #fff;
-  border-radius: 16px;
+  background-color: #f6f9fd;
   padding: 20px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
-  text-align: center;
-  transition: transform 0.2s ease;
+  border-radius: 8px;
+  width: 300px;
 }
 
-.chart-card:hover {
-  transform: translateY(-4px);
+.freelancer-card {
+  background-color: #ecedf0;
+  padding: 20px;
+  border-radius: 8px;
 }
 
-.chart-title {
-  margin-bottom: 14px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #2c2c2c;
+.freelancer-card button {
+  width: 100%;
 }
-</style>
- -->
- <script setup>
- import { ref, onMounted } from 'vue'
- import { Pie } from 'vue-chartjs'
- import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js'
- import axios from 'axios'
- import { useAuthStore } from '@/stores/authStore'
- 
- ChartJS.register(Title, Tooltip, Legend, ArcElement)
- 
- const statusData = ref([])
- const deadlineData = ref([])
- 
- const pieChartData = ref({ labels: [], datasets: [] })
- const secondPieChartData = ref({ labels: [], datasets: [] })
- 
- const chartOptions = {
-   responsive: true,
-   plugins: {
-     legend: { position: 'bottom' },
-   },
- }
- 
- const summary = ref({ total: 0, completed: 0, in_progress: 0, open: 0 })
- const selectedSkill = ref('')
- const selectedRating = ref('')
- const selectedHourlyRate = ref('')
- const skills = ref(['Web Development', 'Graphic Design', 'SEO'])
- const ratings = ref([1, 2, 3, 4, 5])
- 
- const freelancers = ref([
-   {
-     id: 1,
-     name: 'John Doe',
-     skills: ['Web Development'],
-     rating: 4,
-     hourlyRate: 50,
-     bio: 'Experienced web developer',
-     image: 'https://via.placeholder.com/150',
-     rate: '50 DT',
-   },
-   {
-     id: 2,
-     name: 'Jane Smith',
-     skills: ['Graphic Design'],
-     rating: 5,
-     hourlyRate: 75,
-     bio: 'Creative designer with 5+ years experience',
-     image: 'https://via.placeholder.com/150',
-     rate: '75 DT',
-   },
- ])
- 
- const filteredFreelancers = ref([])
- 
- const filterFreelancers = () => {
-   filteredFreelancers.value = freelancers.value.filter(f => {
-     const skillMatch = !selectedSkill.value || f.skills.includes(selectedSkill.value)
-     const ratingMatch = !selectedRating.value || f.rating >= parseInt(selectedRating.value)
-     const rateMatch = !selectedHourlyRate.value || f.hourlyRate <= parseInt(selectedHourlyRate.value)
-     return skillMatch && ratingMatch && rateMatch
-   })
- }
- 
- const userName = ref('')
- onMounted(async () => {
-   const authStore = useAuthStore()
-   const headers = { Authorization: `Bearer ${authStore.token}` }
-   userName.value = authStore.user.name
- 
-   const statusRes = await axios.get('http://127.0.0.1:8000/api/charts/status', { headers })
-   statusData.value = statusRes.data
-   pieChartData.value = {
-     labels: statusData.value.map(item => item.statut),
-     datasets: [{
-       label: 'Projects by Status',
-       data: statusData.value.map(item => item.count),
-       backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
-     }],
-   }
- 
-   const deadlineRes = await axios.get('http://127.0.0.1:8000/api/charts/deadlines', { headers })
-   deadlineData.value = deadlineRes.data
-   secondPieChartData.value = {
-     labels: deadlineData.value.map(item => item.month),
-     datasets: [{
-       label: 'Projects by Deadline',
-       data: deadlineData.value.map(item => item.count),
-       backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
-     }],
-   }
- 
-   const summaryRes = await axios.get('http://127.0.0.1:8000/api/projects/summary', { headers })
-   let total = 0
-   summaryRes.data.forEach(item => {
-     total += item.total
-     if (item.statut === 'completed') summary.value.completed = item.total
-     else if (item.statut === 'in_progress') summary.value.in_progress = item.total
-     else if (item.statut === 'open') summary.value.open = item.total
-   })
-   summary.value.total = total
- 
-   filterFreelancers()
- })
- </script>
- 
- <template>
-   <div class="dashboard-container">
-     <!-- Welcome -->
-     <div class="welcome-message">
-       <h3>Welcome back, {{ userName }}! 👋</h3>
-       <p>Here’s what’s happening in your dashboard today.</p>
-     </div>
- 
-     <!-- Filter Bar -->
-     <div class="filter-bar">
-       <div class="filter-item">
-         <select v-model="selectedSkill" @change="filterFreelancers" class="filter-select">
-           <option value="">Select Skill</option>
-           <option v-for="skill in skills" :key="skill" :value="skill">{{ skill }}</option>
-         </select>
-       </div>
-       <div class="filter-item">
-         <select v-model="selectedRating" @change="filterFreelancers" class="filter-select">
-           <option value="">Select Rating</option>
-           <option v-for="rating in ratings" :key="rating" :value="rating">{{ rating }} & Up</option>
-         </select>
-       </div>
-       <div class="filter-item">
-         <select v-model="selectedHourlyRate" @change="filterFreelancers" class="filter-select">
-           <option value="">Select Hourly Rate</option>
-           <option value="20">Less than 20DT/hr</option>
-           <option value="50">Less than 50DT/hr</option>
-           <option value="100">Less than 100DT/hr</option>
-         </select>
-       </div>
-     </div>
- 
-     <!-- Summary -->
-     <div class="summary-container">
-       <div class="summary-card" v-for="(value, key) in summary" :key="key">
-         <h6>{{ key.replace('_', ' ').toUpperCase() }}</h6>
-         <p>{{ value }}</p>
-       </div>
-     </div>
- 
-     <!-- Charts -->
-     <div class="charts-container">
-       <div class="chart-card">
-         <h5 class="chart-title">📊 Projects by Status</h5>
-         <Pie :data="pieChartData" :options="chartOptions" />
-       </div>
-       <div class="chart-card">
-         <h5 class="chart-title">📅 Projects by Deadline</h5>
-         <Pie :data="secondPieChartData" :options="chartOptions" />
-       </div>
-     </div>
- 
-     <!-- Freelancer Suggestions -->
-     <div>
-       <h2 class="text-xl font-semibold text-[#0F2573] mb-4">Suggested Freelancers</h2>
-       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-         <div v-for="freelancer in filteredFreelancers" :key="freelancer.id" class="freelancer-card">
-           <div class="flex items-center gap-4">
-  
-             <div>
-               <h3 class="font-bold">{{ freelancer.name }}</h3>
-               <p class="text-sm text-gray-500">{{ freelancer.skills.join(', ') }}</p>
-             </div>
-           </div>
-           <p class="mt-2 text-sm">{{ freelancer.bio }}</p>
-           <div class="mt-2 text-sm font-semibold text-[#0F2573]">{{ freelancer.rate }}/hr</div>
-           <div>
-    <button 
-      class="mt-2 px-3 py-2 bg-[#0F2573] text-white rounded-full hover:bg-[#091c4d] transition text-sm flex items-center gap-2">
-      <i class="fa fa-comment-dots"></i>
-      Chat
-    </button>
-  </div>
-         </div>
-       </div>
-     </div>
- 
-     <!-- Activity -->
-     <div class="activity-card">
-       <h5>⚡ Recent Activity</h5>
-       <ul>
-         <li>💼 Client A posted a new project</li>
-         <li>✅ Project “UI Design” marked as completed</li>
-         <li>📅 Deadline approaching for “Backend Refactor”</li>
-       </ul>
-     </div>
-   </div>
- </template>
- 
- <style scoped>
- .dashboard-container {
-   padding: 20px;
- }
- 
- .welcome-message {
-   margin-bottom: 20px;
- }
- 
- .filter-bar {
-   display: flex;
-   gap: 20px;
-   margin-bottom: 20px;
- }
- 
- .filter-item select {
-   padding: 8px;
-   border-radius: 5px;
- }
- 
- .summary-container {
-   display: flex;
-   gap: 20px;
-   margin-bottom: 20px;
- }
- 
- .summary-card {
-   background-color: #f8f8f8;
-   padding: 20px;
-   border-radius: 8px;
-   width: 200px;
- }
- 
- .charts-container {
-   display: flex;
-   gap: 20px;
-   margin-bottom: 20px;
- }
- 
- .chart-card {
-   background-color: #f6f9fd;
-   padding: 20px;
-   border-radius: 8px;
-   width: 300px;
- }
- 
- .freelancer-card {
-   background-color: #ecedf0;
-   padding: 20px;
-   border-radius: 8px;
- }
- 
- .freelancer-card button {
-   width: 100%;
- }
- 
- .activity-card {
-   background-color: #fff;
-   padding: 20px;
-   border-radius: 8px;
-   margin-top: 20px;
- }
- button {
+
+.activity-card {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+button {
   font-size: 0.875rem; /* Smaller font size for the button text */
   padding: 0.25rem 0.75rem; /* Adjusted padding for a smaller button */
   display: inline-flex; /* Prevent the button from stretching full width */
@@ -745,5 +375,4 @@ button:hover {
 button i {
   font-size: 1rem; /* Icon size */
 }
- </style>
- 
+</style>

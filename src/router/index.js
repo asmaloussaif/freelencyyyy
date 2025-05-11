@@ -97,6 +97,7 @@ const routes = [
         name: 'ClientProfile',
         component: () => import('@/views/pages/ClientProfile.vue'),
       },
+     
     ],
   },
 ]

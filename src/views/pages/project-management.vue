@@ -389,21 +389,21 @@ const fetchProjects = async () => {
     console.log(response.data)
 
     projects.value = response.data.map((project) => ({
-      id: project.id,
-      titre: project.titre,
-      date: project.created_at.split('T')[0],
-      budget: project.budget,
-      status: project.statut,
-      freelancer: project.selected_application.freelancer
-        ? `${project.selected_application.freelancer.name} ${project.selected_application.freelancer.lastName}`
+      id: project?.id,
+      titre: project?.titre,
+      date: project?.created_at.split('T')[0],
+      budget: project?.budget,
+      status: project?.statut,
+      freelancer: project?.selected_application?.freelancer
+        ? `${project?.selected_application?.freelancer.name} ${project?.selected_application?.freelancer.lastName}`
         : '',
-      freelancerID: project.selected_application.freelancer
-        ? project.selected_application.freelancer.id
+      freelancerID: project?.selected_application?.freelancer
+        ? project?.selected_application?.freelancer?.id
         : null,
-      rating: project.note ?? null,
-      categorie: project.categorie || '',
-      description: project.description,
-      date_limite: project.date_limite || '',
+      rating: project?.note ?? null,
+      categorie: project?.categorie || '',
+      description: project?.description,
+      date_limite: project?.date_limite || '',
     }))
   } catch (error) {
     console.error('Failed to fetch client projects:', error)
@@ -472,6 +472,8 @@ const submitNewProject = async () => {
       },
     })
     projects.value.push(response.data.project)
+    addModalVisible.value = false
+
     resetProjectForm()
   } catch (error) {
     console.error('Error adding project:', error)

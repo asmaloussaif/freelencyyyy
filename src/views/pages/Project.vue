@@ -157,11 +157,11 @@ const fetchProject = async () => {
     const openProjects = res.data.filter(project => project.statut === 'open')
 
     offers.value = openProjects.map(project => ({
-      id: project.id || '',
-      titre: project.titre || '',
-      categorie: project.categorie || '',
-      budget: project.budget || '',
-      date_limite: project.date_limite || '',
+      id: project.id ,
+      titre: project.titre ,
+      categorie: project.categorie ,
+      budget: project.budget ,
+      date_limite: project.date_limite ,
     }))
 
     categories.value = [...new Set(openProjects.map(p => p.categorie).filter(Boolean))]
