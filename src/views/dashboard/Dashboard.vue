@@ -470,260 +470,280 @@ onMounted(async () => {
 }
 </style>
  -->
-<script setup>
-import { ref, onMounted } from 'vue'
-import { Pie } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js'
-import axios from 'axios'
-import { useAuthStore } from '@/stores/authStore'
-
-ChartJS.register(Title, Tooltip, Legend, ArcElement)
-
-const statusData = ref([])
-const deadlineData = ref([])
-
-const pieChartData = ref({
-  labels: [],
-  datasets: [],
-})
-
-const secondPieChartData = ref({
-  labels: [],
-  datasets: [],
-})
-
-const chartOptions = {
-  responsive: true,
-  plugins: {
-    legend: {
-      position: 'bottom',
-    },
-  },
-}
-const summary = ref({
-  total: 0,
-  completed: 0,
-  ongoing: 0,
-  pending: 0,
-})
-
-onMounted(async () => {
-  const authStore = useAuthStore()
-  const headers = { Authorization: `Bearer ${authStore.token}` }
-  const userName = ref(authStore.user.name);
-  const statusRes = await axios.get('http://127.0.0.1:8000/api/charts/status', { headers })
-  statusData.value = statusRes.data
-
-  pieChartData.value = {
-    labels: statusData.value.map((item) => item.statut),
-    datasets: [
-      {
-        label: 'Projects by Status',
-        data: statusData.value.map((item) => item.count),
-        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
-      },
-    ],
-  }
-
-  const deadlineRes = await axios.get('http://127.0.0.1:8000/api/charts/deadlines', { headers })
-  deadlineData.value = deadlineRes.data
-
-  secondPieChartData.value = {
-    labels: deadlineData.value.map((item) => item.month),
-    datasets: [
-      {
-        label: 'Projects by Deadline',
-        data: deadlineData.value.map((item) => item.count),
-        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
-      },
-    ],
-  }
-  const res = await axios.get('http://127.0.0.1:8000/api/projects/summary', { headers })
-  const data = res.data
-
-  let total = 0
-  data.forEach((item) => {
-    total += item.total
-    const status = item.statut.toLowerCase()
-    if (status === 'completed') summary.value.completed = item.total
-    else if (status === 'in_progress') summary.value.in_progress = item.total
-    else if (status === 'open') summary.value.open = item.total
-  })
-  summary.value.total = total
-})
-</script>
-
-<template>
-  <div class="dashboard-container">
-    <div class="welcome-message">
-      <h3>Welcome back, {{userName}}! 👋</h3>
-      <p>Here’s what’s happening in your dashboard today.</p>
-    </div>
-    <div class="summary-container">
-      <div class="summary-card">
-        <h6>Total Projects</h6>
-        <p>{{ summary.total }}</p>
-      </div>
-      <div class="summary-card">
-        <h6>Completed</h6>
-        <p>{{ summary.completed }}</p>
-      </div>
-      <div class="summary-card">
-        <h6>In Progress</h6>
-        <p>{{ summary.in_progress }}</p>
-      </div>
-      <div class="summary-card">
-        <h6>Open</h6>
-        <p>{{ summary.open }}</p>
-      </div>
-    </div>
-
-    <div class="charts-container">
-      <div class="chart-card">
-        <h5 class="chart-title"><i class="fas fa-chart-pie"></i> Projects by Status</h5>
-        <Pie :data="pieChartData" :options="chartOptions" style="height: 160px" />
-      </div>
-      <div class="chart-card">
-        <h5 class="chart-title"><i class="fas fa-clock"></i> Projects by Deadline</h5>
-        <Pie :data="secondPieChartData" :options="chartOptions" style="height: 160px" />
-      </div>
-    </div>
-
-    <div class="activity-card">
-      <h5 class="chart-title"><i class="fas fa-bolt"></i> Recent Activity</h5>
-      <ul>
-        <li>💼 Client A posted a new project</li>
-        <li>✅ Project “UI Design” marked as completed</li>
-        <li>📅 Deadline approaching for “Backend Refactor”</li>
-      </ul>
-    </div>
+ <script setup>
+ import { ref, onMounted } from 'vue'
+ import { Pie } from 'vue-chartjs'
+ import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js'
+ import axios from 'axios'
+ import { useAuthStore } from '@/stores/authStore'
+ 
+ ChartJS.register(Title, Tooltip, Legend, ArcElement)
+ 
+ const statusData = ref([])
+ const deadlineData = ref([])
+ 
+ const pieChartData = ref({ labels: [], datasets: [] })
+ const secondPieChartData = ref({ labels: [], datasets: [] })
+ 
+ const chartOptions = {
+   responsive: true,
+   plugins: {
+     legend: { position: 'bottom' },
+   },
+ }
+ 
+ const summary = ref({ total: 0, completed: 0, in_progress: 0, open: 0 })
+ const selectedSkill = ref('')
+ const selectedRating = ref('')
+ const selectedHourlyRate = ref('')
+ const skills = ref(['Web Development', 'Graphic Design', 'SEO'])
+ const ratings = ref([1, 2, 3, 4, 5])
+ 
+ const freelancers = ref([
+   {
+     id: 1,
+     name: 'John Doe',
+     skills: ['Web Development'],
+     rating: 4,
+     hourlyRate: 50,
+     bio: 'Experienced web developer',
+     image: 'https://via.placeholder.com/150',
+     rate: '50 DT',
+   },
+   {
+     id: 2,
+     name: 'Jane Smith',
+     skills: ['Graphic Design'],
+     rating: 5,
+     hourlyRate: 75,
+     bio: 'Creative designer with 5+ years experience',
+     image: 'https://via.placeholder.com/150',
+     rate: '75 DT',
+   },
+ ])
+ 
+ const filteredFreelancers = ref([])
+ 
+ const filterFreelancers = () => {
+   filteredFreelancers.value = freelancers.value.filter(f => {
+     const skillMatch = !selectedSkill.value || f.skills.includes(selectedSkill.value)
+     const ratingMatch = !selectedRating.value || f.rating >= parseInt(selectedRating.value)
+     const rateMatch = !selectedHourlyRate.value || f.hourlyRate <= parseInt(selectedHourlyRate.value)
+     return skillMatch && ratingMatch && rateMatch
+   })
+ }
+ 
+ const userName = ref('')
+ onMounted(async () => {
+   const authStore = useAuthStore()
+   const headers = { Authorization: `Bearer ${authStore.token}` }
+   userName.value = authStore.user.name
+ 
+   const statusRes = await axios.get('http://127.0.0.1:8000/api/charts/status', { headers })
+   statusData.value = statusRes.data
+   pieChartData.value = {
+     labels: statusData.value.map(item => item.statut),
+     datasets: [{
+       label: 'Projects by Status',
+       data: statusData.value.map(item => item.count),
+       backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+     }],
+   }
+ 
+   const deadlineRes = await axios.get('http://127.0.0.1:8000/api/charts/deadlines', { headers })
+   deadlineData.value = deadlineRes.data
+   secondPieChartData.value = {
+     labels: deadlineData.value.map(item => item.month),
+     datasets: [{
+       label: 'Projects by Deadline',
+       data: deadlineData.value.map(item => item.count),
+       backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
+     }],
+   }
+ 
+   const summaryRes = await axios.get('http://127.0.0.1:8000/api/projects/summary', { headers })
+   let total = 0
+   summaryRes.data.forEach(item => {
+     total += item.total
+     if (item.statut === 'completed') summary.value.completed = item.total
+     else if (item.statut === 'in_progress') summary.value.in_progress = item.total
+     else if (item.statut === 'open') summary.value.open = item.total
+   })
+   summary.value.total = total
+ 
+   filterFreelancers()
+ })
+ </script>
+ 
+ <template>
+   <div class="dashboard-container">
+     <!-- Welcome -->
+     <div class="welcome-message">
+       <h3>Welcome back, {{ userName }}! 👋</h3>
+       <p>Here’s what’s happening in your dashboard today.</p>
+     </div>
+ 
+     <!-- Filter Bar -->
+     <div class="filter-bar">
+       <div class="filter-item">
+         <select v-model="selectedSkill" @change="filterFreelancers" class="filter-select">
+           <option value="">Select Skill</option>
+           <option v-for="skill in skills" :key="skill" :value="skill">{{ skill }}</option>
+         </select>
+       </div>
+       <div class="filter-item">
+         <select v-model="selectedRating" @change="filterFreelancers" class="filter-select">
+           <option value="">Select Rating</option>
+           <option v-for="rating in ratings" :key="rating" :value="rating">{{ rating }} & Up</option>
+         </select>
+       </div>
+       <div class="filter-item">
+         <select v-model="selectedHourlyRate" @change="filterFreelancers" class="filter-select">
+           <option value="">Select Hourly Rate</option>
+           <option value="20">Less than 20DT/hr</option>
+           <option value="50">Less than 50DT/hr</option>
+           <option value="100">Less than 100DT/hr</option>
+         </select>
+       </div>
+     </div>
+ 
+     <!-- Summary -->
+     <div class="summary-container">
+       <div class="summary-card" v-for="(value, key) in summary" :key="key">
+         <h6>{{ key.replace('_', ' ').toUpperCase() }}</h6>
+         <p>{{ value }}</p>
+       </div>
+     </div>
+ 
+     <!-- Charts -->
+     <div class="charts-container">
+       <div class="chart-card">
+         <h5 class="chart-title">📊 Projects by Status</h5>
+         <Pie :data="pieChartData" :options="chartOptions" />
+       </div>
+       <div class="chart-card">
+         <h5 class="chart-title">📅 Projects by Deadline</h5>
+         <Pie :data="secondPieChartData" :options="chartOptions" />
+       </div>
+     </div>
+ 
+     <!-- Freelancer Suggestions -->
+     <div>
+       <h2 class="text-xl font-semibold text-[#0F2573] mb-4">Suggested Freelancers</h2>
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+         <div v-for="freelancer in filteredFreelancers" :key="freelancer.id" class="freelancer-card">
+           <div class="flex items-center gap-4">
+  
+             <div>
+               <h3 class="font-bold">{{ freelancer.name }}</h3>
+               <p class="text-sm text-gray-500">{{ freelancer.skills.join(', ') }}</p>
+             </div>
+           </div>
+           <p class="mt-2 text-sm">{{ freelancer.bio }}</p>
+           <div class="mt-2 text-sm font-semibold text-[#0F2573]">{{ freelancer.rate }}/hr</div>
+           <div>
+    <button 
+      class="mt-2 px-3 py-2 bg-[#0F2573] text-white rounded-full hover:bg-[#091c4d] transition text-sm flex items-center gap-2">
+      <i class="fa fa-comment-dots"></i>
+      Chat
+    </button>
   </div>
-</template>
-
-<style scoped>
-.dashboard-container {
-  padding: 24px;
-  background-color: #f8faff;
-  min-height: 100vh;
+         </div>
+       </div>
+     </div>
+ 
+     <!-- Activity -->
+     <div class="activity-card">
+       <h5>⚡ Recent Activity</h5>
+       <ul>
+         <li>💼 Client A posted a new project</li>
+         <li>✅ Project “UI Design” marked as completed</li>
+         <li>📅 Deadline approaching for “Backend Refactor”</li>
+       </ul>
+     </div>
+   </div>
+ </template>
+ 
+ <style scoped>
+ .dashboard-container {
+   padding: 20px;
+ }
+ 
+ .welcome-message {
+   margin-bottom: 20px;
+ }
+ 
+ .filter-bar {
+   display: flex;
+   gap: 20px;
+   margin-bottom: 20px;
+ }
+ 
+ .filter-item select {
+   padding: 8px;
+   border-radius: 5px;
+ }
+ 
+ .summary-container {
+   display: flex;
+   gap: 20px;
+   margin-bottom: 20px;
+ }
+ 
+ .summary-card {
+   background-color: #f8f8f8;
+   padding: 20px;
+   border-radius: 8px;
+   width: 200px;
+ }
+ 
+ .charts-container {
+   display: flex;
+   gap: 20px;
+   margin-bottom: 20px;
+ }
+ 
+ .chart-card {
+   background-color: #f6f9fd;
+   padding: 20px;
+   border-radius: 8px;
+   width: 300px;
+ }
+ 
+ .freelancer-card {
+   background-color: #ecedf0;
+   padding: 20px;
+   border-radius: 8px;
+ }
+ 
+ .freelancer-card button {
+   width: 100%;
+ }
+ 
+ .activity-card {
+   background-color: #fff;
+   padding: 20px;
+   border-radius: 8px;
+   margin-top: 20px;
+ }
+ button {
+  font-size: 0.875rem; /* Smaller font size for the button text */
+  padding: 0.25rem 0.75rem; /* Adjusted padding for a smaller button */
+  display: inline-flex; /* Prevent the button from stretching full width */
+  align-items: center;
+  gap: 0.5rem; /* Gap between the icon and text */
+  background-color: #1a9bf1;
+  border: none;
+  border-radius: 9999px; /* Make it fully rounded */
+  cursor: pointer;
 }
 
-.welcome-message {
-  text-align: center;
-  margin-bottom: 32px;
+button:hover {
+  background-color: #137dbb; /* Darker shade for hover effect */
 }
 
-.welcome-message h3 {
-  margin: 0;
-  font-size: 24px;
-  color: #5e548e;
+button i {
+  font-size: 1rem; /* Icon size */
 }
-
-.welcome-message p {
-  font-size: 14px;
-  color: #666;
-}
-
-.summary-container {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.summary-card {
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 16px 24px;
-  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
-  text-align: center;
-  flex: 0 1 150px;
-}
-
-.summary-card h6 {
-  margin: 0;
-  font-size: 14px;
-  color: #5e548e;
-}
-
-.summary-card p {
-  margin: 4px 0 0;
-  font-size: 20px;
-  font-weight: bold;
-  color: #191627;
-}
-
-.charts-container {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
-  padding: 24px;
-  background: linear-gradient(135deg, #f0f4ff, #fdfcff);
-  border-radius: 20px;
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.02);
-}
-
-.chart-card {
-  flex: 0 1 280px;
-  max-width: 300px;
-  background: #fff;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
-  text-align: center;
-  transition: transform 0.2s ease;
-  animation: fadeIn 0.6s ease-in;
-}
-
-.chart-card:hover {
-  transform: translateY(-4px);
-}
-
-.chart-title {
-  margin-bottom: 14px;
-  font-size: 16px;
-  font-weight: 600;
-  color: #2c2c2c;
-}
-
-.chart-title i {
-  margin-right: 6px;
-  color: #5e548e;
-}
-
-.activity-card {
-  background: #fff;
-  padding: 20px;
-  margin-top: 24px;
-  border-radius: 16px;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06);
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-  animation: fadeIn 0.6s ease-in;
-}
-
-.activity-card ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.activity-card li {
-  margin-bottom: 10px;
-  font-size: 14px;
-  color: #333;
-}
-
-@keyframes fadeIn {
-  0% {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-</style>
+ </style>
+ 

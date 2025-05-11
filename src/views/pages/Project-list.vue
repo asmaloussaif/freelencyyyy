@@ -8,7 +8,6 @@
           <CTableHeaderCell>Project Title</CTableHeaderCell>
           <CTableHeaderCell>Status</CTableHeaderCell>
           <CTableHeaderCell>Proposals Number</CTableHeaderCell>
-
           <CTableHeaderCell>Actions</CTableHeaderCell>
         </CTableRow>
       </CTableHead>
@@ -22,14 +21,14 @@
             </CBadge>
           </CTableDataCell>
           <CTableDataCell>{{ item.freelancer_count }}</CTableDataCell>
-
           <CTableDataCell>
-            <CButton color="info" size="sm" @click="openModal(item)">View Proposel Details </CButton>
+            <CButton color="info" size="sm" @click="openModal(item)">View Proposal Details</CButton>
           </CTableDataCell>
         </CTableRow>
       </CTableBody>
     </CTable>
 
+    <!-- Proposals Modal -->
     <CModal :visible="showModal" @close="showModal = false">
       <CModalHeader>
         <CModalTitle>Project Proposals</CModalTitle>
@@ -44,19 +43,14 @@
           >
             <h6>{{ application.freelancer?.name }} {{ application.freelancer?.lastName }}</h6>
             <p><strong>Email:</strong> {{ application.freelancer?.email }}</p>
-            <p><strong>Status:</strong> {{ application.status || 'Pending' }}</p>
+
             <div class="d-flex gap-2 mt-2">
-              <CButton color="success" size="sm" @click="confirmAction(application.id, 'accepted')"
-                >Accept</CButton
-              >
+              <CButton color="success" size="sm" @click="confirmAction(application.id, 'accepted')">Accept</CButton>
               <CButton color="info" size="sm" @click="goToChat">Chat</CButton>
-              <CButton color="danger" size="sm" @click="confirmAction(application.id, 'declined')"
-                >Decline</CButton
-              >
+              <CButton color="danger" size="sm" @click="confirmAction(application.id, 'declined')">Decline</CButton>
             </div>
           </div>
         </div>
-
         <div v-else>
           <p>No proposals received yet.</p>
         </div>
@@ -66,23 +60,21 @@
         <CButton color="secondary" @click="showModal = false">Close</CButton>
       </CModalFooter>
     </CModal>
+
+    <!-- Confirmation Modal -->
+    <CModal :visible="showConfirmModal" @close="showConfirmModal = false">
+      <CModalHeader>
+        <CModalTitle>Confirm Action</CModalTitle>
+      </CModalHeader>
+      <CModalBody>
+        <p>Are you sure you want to <strong>{{ selectedStatus }}</strong> this application?</p>
+      </CModalBody>
+      <CModalFooter>
+        <CButton color="secondary" @click="showConfirmModal = false">Cancel</CButton>
+        <CButton color="primary" @click="submitStatusUpdate">Confirm</CButton>
+      </CModalFooter>
+    </CModal>
   </CContainer>
-  <CModal :visible="showConfirmModal" @close="showConfirmModal = false">
-    <CModalHeader>
-      <CModalTitle>Confirm Action</CModalTitle>
-    </CModalHeader>
-
-    <CModalBody>
-      <p>
-        Are you sure you want to <strong>{{ selectedStatus }}</strong> this application?
-      </p>
-    </CModalBody>
-
-    <CModalFooter>
-      <CButton color="secondary" @click="showConfirmModal = false">Cancel</CButton>
-      <CButton color="primary" @click="submitStatusUpdate">Confirm</CButton>
-    </CModalFooter>
-  </CModal>
 </template>
 
 <script setup>
@@ -102,30 +94,31 @@ import {
   CModalFooter,
   CBadge,
 } from '@coreui/vue'
-import { useRouter } from 'vue-router'
-const router = useRouter()
+
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
+import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/authStore'
 
+const router = useRouter()
 const authStore = useAuthStore()
+
 const projects = ref([])
 const showModal = ref(false)
 const showConfirmModal = ref(false)
-
 const selectedProject = ref(null)
 const selectedApplicationId = ref(null)
 const selectedStatus = ref('accepted')
 
 const openModal = (project) => {
   selectedProject.value = project
-  console.log('fgggg', selectedProject)
-
   showModal.value = true
 }
+
 const goToChat = () => {
   router.push('/dashboard/inbox')
 }
+
 const getStatusColor = (status) => {
   switch (status?.toLowerCase()) {
     case 'open':
@@ -140,7 +133,6 @@ const getStatusColor = (status) => {
   }
 }
 
-// Fetch applied projects
 const fetchAppliedProjects = async () => {
   try {
     const res = await axios.get('http://127.0.0.1:8000/api/application_project', {
@@ -169,9 +161,8 @@ const submitStatusUpdate = async () => {
     await axios.put(
       `http://127.0.0.1:8000/api/applications/${selectedApplicationId.value}/status`,
       { statut: selectedStatus.value },
-      { headers: { Authorization: `Bearer ${authStore.token}` } },
+      { headers: { Authorization: `Bearer ${authStore.token}` } }
     )
-
     showConfirmModal.value = false
     showModal.value = false
     await fetchAppliedProjects()
@@ -182,14 +173,14 @@ const submitStatusUpdate = async () => {
 </script>
 
 <style scoped>
-/* Page container */
+/* Container Styling */
 .c-container {
   background-color: #f8faff;
   padding: 2rem;
   border-radius: 12px;
 }
 
-/* Soft blue background for page title */
+/* Page Title */
 .page-title {
   background-color: #e1f0ff;
   color: #0f2573;
@@ -200,7 +191,7 @@ const submitStatusUpdate = async () => {
   margin-bottom: 1.5rem;
 }
 
-/* Proposal card */
+/* Proposal Card */
 .proposal-card {
   background-color: white;
   border: 1px solid #be95c4;
@@ -232,13 +223,13 @@ const submitStatusUpdate = async () => {
   background-color: #191627 !important;
 }
 
-/* Status badges */
+/* Status Badges */
 .badge-success {
   background-color: #5e548e !important;
   color: white;
 }
 
-/* Table row hover */
+/* Table Row Hover */
 .table-hover tbody tr:hover {
   background-color: #e1f0ff;
   transition: background 0.3s ease;

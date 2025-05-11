@@ -1,142 +1,108 @@
-<!-- <template>
-  <CContainer fluid class="chat-container">
-    <CRow class="g-0">
-      <CCol md="4" class="border-end vh-100 overflow-auto sidebar">
-        <div class="p-3 border-bottom d-flex justify-content-between align-items-center sidebar-header">
-          <h5 class="mb-0 text-dark">Messages</h5>
-          <CButton size="sm" color="light" variant="outline" class="new-chat-btn">
-            <CIcon name="cil-plus" class="me-1" /> New Chat
-          </CButton>
-        </div>
-
-        <CListGroup flush class="chat-list">
-          <CListGroupItem
-            v-for="chat in chats"
-            :key="chat.id"
-            :active="selectedChat?.id === chat.id"
-            @click="selectChat(chat)"
-            class="d-flex align-items-center chat-item"
-          >
-            <CAvatar :src="chat.avatar" size="md" class="me-3" status="success" />
-            <div class="chat-info">
-              <div class="d-flex justify-content-between">
-                <strong class="chat-name">{{ chat.name }}</strong>
-                <small class="chat-time">{{ formatLastMessageTime(chat.lastMessageTime) }}</small>
-              </div>
-              <div class="small chat-preview">{{ chat.lastMessage }}</div>
-            </div>
-          </CListGroupItem>
-        </CListGroup>
-      </CCol>
-      <CCol md="8" class="vh-100 d-flex flex-column chat-content">
-        <div v-if="selectedChat" class="border-bottom p-3 d-flex align-items-center chat-header">
-          <CAvatar :src="selectedChat.avatar" size="lg" class="me-3" status="success" />
-          <div class="flex-grow-1">
-            <h6 class="mb-0">{{ selectedChat.name }}</h6>
-            <small class="text-muted">{{ selectedChat.status || 'Online' }}</small>
-          </div>
-        </div>
-
-        <div v-if="selectedChat" class="flex-grow-1 overflow-auto p-3 messages-container">
-          <div class="text-center my-3">
-            <CBadge color="secondary" shape="rounded-pill">
-              {{ formatMessageDate(selectedChat.messages[0].timestamp) }}
-            </CBadge>
-          </div>
-          <div v-for="message in selectedChat.messages" :key="message.id" class="message-wrapper">
-            <div
-              :class="[ 
-                'message-bubble',
-                message.sender === currentUser ? 'sent' : 'received'
-              ]"
-            >
-              <div class="message-content">{{ message.text }}</div>
-              <div class="message-time">{{ message.timestamp }}</div>
-            </div>
-          </div>
-        </div>
-        <div v-if="selectedChat" class="border-top p-3 chat-input-container">
-          <div class="d-flex align-items-center">
-            <CButton color="link" class="text-muted me-2">
-              <CIcon name="cil-paperclip" />
-            </CButton>
-            <CFormInput
-              v-model="newMessage"
-              placeholder="Type a message..."
-              class="flex-grow-1 message-input"
-              @keyup.enter="sendMessage"
-            />
-            <CButton color="primary" class="ms-2 send-btn" @click="sendMessage">
-              <CIcon name="cil-send" />
-            </CButton>
-          </div>
-        </div>
-
-        <div v-else class="flex-grow-1 d-flex flex-column justify-content-center align-items-center empty-chat">
-          <div class="empty-chat-icon mb-3">
-            <CIcon name="cil-chat-bubble" size="3xl" />
-          </div>
-          <h4 class="text-muted mb-2">Select a conversation</h4>
-          <p class="text-muted text-center">Start chatting with your contacts or colleagues</p>
-        </div>
-      </CCol>
-    </CRow>
-  </CContainer>
-</template> -->
 <template>
-  <div class="chat-container">
-    <!-- Conversation List -->
-    <div class="conversation-list">
-  <div
-    v-for="conv in conversations"
-    :key="conv?.id"
-    class="conversation-item"
-    @click="selectConversation(conv.id)"
-  >
-    <p><strong>{{ conv.name }}</strong></p>
-    <p class="last-message">{{ conv.last_message }}</p>
-    <small>{{ new Date(conv.last_time).toLocaleString() }}</small>
-  </div>
-</div>
-
-
-    <!-- Chat Window -->
-    <div class="chat-window" v-if="selectedUserId">
-      <div
-        v-for="msg in messages"
-        :key="msg.id"
-        class="message"
-        :class="{ 'own-message': msg.sender_id === currentUser }"
-      >
-        <div class="message-bubble">
-          <p class="message-sender">
-            {{ msg.sender_id === currentUser ? 'You' : msg.sender_name || msg.receiver_name }}
-          </p>
-          <p class="message-text">{{ msg.message.message }}</p>
-          <p class="message-receiver">
-            {{ msg.receiver_name }}
-          </p>
-        </div>
+  <div class="chat-app">
+    <!-- Sidebar with conversations -->
+    <div class="conversation-sidebar">
+      <div class="sidebar-header">
+        <h3>Messages</h3>
+        <button class="new-chat-btn">
+          <i class="fas fa-plus"></i> New Chat
+        </button>
       </div>
-
-      <!-- Input -->
-      <div class="input-bar">
-        <input v-model="newMessage" @keyup.enter="sendMessage" placeholder="Type a message..." />
-        <button @click="sendMessage">Send</button>
+      
+      <div class="conversation-list">
+        <div
+          v-for="conv in conversations"
+          :key="conv?.id"
+          class="conversation-item"
+          :class="{ active: selectedUserId === conv.id }"
+          @click="selectConversation(conv.id)"
+        >
+          <div class="conversation-avatar">
+            <span>{{ getInitials(conv.name) }}</span>
+          </div>
+          <div class="conversation-details">
+            <div class="conversation-header">
+              <strong>{{ conv.name }}</strong>
+              <span class="time">{{ formatTime(conv.last_time) }}</span>
+            </div>
+            <p class="last-message">{{ truncate(conv.last_message, 30) }}</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div v-else class="chat-placeholder">
-      <p>Select a conversation to start chatting.</p>
+    <!-- Main chat area -->
+    <div class="chat-main">
+      <div v-if="selectedUserId" class="chat-window">
+        <!-- Chat header -->
+        <div class="chat-header">
+          <div class="user-info">
+            <div class="user-avatar">
+              {{ getInitials(getCurrentConversation()?.name || '') }}
+            </div>
+            <div>
+              <h4>{{ getCurrentConversation()?.name }}</h4>
+              <small class="status">Online</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages container -->
+        <div class="messages-container">
+          <div
+            v-for="(msg, index) in messages"
+            :key="msg.id"
+            class="message-wrapper"
+            :class="{ 'sent': msg.sender_id === currentUser, 'received': msg.sender_id !== currentUser }"
+          >
+            <div class="message-meta" v-if="shouldShowMeta(messages, index)">
+              <span class="sender-name">
+                {{ msg.sender_id === currentUser ? 'You' : msg.sender_name || msg.receiver_name }}
+              </span>
+              <span class="message-time">{{ formatTime(msg.message.created_at) }}</span>
+            </div>
+            <div class="message-bubble">
+              {{ msg.message.message }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Message input -->
+        <div class="message-input">
+          <div class="input-group">
+            <button class="attachment-btn">
+              <i class="fas fa-paperclip"></i>
+            </button>
+            <input
+              v-model="newMessage"
+              @keyup.enter="sendMessage"
+              placeholder="Type a message..."
+              class="message-text-input"
+            />
+            <button @click="sendMessage" class="send-btn">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-else class="empty-chat">
+        <div class="empty-icon">
+          <i class="fas fa-comments"></i>
+        </div>
+        <h3>No conversation selected</h3>
+        <p>Choose a conversation from the sidebar or start a new chat</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import echo from '@/js/echo.js'
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import echo from '@/js/echo.js'
 
 const authStore = useAuthStore()
 const currentUser = authStore.user.id
@@ -145,30 +111,41 @@ const newMessage = ref('')
 const selectedUserId = ref(null)
 const conversations = ref([])
 
-onMounted(() => {
-  fetchConversations()
-  console.log(selectedUserId.value)
+// Helper functions
+const getInitials = (name) => {
+  if (!name) return ''
+  return name.split(' ').map(n => n[0]).join('').toUpperCase()
+}
 
-  echo.private(`chat.${currentUser}`).listen('MessageSent', (e) => {
-    if (
-      selectedUserId.value &&
-      (e.message.sender_id === selectedUserId.value ||
-        e.message.receiver_id === selectedUserId.value)
-    ) {
-      messages.value.push(e.message)
-    }
-  })
-})
+const truncate = (text, length) => {
+  if (!text) return ''
+  return text.length > length ? text.substring(0, length) + '...' : text
+}
 
+const formatTime = (dateString) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+}
+
+const shouldShowMeta = (messages, index) => {
+  if (index === 0) return true
+  const prevMsg = messages[index - 1]
+  const currentMsg = messages[index]
+  return prevMsg.sender_id !== currentMsg.sender_id
+}
+
+const getCurrentConversation = () => {
+  return conversations.value.find(c => c.id === selectedUserId.value)
+}
+
+// API calls
 const fetchConversations = async () => {
   try {
     const res = await axios.get('http://127.0.0.1:8000/api/conversations', {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-      },
+      headers: { Authorization: `Bearer ${authStore.token}` }
     })
-    console.log('CONVERSATIONS API RESPONSE:', res.data)
-    conversations.value =  res.data 
+    conversations.value = res.data
   } catch (err) {
     console.error('Failed to fetch conversations:', err)
     conversations.value = []
@@ -179,12 +156,9 @@ const selectConversation = async (userId) => {
   selectedUserId.value = userId
   try {
     const res = await axios.get(`http://127.0.0.1:8000/api/messages/${userId}`, {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-      },
+      headers: { Authorization: `Bearer ${authStore.token}` }
     })
     messages.value = res.data
-    console.log(messages.value)
   } catch (err) {
     console.error('Failed to fetch messages:', err)
   }
@@ -200,111 +174,335 @@ const sendMessage = async () => {
         message: newMessage.value,
         receiver_id: selectedUserId.value,
       },
-      {
-        headers: {
-          Authorization: `Bearer ${authStore.token}`,
-        },
-      },
+      { headers: { Authorization: `Bearer ${authStore.token}` } }
     )
-    console.log(res.data)
-
-    const message = res.data
-    messages.value.push(message)
+    
+    messages.value.push(res.data)
     newMessage.value = ''
     fetchConversations()
   } catch (err) {
     console.error('Failed to send message:', err)
   }
 }
-const formatDate = (date) => {
-  const options = { year: 'numeric', month: 'short', day: 'numeric' }
-  return new Date(date).toLocaleDateString(undefined, options)
-}
+
+// Initialize
+onMounted(() => {
+  fetchConversations()
+
+  echo.private(`chat.${currentUser}`).listen('MessageSent', (e) => {
+    if (selectedUserId.value && 
+        (e.message.sender_id === selectedUserId.value || 
+         e.message.receiver_id === selectedUserId.value)) {
+      messages.value.push(e.message)
+    }
+  })
+})
 </script>
 
 <style scoped>
-.chat-container {
+.chat-app {
+  display: flex;
+  height: 100vh;
+  background-color: #f5f7fb;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.conversation-sidebar {
+  width: 350px;
+  background-color: white;
+  border-right: 1px solid #e1e4e8;
   display: flex;
   flex-direction: column;
-  height: 500px;
-  max-width: 600px;
-  margin: auto;
-  border: 1px solid #ccc;
-  border-radius: 12px;
+}
+
+.sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e1e4e8;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sidebar-header h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+.new-chat-btn {
+  background: none;
+  border: none;
+  color: #5e548e;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.conversation-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.conversation-item {
+  padding: 12px 16px;
+  display: flex;
+  gap: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f2f5;
+  transition: background-color 0.2s;
+}
+
+.conversation-item:hover {
+  background-color: #f5f7fb;
+}
+
+.conversation-item.active {
+  background-color: #e8f0fe;
+}
+
+.conversation-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #5e548e;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.conversation-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.conversation-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.conversation-header strong {
+  font-size: 14px;
+  white-space: nowrap;
   overflow: hidden;
-  background-color: #f8faff;
+  text-overflow: ellipsis;
+}
+
+.conversation-header .time {
+  font-size: 12px;
+  color: #666;
+}
+
+.last-message {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 .chat-window {
   flex: 1;
-  overflow-y: auto;
-  padding: 16px;
   display: flex;
   flex-direction: column;
+  background-color: #f5f7fb;
+}
+
+.chat-header {
+  padding: 12px 20px;
+  background-color: white;
+  border-bottom: 1px solid #e1e4e8;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
   gap: 12px;
 }
 
-.message {
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #5e548e;
+  color: white;
   display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
 }
 
-.message.own-message {
-  justify-content: flex-end;
+.user-info h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.status {
+  color: #666;
+  font-size: 12px;
+}
+
+.messages-container {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.message-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.message-wrapper.sent {
+  align-items: flex-end;
+}
+
+.message-wrapper.received {
+  align-items: flex-start;
+}
+
+.message-meta {
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sender-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+.message-time {
+  font-size: 11px;
+  color: #999;
 }
 
 .message-bubble {
   max-width: 70%;
-  background-color: #e1f0ff;
   padding: 10px 14px;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.message.own-message .message-bubble {
-  background-color: #d6beda;
-  text-align: right;
-}
-
-.message-sender {
-  font-size: 12px;
-  font-weight: bold;
-  margin-bottom: 4px;
-  color: #333;
-}
-
-.message-text {
+  border-radius: 18px;
   font-size: 14px;
-  margin: 0;
-  color: #222;
+  line-height: 1.4;
+  position: relative;
 }
 
-.input-bar {
-  display: flex;
-  padding: 12px;
-  border-top: 1px solid #ccc;
-  background-color: #fff;
-}
-
-.input-bar input {
-  flex: 1;
-  padding: 10px 14px;
-  border: 1px solid #ccc;
-  border-radius: 20px;
-  margin-right: 10px;
-  outline: none;
-}
-
-.input-bar button {
-  padding: 10px 20px;
+.message-wrapper.sent .message-bubble {
   background-color: #5e548e;
   color: white;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+  border-top-right-radius: 4px;
 }
 
-.input-bar button:hover {
-  background-color: #4a3b86;
+.message-wrapper.received .message-bubble {
+  background-color: white;
+  color: #333;
+  border-top-left-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.message-input {
+  padding: 12px 20px;
+  background-color: white;
+  border-top: 1px solid #e1e4e8;
+}
+
+.input-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message-text-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  outline: none;
+  font-size: 14px;
+}
+
+.message-text-input:focus {
+  border-color: #5e548e;
+}
+
+.attachment-btn, .send-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background-color: transparent;
+  color: #666;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.send-btn {
+  color: #5e548e;
+}
+
+.send-btn:hover {
+  background-color: #f0f2f5;
+}
+
+.empty-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #666;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #ccc;
+  margin-bottom: 16px;
+}
+
+.empty-chat h3 {
+  margin: 0 0 8px;
+  font-size: 18px;
+}
+
+.empty-chat p {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 </style>

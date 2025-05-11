@@ -28,7 +28,7 @@
   <option disabled value="">Select your role</option>
   <option value="client">Client</option>
   <option value="freelancer">Freelancer</option>
-  <option value="admin">Admin</option>
+ 
 </select>
 
             </div>
@@ -110,7 +110,7 @@ const handleRegister = async () => {
 
 <style scoped>
 .auth-container {
-  background: url('https://i.pinimg.com/736x/48/ba/42/48ba4280002826bad53baeedae59e9c3.jpg') no-repeat center center fixed;
+  background: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
   background-size: cover;
   height: 100vh;
   display: flex;
@@ -129,7 +129,7 @@ const handleRegister = async () => {
   background: white;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 0px 12px rgba(243, 243, 243, 0.2);
   z-index: 2;
   width: 400px;
 }

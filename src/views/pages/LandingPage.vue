@@ -1,47 +1,75 @@
 <template>
-  <div class="visitor-page">
-    <!-- Navbar -->
-    <header class="navbar d-flex justify-between align-center px-4 py-3 shadow-sm">
-      <div class="d-flex flex-column align-start logo-container">
-        <img
-          src="/src/assets/images/lastlogo.png"
-          alt="Freelancyy Logo"
-          class="img-fluid logo-img mb-1"
-        />
-        <h2 class="mb-0 text-primary fw-bold">Freelancyy</h2>
-      </div>
-      <div class="d-flex gap-3">
-        <CButton color="light" @click="$router.push('/pages/login')" class="text-primary">Login</CButton>
-        <CButton color="primary" @click="$router.push('/pages/register')" class="text-light">Register</CButton>
-      </div>
-    </header>
+ <div class="visitor-page">
+  <!-- Navbar -->
+  <header class="navbar d-flex justify-between align-center px-5 py-3 shadow-sm bg-white rounded-bottom">
+  <!-- Centered Logo + Title -->
+  <div class="d-flex align-center gap-3 mx-auto header-center">
+    <img
+      src="/src/assets/images/lastlogo.png"
+      alt="Freelancyy Logo"
+      class="logo-img"
+      style="height: 48px;"
+    />
+    <h2 class="mb-0 fw-bold text-dark welcome-title">Welcome to Freelancy</h2>
+  </div>
 
-    <!-- Hero Section -->
-    <section class="hero-section d-flex flex-column justify-center align-center text-center text-dark px-4 py-5">
-      <div class="hero-content">
-        <h1 class="hero-title mb-4">
-          Freelancyy: Where brilliance meets opportunity,<br />
-          crafting Tunisia’s digital future, one project at a time.
-        </h1>
-        <p class="hero-subtitle mb-4 large-text">
-          Join a thriving platform connecting skilled freelancers with ambitious clients.
-        </p>
-      </div>
-    </section>
+  <!-- Auth Buttons -->
+  <div class="d-flex gap-3 ms-auto">
+    <CButton 
+      @click="$router.push('/pages/login')" 
+      class="px-4 py-2 text-white"
+      style="background-color: #1b73c6e3 ; border-radius: 8px;"
+    >
+      Login
+    </CButton>
+    <CButton 
+      @click="$router.push('/pages/register')" 
+      class="px-4 py-2 text-white"
+      style="background-color: #1b73c6e3 ; border-radius: 8px;"
+    >
+      Register
+    </CButton>
+  </div>
+</header>
 
+
+
+   <!-- Hero Section -->
+<section class="hero-section d-flex flex-column flex-md-row align-center justify-center text-center text-light px-4 py-5">
+  <!-- Left Image (Freelancer) -->
+  <div class="hero-image d-none d-md-block me-md-4">
+    <img src="/src/assets/images/freelancee.png" alt="Freelancer" class="hero-img" />
+  </div>
+
+  <!-- Hero Content -->
+  <div class="hero-content mx-3">
+    <h1 class="hero-title mb-4">
+      Freelancy: Where brilliance meets opportunity,<br />
+      crafting Tunisia’s digital future, one project at a time.
+    </h1>
+    <p class="hero-subtitle mb-4 large-text">
+      Join a thriving platform connecting skilled freelancers with ambitious clients.
+    </p>
+  </div>
+
+  <!-- Right Image (Client) -->
+  <div class="hero-image d-none d-md-block ms-md-4">
+    <img src="/src/assets/images/client.png" alt="Client" class="hero-img" />
+  </div>
+</section>
     <!-- Features Section -->
-    <section class="features py-6 bg-white">
+    <section class="features py-6 bg-light">
       <div class="container">
         <div class="text-center mb-5">
-          <h2 class="fw-bold text-primary-dark mb-3">Why Choose Freelancyy?</h2>
+          <h2 class="fw-bold text-primary-dark mb-3">Why Choose Freelancy?</h2>
           <p class="text-muted lead">A powerful ecosystem for freelancers & clients</p>
         </div>
 
         <div class="row g-4">
           <!-- Freelancers -->
           <div class="col-lg-6">
-            <div class="feature-box p-4 shadow-sm rounded-3 bg-white h-100">
-              <div class="icon-wrapper bg-blue-light mb-4">
+            <div class="feature-box p-4 shadow-lg rounded-3 bg-white h-100">
+              <div class="icon-wrapper mb-4">
                 <CIcon icon="cil-user" size="xl" class="text-primary" />
               </div>
               <h4 class="fw-semibold mb-3 text-primary-dark">For Freelancers</h4>
@@ -57,8 +85,8 @@
 
           <!-- Clients -->
           <div class="col-lg-6">
-            <div class="feature-box p-4 shadow-sm rounded-3 bg-white h-100">
-              <div class="icon-wrapper bg-blue-light mb-4">
+            <div class="feature-box p-4 shadow-lg rounded-3 bg-white h-100">
+              <div class="icon-wrapper mb-4">
                 <CIcon icon="cil-briefcase" size="xl" class="text-primary" />
               </div>
               <h4 class="fw-semibold mb-3 text-primary-dark">For Clients</h4>
@@ -84,46 +112,66 @@ import { CIcon } from '@coreui/icons-vue'
 
 <style scoped>
 .visitor-page {
-  min-height: 100vh;
-  background-color: #ffffff;
+  background-color: #eef2f8; /* Light background color */
+  background-image: url('/src/assets/images/your-background-image.jpg'); /* Optional: add a background image */
+  background-size: cover;
+  background-position: center center;
+  min-height: 100vh; /* Ensure the background covers the entire page */
 }
 
 .navbar {
-  background-color: #ffffff;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
 }
 
 .hero-section {
-  min-height: 80vh;
+  min-height: 60vh;
+  padding: 3rem 1rem;
   background: linear-gradient(135deg, #e1f0ff, #f8faff);
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+  flex-wrap: wrap;
 }
+
+.hero-img {
+  max-width: 200px;
+  height: auto;
+  object-fit: contain;
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    flex-direction: column;
+  }
+
+  .hero-img {
+    display: none; /* hide images on small screens */
+  }
+}
+
 
 .hero-title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #0f2573;
-  line-height: 1.4;
+  font-size: 2.2rem; /* slightly smaller */
+  margin-bottom: 1rem;
+  line-height: 1.3;
 }
 
-.hero-subtitle {
-  font-size: 1.2rem;
-  color: #6c757d;
-}
-
+.hero-subtitle,
 .large-text {
-  font-size: 2rem;
-  color: black;
-  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
 }
+
 
 .features {
-  background-color: #ffffff;
+  padding-top: 3rem;
+  padding-bottom: 3rem;
 }
 
 .feature-box {
-  transition: all 0.3s ease-in-out;
+  padding: 2rem; /* reduce internal padding */
 }
 
 .feature-box:hover {
@@ -132,7 +180,7 @@ import { CIcon } from '@coreui/icons-vue'
 }
 
 .text-primary-dark {
-  color: #0f2573;
+  color: #6e94cf;
 }
 
 .bg-blue-light {
@@ -150,22 +198,62 @@ import { CIcon } from '@coreui/icons-vue'
 }
 
 .text-primary {
-  color: #0f2573 !important;
+  color: #0d2a56 !important;
 }
 
 .text-light {
-  color: #ffffff !important;
+  color: #0a0e428a !important;
 }
 
-/* New logo style */
+
 .logo-container {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;       /* Centers horizontally */
+  justify-content: center;   /* Centers vertically (if the parent has height) */
+  text-align: center;
+  margin-top: 20px;
 }
 
 .logo-img {
-  width: 80px;
-  height: auto;
+  height: 60px;
+  object-fit: contain;
+  margin-bottom: 18px; /* spacing between image and text */
+}
+
+.logo-container h2 {
+  text-align: center;
+  font-weight: bold;
+  color: #5E548E;
+}
+
+
+.custom-blue-bg {
+  background-color: #0F2573 !important;
+  border-color: #0F2573 !important;
+}
+
+.custom-blue-bg {
+  background-color: #1b73c6e3 !important;
+  border-radius: 8px;
+}
+.header-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.welcome-title {
+  font-size: 1.8rem;
+  color: #3720a8;
+}
+
+.text-center.mb-5 {
+  margin-bottom: 2rem !important; /* tighten section header */
+}
+
+.row.g-4 {
+  row-gap: 2rem; /* tighter grid spacing */
 }
 </style>

@@ -1,242 +1,214 @@
 <template>
-  <div class="client-profile">
-    <!-- Titre du Profil -->
+  <div class="profile-wrapper">
     <h2 class="page-title">👤 Client Profile</h2>
 
-    <!-- Section des informations client -->
-    <CCard class="profile-card">
-      <CCardHeader>
-        <h5 class="section-title">Client Information</h5>
-      </CCardHeader>
+    <CCard class="profile-card position-relative">
+      <CButton
+        color="dark"
+        variant="outline"
+        class="modify-btn position-absolute"
+        @click="openEditProfileModal"
+      >
+        ✏️ Modify Profile
+      </CButton>
+
       <CCardBody>
         <CRow>
-          <CCol md="4">
-            <!-- Photo de Profil -->
+          <!-- Left Column -->
+          <CCol md="4" class="text-center d-flex flex-column align-items-center">
             <CAvatar size="l" src="/src/assets/images/user.jpg" class="custom-avatar" />
-            <CButton color="primary" class="mt-3" @click="openEditProfileModal" style="margin-left: 100px;"
-              >Modify Profile</CButton
-            >
+            <h5 class="name">{{ profile.first_name }} {{ profile.last_name }}</h5>
+            <p class="title">{{ profile.entreprise }}</p>
+            <CBadge color="primary" class="rate-badge">⭐ {{ profile.note }}/5</CBadge>
+
+            <div class="rating mt-2">
+              <span v-for="star in 5" :key="star" class="star" :class="{ filled: star <= profile.note }">★</span>
+            </div>
           </CCol>
+
+          <!-- Right Column -->
           <CCol md="8">
-            <div class="mb-3">
-              <CFormLabel for="entreprise">Company Name</CFormLabel>
-              <CFormInput
-                id="entreprise"
-                v-model="profile.entreprise"
-                placeholder="Enter your company name"
-                disabled
-              />
-            </div>
-            <div class="mb-3">
-              <CFormLabel for="description-entreprise">Company Description</CFormLabel>
-              <CFormTextarea
-                id="description-entreprise"
-                v-model="profile.description_entreprise"
-                rows="5"
-                placeholder="Enter a description of your company"
-                disabled
-              />
-            </div>
-            <div class="mb-3">
-              <CFormLabel for="besoins">Client Needs</CFormLabel>
-              <CFormTextarea
-                id="besoins"
-                v-model="profile.besoins"
-                rows="5"
-                placeholder="Enter your needs"
-                disabled
-              />
-            </div>
-            <div class="mb-3">
-              <CFormLabel for="note">Company Rating</CFormLabel>
-              <CFormInput
-                id="note"
-                v-model="profile.note"
-                placeholder="Company rating (out of 5)"
-                disabled
-              />
-            </div>
+            <section class="profile-section">
+              <h6>🏢 Company Description</h6>
+              <p>{{ profile.description_entreprise || 'No description provided' }}</p>
+            </section>
+
+            <section class="profile-section">
+              <h6>📌 Client Needs</h6>
+              <p>{{ profile.besoins || 'No needs specified' }}</p>
+            </section>
+
+            <section class="profile-section">
+              <h6>📧 Email</h6>
+              <p>{{ profile.email }}</p>
+            </section>
           </CCol>
-          
         </CRow>
       </CCardBody>
     </CCard>
 
-    <!-- Modal pour modifier le profil -->
-    <CModal v-model:visible="isModalVisible" size="lg">
-      <CModalHeader close-button>
+    <!-- Edit Modal -->
+    <CModal :visible="isModalVisible" @close="closeModal">
+      <CModalHeader>
         <CModalTitle>Edit Profile</CModalTitle>
       </CModalHeader>
       <CModalBody>
-        <div class="mb-3">
-          <CFormLabel for="editCompanyName">Company Name</CFormLabel>
-          <CFormInput
-            id="editCompanyName"
-            v-model="editedProfile.entreprise"
-            placeholder="Enter your company name"
-          />
-        </div>
-        <div class="mb-3">
-          <CFormLabel for="editCompanyDescription">Company Description</CFormLabel>
-          <CFormTextarea
-            id="editCompanyDescription"
-            v-model="editedProfile.description_entreprise"
-            rows="5"
-            placeholder="Enter a description of your company"
-          />
-        </div>
-        <div class="mb-3">
-          <CFormLabel for="editNeeds">Client Needs</CFormLabel>
-          <CFormTextarea
-            id="editNeeds"
-            v-model="editedProfile.besoins"
-            rows="5"
-            placeholder="Enter your needs"
-          />
-        </div>
-        <div class="mb-3">
-          <CFormLabel for="editRating">Company Rating</CFormLabel>
-          <CFormInput
-            id="editRating"
-            v-model="editedProfile.note"
-            placeholder="Company rating (out of 5)"
-          />
-        </div>
+        <CForm>
+          <CFormInput v-model="editedProfile.first_name" label="First Name" class="mb-3" />
+          <CFormInput v-model="editedProfile.last_name" label="Last Name" class="mb-3" />
+          <CFormInput v-model="editedProfile.email" label="Email" class="mb-3" />
+          <CFormInput v-model="editedProfile.entreprise" label="Company Name" class="mb-3" />
+          <CFormTextarea v-model="editedProfile.description_entreprise" label="Company Description" class="mb-3" />
+          <CFormTextarea v-model="editedProfile.besoins" label="Client Needs" class="mb-3" />
+          <CFormInput v-model="editedProfile.note" label="Rating" type="number" class="mb-3" />
+        </CForm>
       </CModalBody>
       <CModalFooter>
         <CButton color="secondary" @click="closeModal">Cancel</CButton>
-        <CButton color="primary" @click="updateProfile">Save Changes</CButton>
+        <CButton color="primary" @click="saveChanges">Save Changes</CButton>
       </CModalFooter>
     </CModal>
   </div>
 </template>
 
+
 <script setup>
-import {
-  CAvatar,
-  CButton,
-  CCard,
-  CCardBody,
-  CCardHeader,
-  CCol,
-  CFormInput,
-  CFormLabel,
-  CFormTextarea,
-  CModal,
-  CModalBody,
-  CModalFooter,
-  CModalHeader,
-  CModalTitle,
-  CRow,
-} from '@coreui/vue'
+import { ref, onMounted } from 'vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
-import { ref, onMounted } from 'vue'
+
+const isModalVisible = ref(false)
+const authStore = useAuthStore()
+const userId = authStore.user.id
 
 const profile = ref({
-    id:'',
-    entreprise: '',
-    description_entreprise: '',
-    besoins: '',
+  first_name: '',
+  last_name: '',
+  email: '',
+  entreprise: '',
+  description_entreprise: '',
+  besoins: '',
   note: '',
 })
 
 const editedProfile = ref({ ...profile.value })
-const isModalVisible = ref(false)
 
-function openEditProfileModal() {
-  console.log('Opening Modal with profile data:', profile.value) 
-  editedProfile.value = { ...profile.value } 
+const fetchProfile = async () => {
+  try {
+    const res = await axios.get(`http://localhost:8000/api/client-profile/${userId}`, {
+      headers: { Authorization: `Bearer ${authStore.token}` },
+    })
+    profile.value = res.data
+  } catch (err) {
+    console.error('Error fetching profile:', err)
+  }
+}
+
+const openEditProfileModal = () => {
+  editedProfile.value = { ...profile.value }
   isModalVisible.value = true
 }
 
-function closeModal() {
+const closeModal = () => {
   isModalVisible.value = false
 }
-const updateProfile = async (id) => {
-  const token = authStore.token
-  const profileId = profile.value.id 
-  try {
-    const res = await axios.put(`http://localhost:8000/api/profile/${profileId}`, editedProfile.value, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
-    })
-    profile.value = res.data
-    isModalVisible.value = false // Ferme le modal si succès
-    console.log('Profile updated successfully')
-  } catch (error) {
-    console.error('Error updating profile:', error.response?.data || error)
-  }
-}
-const fetchProfile = async (id) => {
-  const token = authStore.token
 
+const saveChanges = async () => {
   try {
-    const res = await axios.get(`http://localhost:8000/api/profile/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await axios.put(`http://localhost:8000/api/client-profile/${userId}`, editedProfile.value, {
+      headers: { Authorization: `Bearer ${authStore.token}` },
     })
-    profile.value = res.data
-  } catch (error) {
-    console.error('Error fetching profile:', error)
+    profile.value = { ...editedProfile.value }
+    isModalVisible.value = false
+  } catch (err) {
+    console.error('Error updating client profile:', err)
   }
 }
 
-const authStore = useAuthStore()
-  
-const userId = authStore.user.id
-
-console.log('log',userId)
-   
 onMounted(() => {
-  fetchProfile(userId) // Replace with dynamic user ID if needed
+  fetchProfile()
 })
 </script>
 
+
 <style scoped>
-.client-profile {
+.profile-wrapper {
+  background-color: #F8FAFF;
   padding: 2rem;
 }
 
 .page-title {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: bold;
-  color: #0f2573;
+  color: #0F2573;
   margin-bottom: 1rem;
 }
 
 .profile-card {
-  margin-bottom: 1.5rem;
+  background-color: white;
+  border: none;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(15, 37, 115, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-.section-title {
-  font-size: 1.2rem;
-  color: #5e548e;
-  font-weight: 500;
-}
-
-.c-button {
-  font-size: 0.9rem;
-  padding: 0.5rem 1rem;
+.modify-btn {
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  padding: 0.4rem 1rem;
   border-radius: 0.8rem;
+  font-size: 0.9rem;
+}
+
+.profile-photo {
+  border-radius: 50%;
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border: 3px solid #0F2573;
+}
+
+.name {
+  color: #0F2573;
+  font-weight: 600;
+}
+
+.title {
+  color: #5E548E;
+  font-size: 0.95rem;
+}
+
+.rate-badge {
+  background-color: #0F2573;
+  color: white;
+  font-size: 0.85rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.6rem;
+}
+
+.rating {
   margin-top: 1rem;
 }
 
-.c-avatar {
-  margin-bottom: 1rem;
-}
-
-.c-modal-title {
+.star {
   font-size: 1.5rem;
-  color: #0f2573;
+  color: #B0B0B0;
+  margin-right: 0.2rem;
 }
 
-.c-input,
-.c-textarea {
-  margin-bottom: 1rem;
+.star.filled {
+  color: #FFD700;
+}
+
+.profile-section {
+  margin-bottom: 1.5rem;
+}
+
+.link {
+  color: #0F2573;
+  text-decoration: underline;
 }
 .custom-avatar {
   width: 150px;     

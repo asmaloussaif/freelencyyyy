@@ -90,7 +90,7 @@ const handleLogin = async () => {
 
 <style scoped>
 .auth-container {
-  background: url('https://i.pinimg.com/736x/48/ba/42/48ba4280002826bad53baeedae59e9c3.jpg') no-repeat center center fixed;
+  background: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
   background-size: cover;
   height: 100vh;
   display: flex;
@@ -106,10 +106,10 @@ const handleLogin = async () => {
   z-index: 1;
 }
 .loginBox {
-  background:#485161;
+  background:#ffffff;
   padding: 30px;
   border-radius: 12px;
-  box-shadow: 0px 0px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0px 0px 12px rgb(255, 253, 253);
   z-index: 2;
   width: 400px;
 }

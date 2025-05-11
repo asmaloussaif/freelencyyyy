@@ -17,7 +17,7 @@
                   <CTableHeaderCell v-else-if="role === 'client'">Freelancer</CTableHeaderCell>
                   <CTableHeaderCell>Amount</CTableHeaderCell>
                   <CTableHeaderCell>Status</CTableHeaderCell>
-                  <CTableHeaderCell>Date</CTableHeaderCell>
+                  <CTableHeaderCell>deadline</CTableHeaderCell>
                   <CTableHeaderCell>Action</CTableHeaderCell>
                 </CTableRow>
               </CTableHead>

@@ -7,6 +7,49 @@
         </CCardHeader>
 
         <CCardBody>
+          <!-- ✅ FILTER BAR -->
+          <div class="d-flex gap-3 mb-3 flex-wrap">
+            <div>
+              <label class="form-label"> Budget (TD)</label>
+              <input
+                type="number"
+                class="form-control"
+                v-model="filters.maxBudget"
+                placeholder="Enter max budget"
+              />
+            </div>
+
+            <div>
+              <label class="form-label">Deadline Before</label>
+              <input
+                type="date"
+                class="form-control"
+                v-model="filters.deadline"
+              />
+            </div>
+
+            <div>
+              <label class="form-label">Category</label>
+              <select v-model="filters.category" class="form-select">
+                <option value="">All</option>
+                <option v-for="cat in categories" :key="cat" :value="cat">
+                  {{ cat }}
+                </option>
+              </select>
+            </div>
+
+            <div>
+              <label class="form-label d-block">Sort by Deadline</label>
+              <CButton
+                size="sm"
+                color="info"
+                @click="sortAsc = !sortAsc"
+              >
+                {{ sortAsc ? 'Oldest First' : 'Newest First' }}
+              </CButton>
+            </div>
+          </div>
+
           <CAlert v-if="showAlert" color="success" dismissible class="mt-3">
             Successfully applied to the project!
           </CAlert>
@@ -24,26 +67,19 @@
             </CTableHead>
 
             <CTableBody>
-              <CTableRow v-for="(offer, index) in offers" :key="offer.id">
+              <CTableRow v-for="(offer, index) in filteredOffers" :key="offer.id">
                 <CTableHeaderCell scope="row">{{ index + 1 }}</CTableHeaderCell>
-
                 <CTableDataCell>
                   <CIcon icon="cil-lightbulb" class="me-2 text-info" />
                   {{ offer.titre }}
                 </CTableDataCell>
-
                 <CTableDataCell>
                   <span class="badge bg-info">
                     {{ offer.categorie ?? 'Non spécifiée' }}
                   </span>
                 </CTableDataCell>
-
                 <CTableDataCell>{{ offer.budget }} TND</CTableDataCell>
-
-                <CTableDataCell>
-                  {{ formatDate(offer.date_limite) }}
-                </CTableDataCell>
-
+                <CTableDataCell>{{ formatDate(offer.date_limite) }}</CTableDataCell>
                 <CTableDataCell>
                   <template v-if="appliedProjectIds.includes(offer.id)">
                     <CBadge color="success">Already Applied</CBadge>
@@ -67,11 +103,8 @@
     </CCol>
   </CRow>
 
-  <!-- ✅ Modal placé en dehors de la boucle -->
   <CModal :visible="showModal" @close="closeModal">
-    <CModalHeader>
-      <CModalTitle>Motivation</CModalTitle>
-    </CModalHeader>
+    <CModalHeader><CModalTitle>Motivation</CModalTitle></CModalHeader>
     <CModalBody>
       <CForm>
         <CFormTextarea
@@ -91,124 +124,104 @@
 
 <script setup>
 import {
-  CRow,
-  CCol,
-  CCard,
-  CCardHeader,
-  CCardBody,
-  CAlert,
-  CTable,
-  CTableHead,
-  CTableRow,
-  CTableHeaderCell,
-  CTableBody,
-  CTableDataCell,
-  CButton,
+  CRow, CCol, CCard, CCardHeader, CCardBody,
+  CAlert, CTable, CTableHead, CTableRow, CTableHeaderCell,
+  CTableBody, CTableDataCell, CButton, CModal, CModalHeader,
+  CModalTitle, CModalBody, CModalFooter, CForm, CFormTextarea,
+  CBadge
 } from '@coreui/vue'
-import {
-  CModal,
-  CModalHeader,
-  CModalTitle,
-  CModalBody,
-  CModalFooter,
-  CForm,
-  CFormTextarea,
-} from '@coreui/vue'
-
 import CIcon from '@coreui/icons-vue'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
-import { ref, onMounted } from 'vue'
-import { defineComponent, computed, h, resolveComponent } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 const authStore = useAuthStore()
-//const appliedProjectIds = ref([])
 const showModal = ref(false)
 const selectedProjectId = ref(null)
 const motivation = ref('')
 const showAlert = ref(false)
-const offers = ref([
-  {
-    id: '',
-    titre: '',
-    categorie: '',
-    budget: '',
-    date_limite: '',
-  },
-])
+const offers = ref([])
+const filters = ref({ maxBudget: '', deadline: '', category: '' })
+const sortAsc = ref(true)
+const categories = ref([])
+
 const appliedProjectIds = computed(() => authStore.appliedProjects)
 
 const fetchProject = async () => {
   const token = authStore.token
   try {
-    const res = await axios.get(`http://localhost:8000/api/projects`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const res = await axios.get('http://localhost:8000/api/projects', {
+      headers: { Authorization: `Bearer ${token}` },
     })
 
-    offers.value = res.data
-      .filter((project) => project.statut === 'open')
-      .map((project) => ({
-        id: project.id || '',
-        titre: project.titre || '',
-        categorie: project.categorie || '',
-        budget: project.budget || '',
-        date_limite: project.date_limite || '',
-      }))
+    const openProjects = res.data.filter(project => project.statut === 'open')
 
-    console.log(offers.value)
+    offers.value = openProjects.map(project => ({
+      id: project.id || '',
+      titre: project.titre || '',
+      categorie: project.categorie || '',
+      budget: project.budget || '',
+      date_limite: project.date_limite || '',
+    }))
+
+    categories.value = [...new Set(openProjects.map(p => p.categorie).filter(Boolean))]
   } catch (error) {
     console.error('Error fetching projects:', error)
   }
 }
 
-onMounted(() => {
-  fetchProject()
-  fetchAppliedProjects()
+const filteredOffers = computed(() => {
+  let result = offers.value.filter(offer => {
+    const matchesBudget = !filters.value.maxBudget || parseFloat(offer.budget) <= parseFloat(filters.value.maxBudget)
+    const matchesDeadline = !filters.value.deadline || new Date(offer.date_limite) <= new Date(filters.value.deadline)
+    const matchesCategory = !filters.value.category || offer.categorie === filters.value.category
+    return matchesBudget && matchesDeadline && matchesCategory
+  })
+
+  result.sort((a, b) => {
+    const dateA = new Date(a.date_limite)
+    const dateB = new Date(b.date_limite)
+    return sortAsc.value ? dateA - dateB : dateB - dateA
+  })
+
+  return result
 })
+
 const applyToOffer = (projectId) => {
   selectedProjectId.value = projectId
   showModal.value = true
 }
+
 const closeModal = () => {
   showModal.value = false
   motivation.value = ''
   selectedProjectId.value = null
 }
+
 const submitApplication = async () => {
   const token = authStore.token
   try {
-    const res = await axios.post(
-      'http://localhost:8000/api/applications',
-      {
-        project_id: selectedProjectId.value,
-        motivation: motivation.value,
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      },
-    )
-    authStore.addAppliedProject(selectedProjectId.value)
-    showModal.value = false
-    motivation.value = ''
-    selectedProjectId.value = null
-    showAlert.value = true
+    await axios.post('http://localhost:8000/api/applications', {
+      project_id: selectedProjectId.value,
+      motivation: motivation.value,
+    }, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
 
+    authStore.addAppliedProject(selectedProjectId.value)
+    closeModal()
+    showAlert.value = true
     setTimeout(() => (showAlert.value = false), 3000)
   } catch (error) {
     console.error('Failed to apply:', error)
     alert('Error submitting application.')
   }
 }
+
 const fetchAppliedProjects = async () => {
   try {
     const res = await axios.get('http://localhost:8000/api/my-applications', {
-      headers: {
-        Authorization: `Bearer ${authStore.token}`,
-      },
+      headers: { Authorization: `Bearer ${authStore.token}` },
     })
     const projectIds = res.data.map(app => app.project_id)
     authStore.setAppliedProjects(projectIds)
@@ -216,10 +229,16 @@ const fetchAppliedProjects = async () => {
     console.error('Failed to load applied projects:', error)
   }
 }
+
 function formatDate(dateString) {
   const options = { year: 'numeric', month: 'short', day: 'numeric' }
   return new Date(dateString).toLocaleDateString('fr-FR', options)
 }
+
+onMounted(() => {
+  fetchProject()
+  fetchAppliedProjects()
+})
 </script>
 
 <style scoped>
@@ -239,7 +258,7 @@ function formatDate(dateString) {
 
 .offer-table {
   background-color: white;
-  color: #333;
+  color: #2225d8;
   border-collapse: collapse;
   width: 100%;
 }
@@ -263,6 +282,6 @@ function formatDate(dateString) {
 }
 
 .offer-table tr:hover .badge {
-  background-color: #5e548e;
+  background-color: #3812f7;
 }
 </style>
