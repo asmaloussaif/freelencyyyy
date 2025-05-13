@@ -28,6 +28,11 @@ const routes = [
     component: () => import('@/views/pages/Register.vue'),
   },
   {
+    path: '/pages/forgot-password',
+    name: 'ForgotPassword',
+    component: () => import('@/views/pages/ForgotPassword.vue'),
+  },
+  {
     path: '/dashboard',
     name: 'DashboardRoot',
     component: DefaultLayout,
