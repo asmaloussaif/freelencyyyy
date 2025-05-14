@@ -1,126 +1,3 @@
-<script setup>
-import { ref, onMounted } from 'vue'
-import { Pie } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js'
-import axios from 'axios'
-import { useAuthStore } from '@/stores/authStore'
-import { useRouter } from 'vue-router'
-const router = useRouter()
-const authStore = useAuthStore()
-ChartJS.register(Title, Tooltip, Legend, ArcElement)
-
-const statusData = ref([])
-const deadlineData = ref([])
-
-const pieChartData = ref({ labels: [], datasets: [] })
-const secondPieChartData = ref({ labels: [], datasets: [] })
-
-const chartOptions = {
-  responsive: true,
-  plugins: {
-    legend: { position: 'bottom' },
-  },
-}
-
-const summary = ref({ total: 0, completed: 0, in_progress: 0, open: 0 })
-const selectedSkill = ref('')
-const selectedRating = ref('')
-const selectedHourlyRate = ref('')
-const skills = ref(['Web Development', 'Graphic Design', 'SEO'])
-const ratings = ref([1, 2, 3, 4, 5])
-
-const freelancers = ref([])
-const freelancerProfiles = ref([])
-const filteredFreelancers = ref([])
-const fetchUser = async () => {
-  const headers = { Authorization: `Bearer ${authStore.token}` }
-
-  try {
-    const response = await axios.get('http://127.0.0.1:8000/api/freelencerId', { headers })
-    const userIds = response.data
-    console.log('User IDs:', userIds)
-    const profileResponse = await axios.get('http://127.0.0.1:8000/api/freelancers_list', {
-      headers,
-      params: { user_ids: userIds },
-    })
-
-    freelancers.value = profileResponse.data
-    console.log(freelancers.value)
-  } catch (error) {
-    console.error('Error fetching freelancers:', error)
-  }
-}
-const filterFreelancers = () => {
-  filteredFreelancers.value = freelancers.value.filter((f) => {
-    const skillMatch = !selectedSkill.value || f.competences.includes(selectedSkill.value)
-    const ratingMatch = !selectedRating.value || f.note >= parseInt(selectedRating.value)
-    const rateMatch = !selectedHourlyRate.value || f.tarif <= parseInt(selectedHourlyRate.value)
-    return skillMatch && ratingMatch && rateMatch
-  })
-}
-
-const userName = ref('')
-onMounted(async () => {
-  fetchUser()
-
-  const headers = { Authorization: `Bearer ${authStore.token}` }
-  userName.value = authStore.user.name
-
-  const statusRes = await axios.get('http://127.0.0.1:8000/api/charts/status', { headers })
-  statusData.value = statusRes.data
-  pieChartData.value = {
-    labels: statusData.value.map((item) => item.statut),
-    datasets: [
-      {
-        label: 'Projects by Status',
-        data: statusData.value.map((item) => item.count),
-        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
-      },
-    ],
-  }
-
-  const deadlineRes = await axios.get('http://127.0.0.1:8000/api/charts/deadlines', { headers })
-  deadlineData.value = deadlineRes.data
-  secondPieChartData.value = {
-    labels: deadlineData.value.map((item) => item.month),
-    datasets: [
-      {
-        label: 'Projects by Deadline',
-        data: deadlineData.value.map((item) => item.count),
-        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'],
-      },
-    ],
-  }
-
-  const summaryRes = await axios.get('http://127.0.0.1:8000/api/projects/summary', { headers })
-  let total = 0
-  summaryRes.data.forEach((item) => {
-    total += item.total
-    if (item.statut === 'completed') summary.value.completed = item.total
-    else if (item.statut === 'in_progress') summary.value.in_progress = item.total
-    else if (item.statut === 'open') summary.value.open = item.total
-  })
-  summary.value.total = total
-
-  filterFreelancers()
-})
-const goToUserManagement = () => {
-  router.push('/admin/customer-freelancer-management');
-};
-
-const goToProjectManagement = () => {
-  router.push('/admin/inbox');
-};
-
-const goToClaims = () => {
-  router.push('/admin/claim-management');
-};
-const goToChat = () => {
-  router.push('/dashboard/inbox')
-}
-const userRole = authStore.role
-
-</script>
 <template>
   <div class="dashboard-container">
     <!-- FREELANCER VIEW -->
@@ -129,12 +6,14 @@ const userRole = authStore.role
         <h3>Welcome back, {{ userName }}! 👋</h3>
         <p>Here’s what’s happening in your dashboard today.</p>
       </div>
-      <div class="summary-container">
-        <div class="summary-card" v-for="(value, key) in summary" :key="key">
-          <h6>{{ key.replace('_', ' ').toUpperCase() }}</h6>
-          <p>{{ value }}</p>
-        </div>
-      </div>
+
+       <div class="summary-container">
+    <div class="summary-card" v-for="(value, key) in summary" :key="key">
+      <h6>{{ labels[key] || key }}</h6>
+      <p>{{ value }}</p>
+    </div>
+  </div>
+
       <div class="charts-container">
         <div class="chart-card">
           <h5 class="chart-title">📊 Projects by Status</h5>
@@ -145,6 +24,7 @@ const userRole = authStore.role
           <Pie :data="secondPieChartData" :options="chartOptions" />
         </div>
       </div>
+
       <div class="activity-card">
         <h5>⚡ Recent Activity</h5>
         <ul>
@@ -154,6 +34,7 @@ const userRole = authStore.role
         </ul>
       </div>
     </template>
+
     <!-- ADMIN VIEW -->
     <template v-else-if="userRole === 'admin'">
       <div class="welcome-message">
@@ -161,27 +42,24 @@ const userRole = authStore.role
         <p>Here’s an overview of the platform's activity today.</p>
       </div>
 
-      <!-- Summary Cards -->
-      <div class="summary-container">
-        <div class="summary-card" v-for="(value, key) in adminSummary" :key="key">
-          <h6>{{ key.replace('_', ' ').toUpperCase() }}</h6>
-          <p>{{ value }}</p>
-        </div>
-      </div>
+       <div class="summary-container">
+    <div class="summary-card" v-for="(value, key) in summary" :key="key">
+      <h6>{{ labels[key] || key }}</h6>
+      <p>{{ value }}</p>
+    </div>
+  </div>
 
-      <!-- Charts -->
       <div class="charts-container">
         <div class="chart-card">
           <h5 class="chart-title">👤 User Distribution</h5>
-         <!--  <Pie :data="userChartData" :options="chartOptions" /> -->
+          <!-- <Pie :data="userChartData" :options="chartOptions" /> -->
         </div>
         <div class="chart-card">
           <h5 class="chart-title">📊 Projects by Status</h5>
-        <!--   <Pie :data="projectChartData" :options="chartOptions" /> -->
+          <!-- <Pie :data="projectChartData" :options="chartOptions" /> -->
         </div>
       </div>
 
-      <!-- Latest Reclamations -->
       <div class="activity-card">
         <h5>📩 Latest Claims</h5>
         <ul>
@@ -191,7 +69,6 @@ const userRole = authStore.role
         </ul>
       </div>
 
-      <!-- Management Shortcuts -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
         <button class="admin-btn" @click="goToUserManagement">Manage Users</button>
         <button class="admin-btn" @click="goToProjectManagement">Manage Projects</button>
@@ -199,11 +76,13 @@ const userRole = authStore.role
       </div>
     </template>
 
+    <!-- CLIENT VIEW -->
     <template v-else>
       <div class="welcome-message">
         <h3>Welcome back, {{ userName }}! 👋</h3>
         <p>Here’s what’s happening in your dashboard today.</p>
       </div>
+
       <div class="filter-bar">
         <div class="filter-item">
           <select v-model="selectedSkill" @change="filterFreelancers" class="filter-select">
@@ -214,9 +93,7 @@ const userRole = authStore.role
         <div class="filter-item">
           <select v-model="selectedRating" @change="filterFreelancers" class="filter-select">
             <option value="">Select Rating</option>
-            <option v-for="rating in ratings" :key="rating" :value="rating"
-              >{{ rating }} & Up</option
-            >
+            <option v-for="rating in ratings" :key="rating" :value="rating">{{ rating }} & Up</option>
           </select>
         </div>
         <div class="filter-item">
@@ -228,12 +105,14 @@ const userRole = authStore.role
           </select>
         </div>
       </div>
+
       <div class="summary-container">
-        <div class="summary-card" v-for="(value, key) in summary" :key="key">
-          <h6>{{ key.replace('_', ' ').toUpperCase() }}</h6>
-          <p>{{ value }}</p>
-        </div>
-      </div>
+    <div class="summary-card" v-for="(value, key) in summary" :key="key">
+      <h6>{{ labels[key] || key }}</h6>
+      <p>{{ value }}</p>
+    </div>
+  </div>
+
       <div class="charts-container">
         <div class="chart-card">
           <h5 class="chart-title">📊 Projects by Status</h5>
@@ -244,55 +123,124 @@ const userRole = authStore.role
           <Pie :data="secondPieChartData" :options="chartOptions" />
         </div>
       </div>
+
       <div>
         <h2 class="text-xl font-semibold text-[#0F2573] mb-4">Suggested Freelancers</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div
-            v-for="freelancer in filteredFreelancers"
-            :key="freelancer.id"
-            class="freelancer-card"
-          >
+          <div v-for="freelancer in filteredFreelancers" :key="freelancer.id" class="freelancer-card">
             <div class="flex items-center gap-4">
               <div>
                 <h3 class="font-bold">{{ freelancer.user.name }} {{ freelancer.user.lastName }}</h3>
-                <p class="text-sm text-gray-500">
-                  {{
-                    freelancer.competences
-                      .split(',')
-                      .map((skill) => skill.trim())
-                      .join(', ')
-                  }}
-                </p>
+                <p class="text-sm text-gray-500">{{ freelancer.competences.join(', ') }}</p>
               </div>
-            </div>
-            <p class="mt-2 text-sm">{{ freelancer.experience }}</p>
-            <p class="mt-2 text-sm">{{ freelancer.portfolio }}</p>
-            <div class="mt-2 text-sm font-semibold text-[#0F2573]">{{ freelancer.tarif }}/hr</div>
-            <div>
-              <button
-                class="mt-2 px-3 py-2 bg-[#0F2573] text-white rounded-full hover:bg-[#091c4d] transition text-sm flex items-center gap-2"
-                @click="goToChat"
-              >
-                <i class="fa fa-comment-dots"></i>
-                Chat
-              </button>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Activity -->
-      <div class="activity-card">
-        <h5>⚡ Recent Activity</h5>
-        <ul>
-          <li>💼 Client A posted a new project</li>
-          <li>✅ Project “UI Design” marked as completed</li>
-          <li>📅 Deadline approaching for “Backend Refactor”</li>
-        </ul>
-      </div>
     </template>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted } from 'vue'
+import { Pie } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js'
+import axios from 'axios'
+import { useAuthStore } from '@/stores/authStore'
+import { useRouter } from 'vue-router'
+
+ChartJS.register(Title, Tooltip, Legend, ArcElement)
+
+const router = useRouter()
+const authStore = useAuthStore()
+const userRole = authStore.role
+const userName = ref(authStore.user.name)
+
+const summary = ref({ total: 0, completed: 0, in_progress: 0, open: 0 })
+
+const labels = {
+  total: 'Total Projects',
+  completed: 'Completed Projects',
+  in_progress: 'In Progress',
+  open: 'Open for Commits',
+}
+
+const pieChartData = ref({ labels: [], datasets: [] })
+const secondPieChartData = ref({ labels: [], datasets: [] })
+const chartOptions = { responsive: true, plugins: { legend: { position: 'bottom' } } }
+
+const selectedSkill = ref('')
+const selectedRating = ref('')
+const selectedHourlyRate = ref('')
+const skills = ref(['Web Development', 'Graphic Design', 'SEO'])
+const ratings = ref([1, 2, 3, 4, 5])
+
+const freelancers = ref([])
+const filteredFreelancers = ref([])
+
+const fetchUser = async () => {
+  const headers = { Authorization: `Bearer ${authStore.token}` }
+
+  try {
+    const idsRes = await axios.get('http://127.0.0.1:8000/api/freelencerId', { headers })
+    const userIds = idsRes.data
+    const profileRes = await axios.get('http://127.0.0.1:8000/api/freelancers_list', {
+      headers,
+      params: { user_ids: userIds },
+    })
+    freelancers.value = profileRes.data
+  } catch (error) {
+    console.error('Error fetching freelancers:', error)
+  }
+}
+
+const filterFreelancers = () => {
+  filteredFreelancers.value = freelancers.value.filter(f => {
+    const skillMatch = !selectedSkill.value || f.competences.includes(selectedSkill.value)
+    const ratingMatch = !selectedRating.value || f.note >= parseInt(selectedRating.value)
+    const rateMatch = !selectedHourlyRate.value || f.tarif <= parseInt(selectedHourlyRate.value)
+    return skillMatch && ratingMatch && rateMatch
+  })
+}
+
+onMounted(async () => {
+  const headers = { Authorization: `Bearer ${authStore.token}` }
+  await fetchUser()
+
+  const [statusRes, deadlineRes, summaryRes] = await Promise.all([
+    axios.get('http://127.0.0.1:8000/api/charts/status', { headers }),
+    axios.get('http://127.0.0.1:8000/api/charts/deadlines', { headers }),
+    axios.get('http://127.0.0.1:8000/api/projects/summary', { headers }),
+  ])
+
+  statusData.value = statusRes.data
+  pieChartData.value = {
+    labels: statusData.value.map(i => i.statut),
+    datasets: [{ label: 'Projects by Status', data: statusData.value.map(i => i.count), backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'] }],
+  }
+
+  deadlineData.value = deadlineRes.data
+  secondPieChartData.value = {
+    labels: deadlineData.value.map(i => i.month),
+    datasets: [{ label: 'Projects by Deadline', data: deadlineData.value.map(i => i.count), backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56'] }],
+  }
+
+  let total = 0
+  summaryRes.data.forEach(item => {
+    total += item.total
+    if (item.statut === 'completed') summary.value.completed = item.total
+    else if (item.statut === 'in_progress') summary.value.in_progress = item.total
+    else if (item.statut === 'open') summary.value.open = item.total
+  })
+  summary.value.total = total
+
+  filterFreelancers()
+})
+
+const goToUserManagement = () => router.push('/admin/customer-freelancer-management')
+const goToProjectManagement = () => router.push('/admin/inbox')
+const goToClaims = () => router.push('/admin/claim-management')
+</script>
 
 <style scoped>
 .dashboard-container {

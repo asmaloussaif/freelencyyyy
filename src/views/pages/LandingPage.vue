@@ -10,7 +10,8 @@
       class="logo-img"
       style="height: 48px;"
     />
-    <h2 class="mb-0 fw-bold text-dark welcome-title">Welcome to Freelancy</h2>
+<h2 class="mb-0 fw-bold welcome-title" style="color: #5E86C0;">Welcome to Freelancy</h2>
+
   </div>
 
   <!-- Auth Buttons -->
@@ -38,17 +39,17 @@
 <section class="hero-section d-flex flex-column flex-md-row align-center justify-center text-center text-light px-4 py-5">
   <!-- Left Image (Freelancer) -->
   <div class="hero-image d-none d-md-block me-md-4">
-    <img src="/src/assets/images/freelancee.png" alt="Freelancer" class="hero-img" />
+    <img src="/src/assets/images/freelance.png" alt="Freelancer" class="hero-img" />
   </div>
 
   <!-- Hero Content -->
   <div class="hero-content mx-3">
     <h1 class="hero-title mb-4">
-      Freelancy: Where brilliance meets opportunity,<br />
-      crafting Tunisia’s digital future, one project at a time.
+     "Freelancy: Where talent meets opportunity,<br />
+     Shaping Tunisia’s digital future, one project at a time.
     </h1>
     <p class="hero-subtitle mb-4 large-text">
-      Join a thriving platform connecting skilled freelancers with ambitious clients.
+    A vibrant platform connecting skilled freelancers with ambitious clients.
     </p>
   </div>
 
@@ -74,11 +75,12 @@
               </div>
               <h4 class="fw-semibold mb-3 text-primary-dark">For Freelancers</h4>
               <ul class="list-unstyled feature-list">
-                <li><CIcon icon="cil-check" class="text-primary me-2" />Create a professional profile</li>
+                <li><CIcon icon="cil-check" class="text-primary me-2" />Create  profile</li>
                 <li><CIcon icon="cil-check" class="text-primary me-2" />Browse and apply to projects</li>
                 <li><CIcon icon="cil-check" class="text-primary me-2" />Manage your portfolio & experience</li>
                 <li><CIcon icon="cil-check" class="text-primary me-2" />Receive ratings and feedback</li>
-                <li><CIcon icon="cil-check" class="text-primary me-2" />Secure payment tracking</li>
+                <li><CIcon icon="cil-check" class="text-primary me-2" />prepare the invoices</li>
+                <li><CIcon icon="cil-check" class="text-primary me-2" />Communicate and collaborate</li>
               </ul>
             </div>
           </div>
@@ -96,6 +98,7 @@
                 <li><CIcon icon="cil-check" class="text-primary me-2" />Communicate and collaborate</li>
                 <li><CIcon icon="cil-check" class="text-primary me-2" />Track progress and manage invoices</li>
                 <li><CIcon icon="cil-check" class="text-primary me-2" />Rate and review completed work</li>
+                <li><CIcon icon="cil-check" class="text-primary me-2" />Manage your portfolio</li>
               </ul>
             </div>
           </div>
@@ -121,12 +124,13 @@ import { CIcon } from '@coreui/icons-vue'
 
 .navbar {
   padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
+  padding-bottom: 2rem !important;
+   text-align: center;
 }
 
 .hero-section {
-  min-height: 60vh;
-  padding: 3rem 1rem;
+  min-height: 30vh; 
+  padding: 2rem 1rem; 
   background: linear-gradient(135deg, #e1f0ff, #f8faff);
   display: flex;
   align-items: center;
@@ -153,25 +157,26 @@ import { CIcon } from '@coreui/icons-vue'
 
 
 .hero-title {
-  font-size: 2.2rem; /* slightly smaller */
-  margin-bottom: 1rem;
+ font-size: 1.8rem; /* was 2.2rem */
+  margin-bottom: 0.8rem;
   line-height: 1.3;
+    color: #17348a;
 }
 
 .hero-subtitle,
 .large-text {
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-}
+   font-size: 1.5rem; /* was 1.2rem */
+  margin-bottom: 0.8rem;
+  color: #2248ba;}
 
 
 .features {
-  padding-top: 3rem;
-  padding-bottom: 3rem;
+  padding-top: 0.5rem;
+  padding-bottom: 2rem;
 }
 
 .feature-box {
-  padding: 2rem; /* reduce internal padding */
+  padding: 1rem; /* reduce internal padding */
 }
 
 .feature-box:hover {
@@ -250,7 +255,7 @@ import { CIcon } from '@coreui/icons-vue'
 }
 
 .text-center.mb-5 {
-  margin-bottom: 2rem !important; /* tighten section header */
+ margin-bottom: 1.5rem !important; /* tighten section header */
 }
 
 .row.g-4 {

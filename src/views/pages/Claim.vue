@@ -42,7 +42,7 @@
           <CButton
             type="submit"
             class="w-100 py-2 mt-4 shadow-sm fs-5"
-            style="background-color: #a8d8ff; border-color: #a8d8ff"
+            style="background-color: #266ca9  ; border-color: #a8d8ff"
           >
             Submit Claim
           </CButton>
@@ -195,7 +195,7 @@ onMounted(() => {
 .claim-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 6px 16px rgba(15, 37, 115, 0.15);
-  border-color: #266ca9 !important;
+  border-color: #100f65 !important;
 }
 
 button:focus,
@@ -206,7 +206,7 @@ textarea:focus {
 }
 
 ::placeholder {
-  color: #7d9fc7 !important;
+  color: #2146b4 !important;
   opacity: 1;
 }
 </style>

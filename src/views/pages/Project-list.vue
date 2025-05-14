@@ -47,7 +47,7 @@
             <div class="d-flex gap-2 mt-2">
               <CButton color="success" size="sm" @click="confirmAction(application.id, 'accepted')">Accept</CButton>
               <CButton color="info" size="sm" @click="goToChat">Chat</CButton>
-              <CButton color="danger" size="sm" @click="confirmAction(application.id, 'declined')">Decline</CButton>
+              <CButton color="danger" size="sm" @click="confirmAction(application.id, 'refuse')">refuse</CButton>
             </div>
           </div>
         </div>

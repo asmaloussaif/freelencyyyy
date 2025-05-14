@@ -35,7 +35,7 @@
               color="success"
               class="shadow-sm rounded-pill px-4"
               @click="openAddModal"
-              style="background-color: #28a745; border-color: #28a745"
+              style="background-color:#266ca9 ; border-color: #28a745"
             >
               + Add Project
             </CButton>
@@ -114,15 +114,7 @@
                   >
                     {{ project.rating ? project.rating + ' ★' : 'Rate' }}
                   </CButton>
-                  <CButton
-                    v-if="transactionMap[project.id] === false"
-                    color="primary"
-                    size="sm"
-                    class="me-2 shadow-sm rounded-pill px-3"
-                    @click="opentransactionModal(project)"
-                  >
-                    Add Transaction
-                  </CButton>
+                 
                 </CTableDataCell>
               </CTableRow>
             </CTableBody>
@@ -602,16 +594,16 @@ const showSuccessToast = (message, isError = false) => {
 
 /* Table hover effect */
 .table-hover tbody tr:hover {
-  background-color: #f0f8ff !important;
+  background-color: #151516 !important;
 }
 
-/* Form placeholders */
+
 ::placeholder {
   color: #7d9fc7 !important;
   opacity: 1;
 }
 
-/* Badge styling */
+
 .badge {
   border-radius: 12px;
   font-weight: 500;
@@ -644,11 +636,11 @@ const showSuccessToast = (message, isError = false) => {
   background-color: #155724;
 }
 
-/* Focus states */
+
 button:focus,
 input:focus,
 select:focus {
-  box-shadow: 0 0 0 0.2rem rgba(38, 108, 169, 0.25) !important;
+  box-shadow: 0 0 0 0.2rem rgba(122, 183, 237, 0.25) !important;
   border-color: #266ca9 !important;
 }
 </style>

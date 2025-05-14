@@ -64,7 +64,7 @@
   position: relative;
   width: 100%;
   height: 100vh;
-  background: linear-gradient(135deg, #5e548e, #9f86c0);
+   background: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -125,7 +125,7 @@
 }
 
 .form input:focus {
-  border-color: #5e548e;
+  border-color: #1984e1;
   outline: none;
 }
 
@@ -133,7 +133,7 @@
   margin-top: 1.5rem;
   width: 100%;
   padding: 0.75rem;
-  background-color: #5e548e;
+  background-color: #080bb4;
   color: white;
   border: none;
   border-radius: 0.75rem;
@@ -144,7 +144,7 @@
 }
 
 .action:hover {
-  background-color: #4b3f7c;
+  background-color: #387adc;
 }
 
 .success-message {

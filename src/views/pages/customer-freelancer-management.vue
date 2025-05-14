@@ -107,7 +107,7 @@
                 <button class="action-btn message-btn" @click="goToChat">
                   <span class="btn-icon">✉️</span>
                 </button>
-                <button @click="deleteUser(user.id)" class="btn btn-danger">Delete</button>
+                <button @click="deleteUser(user.id)" class="btn btn-danger">Delete user</button>
               </div>
             </td>
           </tr>
@@ -614,7 +614,7 @@ const goToChat = () => {
 
 .status-badge.inactive {
   background-color: #fff5f5;
-  color: #c53030;
+  color: z#c53030;
 }
 
 .status-dot {
@@ -660,12 +660,12 @@ const goToChat = () => {
 }
 
 .suspend-btn {
-  background-color: #f6ad55;
-  color: #7b341e;
+  background-color: #1b509f;
+  color: #111a64;
 }
 
 .suspend-btn:hover {
-  background-color: #ed8936;
+  background-color: #09097b;
 }
 
 .activate-btn {
