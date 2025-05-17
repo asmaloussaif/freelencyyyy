@@ -33,7 +33,7 @@
               <CTableBody>
                 <CTableRow v-for="(payment, index) in payments" :key="payment.id">
                   <CTableDataCell>{{ index + 1 }}</CTableDataCell>
-                  <CTableDataCell>{{ payment.project?.title || 'N/A' }}</CTableDataCell>
+                  <CTableDataCell>{{ payment.project?.titre || 'N/A' }}</CTableDataCell>
                   <CTableDataCell v-if="role === 'freelancer'">
                     {{ payment.client?.lastName }} {{ payment.client?.name }}
                   </CTableDataCell>
@@ -43,13 +43,23 @@
                   <CTableDataCell>{{ payment.montant }} TD</CTableDataCell>
                   <CTableDataCell>
                     <CBadge :color="statusColor(payment.statut)">
-                      {{ payment.statut === 'finished' ? 'Paid' : 'Unpaid' }}
+                      {{ payment.statut === 'Paid' ? 'Paid' : 'Unpaid' }}
                     </CBadge>
                   </CTableDataCell>
                   <CTableDataCell>{{ formatDate(payment.created_at) }}</CTableDataCell>
                   <CTableDataCell>
-                    <CButton v-if="role === 'freelancer'" class="btn-update" @click="openStatusModal(payment)">Update</CButton>
-                    <CButton v-if="role === 'client'" class="btn-update" @click="openDetailModal(payment)">Show Detail</CButton>
+                    <CButton
+                      v-if="role === 'freelancer'"
+                      class="btn-update"
+                      @click="openStatusModal(payment)"
+                      >Update</CButton
+                    >
+                    <CButton
+                      v-if="role === 'client'"
+                      class="btn-update"
+                      @click="openDetailModal(payment)"
+                      >Show Detail</CButton
+                    >
                   </CTableDataCell>
                 </CTableRow>
               </CTableBody>
@@ -62,8 +72,8 @@
                 <label class="form-label">Select New Status</label>
                 <select v-model="selectedStatus" class="form-select">
                   <option disabled value="">-- Choose status --</option>
-                  <option value="cancelled">Paid</option>
-                  <option value="finished">Unpaid</option>
+                  <option value="Unpaid">Unpaid</option>
+                  <option value="Paid">Paid</option>
                 </select>
               </CModalBody>
               <CModalFooter>
@@ -73,52 +83,100 @@
             </CModal>
 
             <!-- Detail Modal (Client View) -->
-            <CModal :visible="detailModalVisible" @close="detailModalVisible = false" class="styled-modal">
-  <CModalHeader><CModalTitle>Invoice Detail</CModalTitle></CModalHeader>
-  <CModalBody v-if="selectedPayment" class="modal-body-custom">
-    <p><strong>Project:</strong> {{ selectedPayment.project?.title }}</p>
-    <p><strong>Freelancer:</strong> {{ selectedPayment.freelancer?.name }} {{ selectedPayment.freelancer?.lastName }}</p>
-    <p><strong>Amount:</strong> {{ selectedPayment.montant }} TD</p>
-    <p><strong>Status:</strong> {{ selectedPayment.statut === 'finished' ? 'Paid' : 'Unpaid' }}</p>
-    <p><strong>Deadline:</strong> {{ formatDate(selectedPayment.created_at) }}</p>
-    <p><strong>Description:</strong> {{ selectedPayment.description || 'N/A' }}</p>
-  </CModalBody>
-  <CModalFooter>
-    <CButton class="btn-cancel" @click="detailModalVisible = false">Close</CButton>
-  </CModalFooter>
-</CModal>
+            <CModal
+              :visible="detailModalVisible"
+              @close="detailModalVisible = false"
+              class="styled-modal"
+            >
+              <CModalHeader><CModalTitle>Invoice Detail</CModalTitle></CModalHeader>
+              <CModalBody v-if="selectedPayment" class="modal-body-custom">
+                <p><strong>Project:</strong> {{ selectedPayment.project?.title }}</p>
+                <p>
+                  <strong>Freelancer:</strong> {{ selectedPayment.freelancer?.name }}
+                  {{ selectedPayment.freelancer?.lastName }}
+                </p>
+                <p><strong>Amount:</strong> {{ selectedPayment.montant }} TD</p>
+                <p>
+                  <strong>Status:</strong>
+                  {{ selectedPayment.statut === 'finished' ? 'Paid' : 'Unpaid' }}
+                </p>
+                <p><strong>Deadline:</strong> {{ formatDate(selectedPayment.created_at) }}</p>
+                <p><strong>Description:</strong> {{ selectedPayment.description || 'N/A' }}</p>
+              </CModalBody>
+              <CModalFooter>
+                <CButton class="btn-cancel" @click="detailModalVisible = false">Close</CButton>
+              </CModalFooter>
+            </CModal>
 
             <!-- Add Facture Modal -->
-            <CModal :visible="factureModalVisible" @close="factureModalVisible = false" class="styled-modal">
-  <CModalHeader><CModalTitle>Add Facture</CModalTitle></CModalHeader>
-  <CModalBody class="modal-body-custom">
-    <div class="mb-3">
-      <label class="form-label">Project</label>
-      <input type="text" class="form-control custom-input" v-model="newFacture.project" placeholder="Project name" />
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Amount</label>
-      <input type="number" class="form-control custom-input" v-model="newFacture.amount" placeholder="e.g. 200" />
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Description</label>
-      <input type="text" class="form-control custom-input" v-model="newFacture.description" placeholder="Description" />
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Deadline</label>
-      <input type="date" class="form-control custom-input" v-model="newFacture.deadline" />
-    </div>
-    <div class="mb-3">
-      <label class="form-label">Client name</label>
-      <input type="text" class="form-control custom-input" placeholder="Client name" />
-    </div>
-  </CModalBody>
-  <CModalFooter>
-    <CButton class="btn-cancel" @click="factureModalVisible = false">Cancel</CButton>
-    <CButton class="btn-submit" @click="submitFacture">Submit</CButton>
-  </CModalFooter>
-</CModal>
+            <CModal
+              :visible="factureModalVisible"
+              @close="resetFactureForm"
+              class="styled-modal"
+            >
+              <CModalHeader><CModalTitle>Add Facture</CModalTitle></CModalHeader>
+              <CModalBody class="modal-body-custom">
+                <!-- Select Project -->
+                <div class="mb-3">
+                  <label class="form-label">Project</label>
+                  <select
+                    class="form-control custom-input"
+                    v-model="newFacture.project_id"
+                    @change="onProjectSelect"
+                  >
+                    <option disabled value="">-- Select Project --</option>
+                    <option v-for="project in unpaidProject" :key="project.id" :value="project.id">
+                      {{ project.titre }}
+                    </option>
+                  </select>
+                </div>
 
+                <!-- Amount -->
+                <div class="mb-3">
+                  <label class="form-label">Amount</label>
+                  <input
+                    type="number"
+                    class="form-control custom-input"
+                    v-model="newFacture.montant"
+                    placeholder="e.g. 200"
+                  />
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                  <label class="form-label">Description</label>
+                  <input
+                    type="text"
+                    class="form-control custom-input"
+                    v-model="newFacture.description"
+                    placeholder="Description"
+                  />
+                </div>
+
+                <!-- Deadline -->
+                <div class="mb-3">
+                  <label class="form-label">Deadline</label>
+                   <input type="date" class="form-control custom-input" v-model="newFacture.date_limite" />
+                </div>
+
+                <!-- Client Name (Read Only) -->
+                <div class="mb-3">
+                  <label class="form-label">Client name</label>
+                  <input
+                    type="text"
+                    class="form-control custom-input"
+                    :value="selectedClientName"
+                    readonly
+                    placeholder="Client name"
+                  />
+                </div>
+              </CModalBody>
+
+              <CModalFooter>
+              <CButton class="btn-cancel" @click="resetFactureForm">Cancel</CButton>
+                <CButton class="btn-submit" @click="submitFacture">Submit</CButton>
+              </CModalFooter>
+            </CModal>
           </CCardBody>
         </CCard>
       </CCol>
@@ -133,6 +191,7 @@ import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()
 const payments = ref([])
+
 const role = computed(() => authStore.role)
 
 const statusModalVisible = ref(false)
@@ -142,20 +201,55 @@ const detailModalVisible = ref(false)
 const selectedStatus = ref('')
 const selectedPayment = ref(null)
 
+const unpaidProject = ref([])
 const newFacture = ref({
-  project: '',
-  amount: '',
-  deadline: '',
+  client_id: '',
+  project_id: '',
+  montant: '',
   description: '',
+  date_limite: ''
 })
-
+const selectedClientName = ref('')
+const resetFactureForm = () => {
+  newFacture.value = {
+    client_id: '',
+    project_id: '',
+    montant: '',
+    description: '',
+    date_limite: ''
+  }
+  selectedClientName.value = '' 
+  factureModalVisible.value = false
+}
 const fetchPayments = async () => {
   try {
     const headers = { Authorization: `Bearer ${authStore.token}` }
     const response = await axios.get('http://127.0.0.1:8000/api/payments/history', { headers })
     payments.value = response.data
+    console.log(payments.value, ' payments.value')
   } catch (error) {
     console.error('Error fetching payments:', error)
+  }
+}
+const fetechUnpaidProjectList = async () => {
+  try {
+    const headers = { Authorization: `Bearer ${authStore.token}` }
+    const response = await axios.get('http://127.0.0.1:8000/api/unpaid_project', { headers })
+    unpaidProject.value = response.data
+  } catch (error) {
+    console.error('Error fetching unpaid projects:', error)
+  }
+}
+
+// When project is selected, update client name display
+const onProjectSelect = () => {
+  const selected = unpaidProject.value.find(p => p.id === newFacture.value.project_id)
+  if (selected && selected.client) {
+    selectedClientName.value = `${selected.client.name} ${selected.client.lastName || ''}`
+    newFacture.value.client_id = selected.client.id 
+  } else {
+    selectedClientName.value = ''
+    newFacture.value.client_id = ''
   }
 }
 
@@ -181,7 +275,7 @@ const saveStatus = async () => {
           Authorization: `Bearer ${authStore.token}`,
           'Content-Type': 'application/json',
         },
-      }
+      },
     )
     statusModalVisible.value = false
     showSuccessToast('Status updated successfully!')
@@ -195,7 +289,7 @@ const saveStatus = async () => {
 const submitFacture = async () => {
   try {
     const headers = { Authorization: `Bearer ${authStore.token}` }
-    await axios.post('http://127.0.0.1:8000/api/factures', newFacture.value, { headers })
+    await axios.post('http://127.0.0.1:8000/api/payments', newFacture.value, { headers })
     factureModalVisible.value = false
     showSuccessToast('Facture submitted successfully!')
     fetchPayments()
@@ -204,7 +298,6 @@ const submitFacture = async () => {
     showSuccessToast('Failed to submit facture', true)
   }
 }
-
 const statusColor = (status) => (status === 'finished' ? 'success' : 'warning')
 
 const formatDate = (date) => {
@@ -215,7 +308,9 @@ const formatDate = (date) => {
 const showSuccessToast = (message, isError = false) => {
   const toast = document.createElement('div')
   toast.innerHTML = `
-    <div class="toast align-items-center text-white ${isError ? 'bg-danger' : 'bg-success'} border-0 show" role="alert">
+    <div class="toast align-items-center text-white ${
+      isError ? 'bg-danger' : 'bg-success'
+    } border-0 show" role="alert">
       <div class="d-flex">
         <div class="toast-body">${message}</div>
       </div>
@@ -224,7 +319,7 @@ const showSuccessToast = (message, isError = false) => {
   setTimeout(() => toast.remove(), 3000)
 }
 
-onMounted(fetchPayments)
+onMounted(fetchPayments(), fetechUnpaidProjectList())
 </script>
 
 <style scoped>
@@ -270,13 +365,15 @@ onMounted(fetchPayments)
   background-color: #092052;
 }
 
-.btn-submit, .btn-save {
+.btn-submit,
+.btn-save {
   background-color: #3a89dd;
   color: #fff;
   border: none;
 }
 
-.btn-submit:hover, .btn-save:hover {
+.btn-submit:hover,
+.btn-save:hover {
   background-color: #212bba;
 }
 .styled-modal {
@@ -305,7 +402,8 @@ onMounted(fetchPayments)
   box-shadow: 0 0 0 0.15rem rgba(159, 134, 192, 0.25);
 }
 
-.btn-cancel, .btn-submit {
+.btn-cancel,
+.btn-submit {
   border-radius: 0.5rem;
   padding: 0.5rem 1.2rem;
   font-weight: 500;

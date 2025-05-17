@@ -15,16 +15,11 @@ const sidebar = useSidebarStore()
     @visible-change="(value) => sidebar.toggleVisible(value)"
   >
     <!-- Sidebar Header -->
+
     <CSidebarHeader class="sidebar-header">
-      <RouterLink custom to="/" v-slot="{ href, navigate }">
-        <CSidebarBrand as="a" :href="href" @click="navigate">
-          <img
-            src="/src/assets/images/lastlogo.png"
-            alt="Freelancyy Logo"
-            class="sidebar-logo"
-          />
-        </CSidebarBrand>
-      </RouterLink>
+      <CSidebarBrand>
+        <img src="/src/assets/images/lastlogo.png" alt="Freelancyy Logo" class="sidebar-logo" />
+      </CSidebarBrand>
       <CCloseButton class="d-lg-none text-dark" dark @click="sidebar.toggleVisible()" />
     </CSidebarHeader>
 
@@ -69,12 +64,12 @@ const sidebar = useSidebarStore()
 :deep(.c-sidebar-nav-link),
 :deep(svg) {
   color: #000 !important; /* force black */
-  fill: #000 !important;  /* for SVG icons */
+  fill: #000 !important; /* for SVG icons */
 }
 
 /* Hover effect */
 :deep(.nav-link:hover) {
-  background-color: #E1F0FF !important;
+  background-color: #e1f0ff !important;
   color: #000 !important;
 }
 </style>

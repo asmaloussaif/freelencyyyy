@@ -1,40 +1,45 @@
 <template>
-    <div class="auth-container">
-      <div class="overlay"></div>
-      <div class="loginBox">
-        <div class="inner">
-          <div class="signIn">
-            <div class="top">
-              <img class="logo" src="/src/assets/images/lastlogo.png" />
-              <div class="title">Forgot Password</div>
-              <div class="subtitle">Enter your email to receive a reset link</div>
-            </div>
-  
-            <form @submit.prevent="handleSubmit">
-              <div class="form">
-                <input
-                  required
-                  type="email"
-                  class="w100"
-                  v-model="email"
-                  placeholder="Email"
-                />
-              </div>
-  
-              <button type="submit" class="action">Send Reset Link</button>
-              <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
-              <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-            </form>
+  <div class="auth-container">
+    <div class="overlay"></div>
+    <div class="loginBox">
+      <div class="inner">
+        <div class="signIn">
+          <div class="top">
+            <img class="logo" src="/src/assets/images/lastlogo.png" />
+            <div class="title">Forgot Password</div>
+            <div class="subtitle">Enter your email to receive a reset link</div>
           </div>
+
+          <form @submit.prevent="handleSubmit">
+            <div class="form">
+              <input
+                required
+                type="email"
+                class="w100"
+                v-model="email"
+                placeholder="Email"
+              />
+            </div>
+
+            <button type="submit" class="action">Send Reset Link</button>
+
+            <div v-if="successMessage" class="success-message">{{ successMessage }}</div>
+            <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+          </form>
+
+          <button class="return-button" @click="goToLogin">Return to Login</button>
         </div>
       </div>
     </div>
-  </template>
+  </div>
+</template>
+
   
   <script setup>
   import { ref } from 'vue';
   import axios from 'axios';
-  
+  import { useRouter } from 'vue-router'
+  const router = useRouter()
   const email = ref('');
   const successMessage = ref('');
   const errorMessage = ref('');
@@ -44,11 +49,17 @@
       await axios.post('http://127.0.0.1:8000/api/forgot-password', { email: email.value });
       successMessage.value = 'A reset link has been sent to your email.';
       errorMessage.value = '';
+      setTimeout(() => {
+      router.push('/pages/login')
+    }, 2000)
     } catch (error) {
       errorMessage.value = error.response?.data?.message || 'Something went wrong.';
       successMessage.value = '';
     }
   };
+  const goToLogin = () => {
+  router.push('/pages/login')
+}
   </script>
   
   <style scoped>
@@ -70,7 +81,20 @@
   align-items: center;
   overflow: hidden;
 }
+.return-button {
+  margin-top: 1rem;
+  background-color: transparent;
+  border: 1px solid #ccc;
+  padding: 0.5rem 1rem;
+  cursor: pointer;
+  color: #444;
+  border-radius: 5px;
+  transition: all 0.2s ease-in-out;
+}
 
+.return-button:hover {
+  background-color: #f5f5f5;
+}
 .overlay {
   position: absolute;
   top: 0;

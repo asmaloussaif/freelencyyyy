@@ -22,7 +22,7 @@
 
           <h5 class="name">{{ freelance.user.name || '' }} {{ freelance.user.lastName || '' }}</h5>
           <p class="title">{{ freelance.titre }}</p>
-          <CBadge color="primary" class="rate-badge">💰 {{ freelance.note }} TND/h</CBadge>
+          <CBadge class="rate-badge">💰 {{ freelance.note }} TND/h</CBadge>
 
           <!-- Affichage de la note -->
           <div class="rating">
@@ -78,7 +78,7 @@
       <CModalBody>
         <CForm>
           <CFormInput v-model="editedProfile.titre" label="Title" class="mb-3" />
-          <CFormInput v-model="editedProfile.note" label="Rate (TND/h)" type="number" class="mb-3" />
+         
           <CFormTextarea v-model="skillsInput" label="Skills (comma-separated)" class="mb-3" />  
           <CFormInput v-model="editedProfile.portfolio" label="Portfolio Link "class="mb-3" /> 
         </CForm>
@@ -106,7 +106,6 @@ const freelance = ref({
   competences: '',
   experience:'',
   portfolio: '',
-  note: '',
   user: {}
 })
 
@@ -220,8 +219,8 @@ function openModal() {
 }
 
 .rate-badge {
-  background-color: #0F2573;
-  color: white;
+ background-color: rgb(53 153 255);
+  color: white; 
   font-size: 0.85rem;
   padding: 0.4rem 0.6rem;
   border-radius: 0.6rem;
