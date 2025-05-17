@@ -28,9 +28,9 @@
       <div class="activity-card">
         <h5>⚡ Recent Activity</h5>
         <ul>
-          <li>💼 Client A posted a new project</li>
-          <li>✅ Project “UI Design” marked as completed</li>
-          <li>📅 Deadline approaching for “Backend Refactor”</li>
+          <li>✉️ A new message was received</li>
+          <li>✅ A project status was updated</li>
+          <li>📅 A deadline is approaching</li>
         </ul>
       </div>
     </template>
@@ -83,7 +83,26 @@
         <p>Here’s what’s happening in your dashboard today.</p>
       </div>
 
-      <div class="filter-bar">
+      
+
+      <div class="summary-container">
+    <div class="summary-card" v-for="(value, key) in summary" :key="key">
+      <h6>{{ labels[key] || key }}</h6>
+      <p>{{ value }}</p>
+    </div>
+  </div>
+
+      <div class="charts-container">
+        <div class="chart-card">
+          <h5 class="chart-title">📊 Projects by Status</h5>
+          <Pie :data="pieChartData" :options="chartOptions" />
+        </div>
+        <div class="chart-card">
+          <h5 class="chart-title">📅 Projects by Deadline</h5>
+          <Pie :data="secondPieChartData" :options="chartOptions" />
+        </div>
+      </div>
+<div class="filter-bar">
         <div class="filter-item">
           <select v-model="selectedSkill" @change="filterFreelancers" class="filter-select">
             <option value="">Select Skill</option>
@@ -105,25 +124,6 @@
           </select>
         </div>
       </div>
-
-      <div class="summary-container">
-    <div class="summary-card" v-for="(value, key) in summary" :key="key">
-      <h6>{{ labels[key] || key }}</h6>
-      <p>{{ value }}</p>
-    </div>
-  </div>
-
-      <div class="charts-container">
-        <div class="chart-card">
-          <h5 class="chart-title">📊 Projects by Status</h5>
-          <Pie :data="pieChartData" :options="chartOptions" />
-        </div>
-        <div class="chart-card">
-          <h5 class="chart-title">📅 Projects by Deadline</h5>
-          <Pie :data="secondPieChartData" :options="chartOptions" />
-        </div>
-      </div>
-
       <div>
         <h2 class="text-xl font-semibold text-[#0F2573] mb-4">Suggested Freelancers</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -299,7 +299,7 @@ const goToClaims = () => router.push('/admin/claim-management')
 }
 
 .activity-card {
-  background-color: #fff;
+  background-color: #ffffff;
   padding: 20px;
   border-radius: 8px;
   margin-top: 20px;

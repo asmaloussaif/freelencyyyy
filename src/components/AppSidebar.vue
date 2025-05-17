@@ -41,13 +41,13 @@ const sidebar = useSidebarStore()
 <style scoped>
 /* Sidebar background and text */
 .custom-sidebar {
-  background-color: #f1f1f2 !important;
+  background-color: #e5e9f3 !important;
   color: #191627 !important;
 }
 
 /* Header centered */
 .sidebar-header {
-  background-color: #f9fafc;
+  background-color: #ffffff;
   padding: 1rem;
   display: flex;
   align-items: center;

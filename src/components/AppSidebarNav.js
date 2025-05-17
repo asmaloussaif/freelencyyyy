@@ -132,7 +132,6 @@ const AppSidebarNav = defineComponent({
       },      
     ]
 
-    // Computed navItems that updates based on user role
     const navItems = computed(() => {
       let items = [...baseNavItems]
     
@@ -147,7 +146,6 @@ const AppSidebarNav = defineComponent({
       return items
     })
 
-    // Render navigation items
     const renderItem = (item) => {
       if (item.items) {
         return h(

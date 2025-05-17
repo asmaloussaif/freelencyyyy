@@ -10,7 +10,7 @@
           <option value="">Select Rating</option>
           <option v-for="rating in ratings" :key="rating" :value="rating">{{ rating }} & Up</option>
         </select>
-        <button @click="addNewProject">Add New Project</button>
+       
       </div>
   
       <!-- Freelancer Listings -->

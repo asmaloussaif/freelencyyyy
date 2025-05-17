@@ -42,10 +42,18 @@
           <CButton
             type="submit"
             class="w-100 py-2 mt-4 shadow-sm fs-5"
-            style="background-color: #266ca9  ; border-color: #a8d8ff"
+            style="background-color:#238ae4  ; border-color: #a8d8ff"
           >
             Submit Claim
           </CButton>
+            <CButton
+    type="button"
+    @click="cancelClaim"
+    class="w-100 py-2 mt-2 shadow-sm fs-5"
+    style="background-color:#100f65 ; border-color: #adb5bd; color: white"
+  >
+    Cancel
+  </CButton>
         </CForm>
 
         <hr class="my-5" style="border-color: #5e548e" />
@@ -157,20 +165,14 @@ const submitClaim = async () => {
     showToast.value = true
   }
 }
-
-/* const deleteClaim = async (id) => {
-  try {
-    await fetch(`http://127.0.0.1:8000/api/claims/${id}`, {
-      method: 'DELETE',
-    })
-    await fetchClaims()
-  } catch (error) {
-    console.error('Error deleting claim', error)
-  }
+const cancelClaim = () => {
+  form.value.sujet = ''
+  form.value.description = ''
 }
- */
+
+
 onMounted(() => {
-  // fetchClaims()
+
 })
 </script>
 
@@ -201,8 +203,8 @@ onMounted(() => {
 button:focus,
 input:focus,
 textarea:focus {
-  box-shadow: 0 0 0 0.2rem rgba(38, 108, 169, 0.25) !important;
-  border-color: #266ca9 !important;
+  box-shadow: 0 0 0 0.2rem rgba(68, 154, 228, 0.881) !important;
+  border-color: #238ae4 !important;
 }
 
 ::placeholder {

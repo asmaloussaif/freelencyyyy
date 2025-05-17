@@ -28,9 +28,7 @@ onMounted(() => {
         <CIcon icon="cil-menu" size="lg" />
       </CHeaderToggler>
       <CHeaderNav class="d-none d-md-flex">
-        <CNavItem>
-          <CNavLink href="/dashboard/home"> Dashboard </CNavLink>
-        </CNavItem>
+       
       
       </CHeaderNav>
    

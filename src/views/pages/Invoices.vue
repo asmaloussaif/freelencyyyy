@@ -2,7 +2,6 @@
   <div class="container py-4">
     <div class="header-section">
       <h2 class="section-title">My Payments</h2>
-
       <!-- Button visible only for freelancers -->
       <div v-if="role === 'freelancer'">
         <CButton class="add-facture-btn" color="primary" @click="factureModalVisible = true">
@@ -49,7 +48,8 @@
                   </CTableDataCell>
                   <CTableDataCell>{{ formatDate(payment.created_at) }}</CTableDataCell>
                   <CTableDataCell>
-                    <CButton class="btn-update" @click="openStatusModal(payment)">Update</CButton>
+                    <CButton v-if="role === 'freelancer'" class="btn-update" @click="openStatusModal(payment)">Update</CButton>
+                    <CButton v-if="role === 'client'" class="btn-update" @click="openDetailModal(payment)">Show Detail</CButton>
                   </CTableDataCell>
                 </CTableRow>
               </CTableBody>
@@ -57,9 +57,7 @@
 
             <!-- Status Modal -->
             <CModal :visible="statusModalVisible" @close="statusModalVisible = false">
-              <CModalHeader>
-                <CModalTitle>Change Status</CModalTitle>
-              </CModalHeader>
+              <CModalHeader><CModalTitle>Change Status</CModalTitle></CModalHeader>
               <CModalBody>
                 <label class="form-label">Select New Status</label>
                 <select v-model="selectedStatus" class="form-select">
@@ -69,41 +67,57 @@
                 </select>
               </CModalBody>
               <CModalFooter>
-  <CButton class="btn-cancel" @click="statusModalVisible = false">Cancel</CButton>
-  <CButton class="btn-save" @click="saveStatus">Save</CButton>
-</CModalFooter>
-
+                <CButton class="btn-cancel" @click="statusModalVisible = false">Cancel</CButton>
+                <CButton class="btn-save" @click="saveStatus">Save</CButton>
+              </CModalFooter>
             </CModal>
+
+            <!-- Detail Modal (Client View) -->
+            <CModal :visible="detailModalVisible" @close="detailModalVisible = false" class="styled-modal">
+  <CModalHeader><CModalTitle>Invoice Detail</CModalTitle></CModalHeader>
+  <CModalBody v-if="selectedPayment" class="modal-body-custom">
+    <p><strong>Project:</strong> {{ selectedPayment.project?.title }}</p>
+    <p><strong>Freelancer:</strong> {{ selectedPayment.freelancer?.name }} {{ selectedPayment.freelancer?.lastName }}</p>
+    <p><strong>Amount:</strong> {{ selectedPayment.montant }} TD</p>
+    <p><strong>Status:</strong> {{ selectedPayment.statut === 'finished' ? 'Paid' : 'Unpaid' }}</p>
+    <p><strong>Deadline:</strong> {{ formatDate(selectedPayment.created_at) }}</p>
+    <p><strong>Description:</strong> {{ selectedPayment.description || 'N/A' }}</p>
+  </CModalBody>
+  <CModalFooter>
+    <CButton class="btn-cancel" @click="detailModalVisible = false">Close</CButton>
+  </CModalFooter>
+</CModal>
 
             <!-- Add Facture Modal -->
-            <CModal :visible="factureModalVisible" @close="factureModalVisible = false">
-              <CModalHeader>
-                <CModalTitle>Add Facture</CModalTitle>
-              </CModalHeader>
-              <CModalBody>
-                <div class="mb-3">
-                  <label class="form-label">Project</label>
-                  <input type="text" class="form-control" v-model="newFacture.project" placeholder="Project name" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Amount</label>
-                  <input type="number" class="form-control" v-model="newFacture.amount" placeholder="e.g. 200" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Deadline</label>
-                  <input type="date" class="form-control" v-model="newFacture.deadline" />
-                </div>
-                <div class="mb-3">
-                  <label class="form-label">Client name</label>
-                  <input type="text" class="form-control" placeholder="Client name" />
-                </div>
-              </CModalBody>
-              <CModalFooter>
-  <CButton class="btn-cancel" @click="factureModalVisible = false">Cancel</CButton>
-  <CButton class="btn-submit" @click="submitFacture">Submit</CButton>
-</CModalFooter>
-
-            </CModal>
+            <CModal :visible="factureModalVisible" @close="factureModalVisible = false" class="styled-modal">
+  <CModalHeader><CModalTitle>Add Facture</CModalTitle></CModalHeader>
+  <CModalBody class="modal-body-custom">
+    <div class="mb-3">
+      <label class="form-label">Project</label>
+      <input type="text" class="form-control custom-input" v-model="newFacture.project" placeholder="Project name" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Amount</label>
+      <input type="number" class="form-control custom-input" v-model="newFacture.amount" placeholder="e.g. 200" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Description</label>
+      <input type="text" class="form-control custom-input" v-model="newFacture.description" placeholder="Description" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Deadline</label>
+      <input type="date" class="form-control custom-input" v-model="newFacture.deadline" />
+    </div>
+    <div class="mb-3">
+      <label class="form-label">Client name</label>
+      <input type="text" class="form-control custom-input" placeholder="Client name" />
+    </div>
+  </CModalBody>
+  <CModalFooter>
+    <CButton class="btn-cancel" @click="factureModalVisible = false">Cancel</CButton>
+    <CButton class="btn-submit" @click="submitFacture">Submit</CButton>
+  </CModalFooter>
+</CModal>
 
           </CCardBody>
         </CCard>
@@ -122,19 +136,22 @@ const payments = ref([])
 const role = computed(() => authStore.role)
 
 const statusModalVisible = ref(false)
+const factureModalVisible = ref(false)
+const detailModalVisible = ref(false)
+
 const selectedStatus = ref('')
 const selectedPayment = ref(null)
-const factureModalVisible = ref(false)
 
 const newFacture = ref({
   project: '',
   amount: '',
   deadline: '',
+  description: '',
 })
 
 const fetchPayments = async () => {
-  const headers = { Authorization: `Bearer ${authStore.token}` }
   try {
+    const headers = { Authorization: `Bearer ${authStore.token}` }
     const response = await axios.get('http://127.0.0.1:8000/api/payments/history', { headers })
     payments.value = response.data
   } catch (error) {
@@ -142,19 +159,15 @@ const fetchPayments = async () => {
   }
 }
 
-function formatDate(dateString) {
-  const options = { year: 'numeric', month: 'short', day: 'numeric' }
-  return new Date(dateString).toLocaleDateString('fr-FR', options)
-}
-
-const statusColor = (status) => {
-  return status === 'finished' ? 'success' : 'warning'
-}
-
 const openStatusModal = (payment) => {
   selectedPayment.value = payment
   selectedStatus.value = ''
   statusModalVisible.value = true
+}
+
+const openDetailModal = (payment) => {
+  selectedPayment.value = payment
+  detailModalVisible.value = true
 }
 
 const saveStatus = async () => {
@@ -180,11 +193,9 @@ const saveStatus = async () => {
 }
 
 const submitFacture = async () => {
-  const headers = { Authorization: `Bearer ${authStore.token}` }
   try {
-    await axios.post('http://127.0.0.1:8000/api/factures', {
-      ...newFacture.value,
-    }, { headers })
+    const headers = { Authorization: `Bearer ${authStore.token}` }
+    await axios.post('http://127.0.0.1:8000/api/factures', newFacture.value, { headers })
     factureModalVisible.value = false
     showSuccessToast('Facture submitted successfully!')
     fetchPayments()
@@ -192,6 +203,13 @@ const submitFacture = async () => {
     console.error(error)
     showSuccessToast('Failed to submit facture', true)
   }
+}
+
+const statusColor = (status) => (status === 'finished' ? 'success' : 'warning')
+
+const formatDate = (date) => {
+  const options = { year: 'numeric', month: 'short', day: 'numeric' }
+  return new Date(date).toLocaleDateString('fr-FR', options)
 }
 
 const showSuccessToast = (message, isError = false) => {
@@ -226,7 +244,7 @@ onMounted(fetchPayments)
   font-weight: 500;
   border-radius: 8px;
   padding: 8px 16px;
-  background-color: #17308b;
+  background-color: #3a89dd;
 }
 
 .btn-update {
@@ -241,25 +259,7 @@ onMounted(fetchPayments)
 .btn-update:hover {
   background-color: #3a89dd;
 }
-.btn-cancel {
-  background-color: #1b0b5f;
-  color: #fff;
-  border: none;
-}
 
-.btn-cancel:hover {
-  background-color: #092052;
-}
-
-.btn-submit {
-  background-color: #3a89dd;
-  color: #fff;
-  border: none;
-}
-
-.btn-submit:hover {
-  background-color: #212bba;
-}
 .btn-cancel {
   background-color: #0b1f67;
   color: #fff;
@@ -270,16 +270,65 @@ onMounted(fetchPayments)
   background-color: #092052;
 }
 
-.btn-save {
+.btn-submit, .btn-save {
   background-color: #3a89dd;
   color: #fff;
   border: none;
 }
 
-.btn-save:hover {
-  background-color: #3a89dd;
+.btn-submit:hover, .btn-save:hover {
+  background-color: #212bba;
+}
+.styled-modal {
+  --cui-modal-border-radius: 1rem;
+  --cui-modal-padding: 1.5rem;
+  --cui-modal-bg: #f8faff;
 }
 
+.modal-body-custom {
+  padding: 1rem 1.5rem;
+  background-color: #ffffff;
+  border-radius: 1rem;
+}
 
+.custom-input {
+  border-radius: 0.75rem;
+  border: 1px solid #d6beda;
+  padding: 0.6rem 1rem;
+  background-color: #f8faff;
+  transition: border-color 0.3s;
+}
+
+.custom-input:focus {
+  outline: none;
+  border-color: #9f86c0;
+  box-shadow: 0 0 0 0.15rem rgba(159, 134, 192, 0.25);
+}
+
+.btn-cancel, .btn-submit {
+  border-radius: 0.5rem;
+  padding: 0.5rem 1.2rem;
+  font-weight: 500;
+  transition: background-color 0.3s;
+}
+
+.btn-cancel {
+  background-color: #e1f0ff;
+  color: #0f2573;
+  border: none;
+}
+
+.btn-cancel:hover {
+  background-color: #d0e8ff;
+}
+
+.btn-submit {
+  background-color: #081681;
+  color: white;
+  border: none;
+}
+
+.btn-submit:hover {
+  background-color: #3f3add;
+}
 </style>
-
